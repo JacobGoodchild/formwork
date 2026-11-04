@@ -23,12 +23,39 @@ chain at 21:05, 22:35, 00:05, 01:35, 03:05, 04:35, 06:05 UK). Deadline: 07:00 UK
 | JetBrains Rider SDK (intellij-repository) | OK (metadata reachable) |
 | Gradle plugin portal, Maven Central | OK |
 | GitHub (git clone of Go-Forms/.NetForms) | OK over git; plain https page browsing is blocked by the session proxy, which is fine |
+| Gradle → Rider SDK `riderRD 2026.2.4.1` | OK (3.6 GB zip, 9.4 GB unpacked, includes the ReSharper back end) |
+
+## BLOCKER: the sandbox Rider needs a JetBrains account login
+
+`./gradlew runIde` starts Rider 2026.2.4.1 under Xvfb fine and loads the sample solution, but then shows
+the licence dialog. All three choices ("Free — non-commercial use", "Paid license", "Start trial")
+need **Log in to JetBrains Account**. The brief says never log in, so I did not.
+Screenshot of the dialog: `docs/screenshots/stage0-rider-licence-dialog.png`.
+
+**Fallback (as the brief says):** the plugin's UI uses only the shared IntelliJ Platform (plus the
+JCEF browser plugin), so it is screenshot-tested in the free **IntelliJ IDEA Community 2026.2.4**
+(same platform build line, 262) via `./gradlew runIdeaCommunity`. Checks only Rider can do (Solution
+Explorer nesting, Rider's Run button, the C# editor) are listed for Jacob in `TESTING-FOR-JACOB.md`.
 
 ## Decisions (with reasons)
 
 1. NetForms pinned to tag `v0.1.5` (newest stable release; same as newest NuGet `0.1.5`).
-2. Canvas route: reuse NetForms' webview (`designer/media/designer.js`) in JCEF. Reason: it only
-   touches VS Code through `acquireVsCodeApi()` and `window` messages, so a small shim is enough.
+2. Plugin built with IntelliJ Platform Gradle Plugin 2.19.0, Kotlin 2.4.21, Gradle 9.2.1 (wrapper
+   checksum pinned), target Rider 2026.2.4.1 (sinceBuild 262).
+3. Canvas route: reuse NetForms' webview (`designer/media/designer.js`) in JCEF. Reason: it only
+   touches VS Code through `acquireVsCodeApi()` and `window` messages, so a small shim is enough
+   (`src/main/resources/formwork/webview/bridge.js`).
+4. File writes: NetForms' host writes the files to disk itself. Formwork patches NetForms with two
+   hooks (`upstream-patches/0001-…`) and wraps it in `host/Formwork.Host`, which reads Rider's buffers
+   and returns writes as text; the plugin applies them in one WriteCommandAction per gesture.
+   Undo/redo in the designer call Rider's UndoManager, not the host's, so there's one history.
+5. Form colour: Formwork.Host switches on NetForms' Windows 10/11 palette (designer only), so the
+   form is #F0F0F0 like VS rather than .NET-on-Linux's Windows XP beige #ECE9D8.
+6. Tabs: the Design tab is a FileEditor on `Form1.cs` placed before Rider's text editor, so
+   double-click opens the designer and Rider's own C# editor stays as the second tab (named "Text"
+   by the platform; renaming it would mean wrapping Rider's editor, which risks breaking C# features).
+   The top tab reads `Form1.cs [Design]` (+ `*`) while the Design tab is shown.
+7. Host published for linux-x64 only (35 MB instead of 574 MB for every OS).
 
 ## Feature checklist (statuses: Not started / Partial / Done (unverified) / Verified)
 

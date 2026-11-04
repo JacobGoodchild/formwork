@@ -2,6 +2,40 @@
   <id>dev.formwork</id>
   <name>Formwork</name>
   <vendor>Formwork</vendor>
-  <description>Windows Forms designer for Rider on Linux, built on NetForms.</description>
+  <description><![CDATA[
+    <p>The Windows Forms drag-and-drop designer for Rider on Linux, laid out like Visual Studio's:
+    a Design tab for each form, the toolbox, the property grid with Events, F7 / Shift+F7.
+    Your code stays exactly as Visual Studio writes it, so a form designed at home opens unchanged
+    in Visual Studio, and the other way round.</p>
+    <p>Built on <a href="https://github.com/Go-Forms/.NetForms">NetForms</a> (MIT licence),
+    which runs WinForms code on Linux and paints the form. Formwork makes no network requests of its own.</p>
+  ]]></description>
   <depends>com.intellij.modules.platform</depends>
+  <depends>com.intellij.modules.jcef</depends>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <fileEditorProvider implementation="dev.formwork.editor.DesignerEditorProvider"/>
+    <editorTabTitleProvider implementation="dev.formwork.editor.DesignerTabTitleProvider" order="first"/>
+    <notificationGroup id="Formwork" displayType="BALLOON"/>
+    <applicationService serviceImplementation="dev.formwork.settings.FormworkSettings"/>
+  </extensions>
+
+  <applicationListeners>
+    <listener class="dev.formwork.project.FormworkProjectListener" topic="com.intellij.openapi.project.ProjectCloseListener"/>
+  </applicationListeners>
+
+  <actions>
+    <group id="Formwork.FormGroup">
+      <action id="Formwork.ViewCode" class="dev.formwork.actions.ViewCodeAction" text="View Code" description="Show the form's code (Form1.cs)">
+        <keyboard-shortcut keymap="$default" first-keystroke="F7"/>
+      </action>
+      <action id="Formwork.ViewDesigner" class="dev.formwork.actions.ViewDesignerAction" text="View Designer" description="Show the form in the Windows Forms designer">
+        <keyboard-shortcut keymap="$default" first-keystroke="shift F7"/>
+      </action>
+      <add-to-group group-id="EditorPopupMenu" anchor="first"/>
+      <add-to-group group-id="ProjectViewPopupMenu" anchor="first"/>
+      <add-to-group group-id="EditorTabPopupMenu" anchor="first"/>
+      <separator/>
+    </group>
+  </actions>
 </idea-plugin>

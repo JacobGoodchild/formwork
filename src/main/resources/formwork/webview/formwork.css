@@ -1,0 +1,2 @@
+/* Formwork's adjustments on top of NetForms' designer.css. */
+html, body { background: var(--vscode-editor-background); }
