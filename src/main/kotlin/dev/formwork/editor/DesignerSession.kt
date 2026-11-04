@@ -83,7 +83,7 @@ class DesignerSession(
     fun onMessage(json: String) {
         val m = try { JsonParser.parseString(json).asJsonObject } catch (_: Exception) { return }
         when (m.str("type")) {
-            "__fwState" -> { webviewState = m.get("state"); return }
+            "__fwState" -> { webviewState = m.get("state"); DesignerStateStore.put(form.code.path, m.get("state").toString()); return }
             "__fwLog" -> { log.warn("Designer page: ${m.str("message")}"); return }
             else -> log.debug("Designer message: ${m.str("type")}")
         }
@@ -98,7 +98,7 @@ class DesignerSession(
                     val h = ensureHost()
                     val view = h.call("open", JsonObject().apply { addProperty("path", form.designer.path) }, files()).result!!.asJsonObject
                     lastView = view
-                    val toolbox = h.call("toolbox").result
+                    val toolbox = ToolboxModel.vsOrder(h.call("toolbox").result)
                     listenToDocuments()
                     post(JsonObject().apply {
                         addProperty("type", "init")

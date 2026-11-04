@@ -39,3 +39,24 @@ class EditorLogicTest {
         assertEquals(code.indexOf("{\n") + 2, t.offset)
     }
 }
+
+class ToolboxModelTest {
+    @org.junit.jupiter.api.Test
+    fun `groups come in Visual Studio's order with an empty General group`() {
+        dev.formwork.TestSupport.startHost().use { host ->
+            val vs = dev.formwork.editor.ToolboxModel.vsOrder(host.call("toolbox").result)
+            org.junit.jupiter.api.Assertions.assertEquals(
+                listOf("All Windows Forms", "Common Controls", "Containers", "Menus & Toolbars", "Components", "Printing", "Dialogs", "Data", "General"),
+                dev.formwork.editor.ToolboxModel.names(vs),
+            )
+            val common = vs[1].asJsonObject.getAsJsonArray("items").map { it.asJsonObject.get("name").asString }
+            // Visual Studio's Common Controls, minus WebBrowser (a Windows-only Internet Explorer control; see Known gaps).
+            org.junit.jupiter.api.Assertions.assertEquals(
+                listOf("Button", "CheckBox", "CheckedListBox", "ComboBox", "DateTimePicker", "Label", "LinkLabel", "ListBox", "ListView", "MaskedTextBox",
+                    "MonthCalendar", "NotifyIcon", "NumericUpDown", "PictureBox", "ProgressBar", "RadioButton", "RichTextBox", "TextBox", "ToolTip", "TreeView"),
+                common,
+            )
+            org.junit.jupiter.api.Assertions.assertEquals(0, vs[8].asJsonObject.getAsJsonArray("items").size())
+        }
+    }
+}

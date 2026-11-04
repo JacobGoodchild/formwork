@@ -1,0 +1,49 @@
+diff --git a/src/NetForms.Design/DesignSurface.SmartTags.cs b/src/NetForms.Design/DesignSurface.SmartTags.cs
+index d3c12f7..8270151 100644
+--- a/src/NetForms.Design/DesignSurface.SmartTags.cs
++++ b/src/NetForms.Design/DesignSurface.SmartTags.cs
+@@ -216,14 +216,25 @@ public sealed partial class DesignSurface
+     /// <summary>A menu item named as VS names the standard ones: newToolStripMenuItem, saveAsToolStripMenuItem.</summary>
+     private ToolStripMenuItem NewMenuItem(string text)
+     {
+-        var words = text.Replace("&", "").Replace(".", "").Split(' ', StringSplitOptions.RemoveEmptyEntries);
+-        var baseName = string.Concat(words.Select((w, i) => i == 0 ? w.ToLowerInvariant() : char.ToUpperInvariant(w[0]) + w.Substring(1).ToLowerInvariant())) + "ToolStripMenuItem";
++        var baseName = MenuItemBaseName(text) ?? "toolStripMenuItem";
+         var item = new ToolStripMenuItem { Text = text };
+         var component = Model.AddComponent(item, UniqueName(baseName));
+         item.Name = component.Name;
+         return item;
+     }
+ 
++    /// <summary>
++    /// The name VS gives a menu item from its text: letters and digits only, first word lower-case, the others
++    /// capitalised, then "ToolStripMenuItem" ("Save &As..." → saveAsToolStripMenuItem). Null when no letter is left.
++    /// </summary>
++    internal static string? MenuItemBaseName(string text)
++    {
++        var words = new string(text.Select(c => char.IsLetterOrDigit(c) || c == ' ' ? c : c == '&' ? '\0' : ' ').Where(c => c != '\0').ToArray())
++            .Split(' ', StringSplitOptions.RemoveEmptyEntries);
++        if (words.Length == 0 || !char.IsLetter(words[0][0])) return null;
++        return string.Concat(words.Select((w, i) => i == 0 ? w.ToLowerInvariant() : char.ToUpperInvariant(w[0]) + w.Substring(1).ToLowerInvariant())) + "ToolStripMenuItem";
++    }
++
+     private string UniqueName(string baseName)
+     {
+         var name = baseName;
+diff --git a/src/NetForms.Design/DesignSurface.cs b/src/NetForms.Design/DesignSurface.cs
+index d4cf89a..23b041e 100644
+--- a/src/NetForms.Design/DesignSurface.cs
++++ b/src/NetForms.Design/DesignSurface.cs
+@@ -752,7 +752,11 @@ public sealed partial class DesignSurface : IDisposable
+                 IComponent instance;
+                 try { instance = (IComponent)Activator.CreateInstance(type)!; }
+                 catch (Exception ex) { throw new DesignerEditException($"Creating a {type.Name} failed: {Unwrap(ex).Message}", ex); }
+-                var component = Model.AddComponent(instance);
++                // A menu item typed into a menu is named after its text, as VS's "Type Here" names it
++                // (&File → fileToolStripMenuItem); anything else gets the usual name (toolStripButton1).
++                var component = instance is ToolStripMenuItem && MenuItemBaseName(text) is { } baseName
++                    ? Model.AddComponent(instance, UniqueName(baseName))
++                    : Model.AddComponent(instance);
+                 list.Insert(Math.Min(i, list.Count), instance);
+                 InitializeNew(instance, component, owner);
+                 if (text.Trim().Length > 0 && instance is not ToolStripSeparator) SetItemText(instance, text);

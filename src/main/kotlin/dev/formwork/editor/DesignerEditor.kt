@@ -72,7 +72,7 @@ class DesignerEditor(private val project: Project, private val file: VirtualFile
                     com.intellij.openapi.diagnostic.logger<DesignerEditor>().warn("Designer page failed to load: $errorCode $errorText $failedUrl")
                 }
             }, b.cefBrowser)
-            b.loadHTML(WebviewPage.html("function(text){${q.inject("text")}}", ThemeCss.css(), "{}"))
+            b.loadHTML(WebviewPage.html("function(text){${q.inject("text")}}", ThemeCss.css(), initialWebviewState()))
             panel.add(b.component, BorderLayout.CENTER)
             val bus = ApplicationManager.getApplication().messageBus.connect(this)
             bus.subscribe(LafManagerListener.TOPIC, LafManagerListener { refreshTheme() })
@@ -85,6 +85,14 @@ class DesignerEditor(private val project: Project, private val file: VirtualFile
                 border = JBUI.Borders.empty(20)
             }, BorderLayout.CENTER)
         }
+    }
+
+    /** What the webview remembers between openings (VS Code's getState): Formwork starts it as VS looks at first. */
+    private fun initialWebviewState(): String {
+        val saved = DesignerStateStore.get(form.code.path)
+        if (saved != null) return saved
+        val collapsed = com.google.gson.JsonArray().apply { ToolboxModel.COLLAPSED_AT_FIRST.forEach { add(it) } }
+        return com.google.gson.JsonObject().apply { add("toolboxCollapsed", collapsed); addProperty("tab", "properties") }.toString()
     }
 
     /** Sends a message to the webview (as VS Code's `webview.postMessage`). */

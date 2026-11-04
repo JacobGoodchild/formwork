@@ -33,3 +33,15 @@ click-then-place behaviour is what Jacob knows.
 
 **Behaviour change for NetForms users:** yes, deliberately: single-click no longer adds
 immediately (it arms the tool, as VS does).
+
+## 0003-designer-vs-menu-item-names.patch
+
+**What:** a menu item added by typing its text (the "Type Here" box, or `setItems` on a strip's
+`Items` / an item's `DropDownItems`) is named from its text, as Visual Studio names it:
+`&File` → `fileToolStripMenuItem`, `E&xit` → `exitToolStripMenuItem`, `Save &As...` →
+`saveAsToolStripMenuItem`. Other new strip items keep the usual names (`toolStripButton1`,
+`toolStripSeparator1`, `toolStripStatusLabel1`). The naming function NetForms already used for
+"Insert Standard Items" is shared.
+
+**Why:** NetForms named typed menu items `toolStripMenuItem1, 2, …`, which differs from the code
+Visual Studio writes for the same clicks (brief, group E: "New controls get Visual Studio's names").
