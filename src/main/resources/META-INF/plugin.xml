@@ -24,6 +24,10 @@
     <listener class="dev.formwork.project.FormworkProjectListener" topic="com.intellij.openapi.project.ProjectCloseListener"/>
   </applicationListeners>
 
+  <projectListeners>
+    <listener class="dev.formwork.editor.DesignerTabListener" topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"/>
+  </projectListeners>
+
   <actions>
     <group id="Formwork.FormGroup">
       <action id="Formwork.ViewCode" class="dev.formwork.actions.ViewCodeAction" text="View Code" description="Show the form's code (Form1.cs)">

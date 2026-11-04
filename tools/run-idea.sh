@@ -8,5 +8,7 @@ pkill -f "idea-2026.2.4" || true
 sleep 2
 export DISPLAY=:99 PATH="/opt/dotnet:$PATH"
 cd "$root"
-nohup ./gradlew runIdea -PopenPath="$1" --console=plain > "${2:-/tmp/formwork-runidea.log}" 2>&1 &
+extra=()
+[ -n "${3:-}" ] && extra=(-PopenFile="$3")
+nohup ./gradlew runIdea -PopenPath="$1" "${extra[@]}" --console=plain > "${2:-/tmp/formwork-runidea.log}" 2>&1 &
 echo "started"

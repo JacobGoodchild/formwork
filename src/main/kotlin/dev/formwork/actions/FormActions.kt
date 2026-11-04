@@ -33,6 +33,7 @@ class ViewCodeAction : DumbAwareAction() {
         val (code, _) = formOf(e) ?: return
         val designer = e.getData(PlatformDataKeys.FILE_EDITOR) as? DesignerEditor
         if (designer != null) { designer.session.viewCode(); return }
+        dev.formwork.editor.CodeNavigation.expect(code)
         OpenFileDescriptor(project, code).navigate(true)
     }
 }

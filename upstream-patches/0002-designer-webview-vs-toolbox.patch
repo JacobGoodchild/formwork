@@ -1,0 +1,199 @@
+diff --git a/designer/media/designer.css b/designer/media/designer.css
+index 60a192a..7207450 100644
+--- a/designer/media/designer.css
++++ b/designer/media/designer.css
+@@ -320,3 +320,11 @@ button, input, select { font: inherit; color: inherit; }
+ .smart-link { border: none; background: transparent; padding: 1px 0; color: var(--vscode-textLink-foreground, #0066bf); cursor: pointer; text-align: left; }
+ .smart-link:hover { text-decoration: underline; }
+ 
++
++/* Toolbox: the Pointer and the armed tool (VS), the tool being dragged, the rectangle drawn with a tool. */
++.tb-item.armed { background: var(--vscode-list-activeSelectionBackground); color: var(--vscode-list-activeSelectionForeground); }
++.tb-pointer-icon { display: inline-block; width: 16px; text-align: center; }
++body.tool-armed .canvas, body.tool-armed .canvas * { cursor: crosshair !important; }
++.tool-ghost { position: fixed; z-index: 1000; pointer-events: none; padding: 2px 6px; border: 1px solid var(--vscode-focusBorder);
++	background: var(--vscode-editorWidget-background); color: var(--vscode-foreground); opacity: 0.9; }
++.tool-rect { border-style: solid; }
+diff --git a/designer/media/designer.js b/designer/media/designer.js
+index 4898450..1f6084c 100644
+--- a/designer/media/designer.js
++++ b/designer/media/designer.js
+@@ -44,6 +44,7 @@
+ 		drag: null,
+ 		parseError: null,
+ 		snap: true,
++		armed: null, // the toolbox tool waiting for a click or a rectangle on the form (VS); null = the Pointer
+ 	};
+ 
+ 	function remember() {
+@@ -429,8 +430,13 @@
+ 			});
+ 			const list = el('div', 'tb-items');
+ 			for (const error of cat.errors || []) list.append(el('div', 'tb-error', error));
++			// Visual Studio starts every group with the Pointer: the tool that places nothing.
++			const pointer = el('div', 'tb-item tb-pointer' + (!state.armed ? ' armed' : ''));
++			pointer.append(el('span', 'tb-icon tb-pointer-icon', '\u2196'), document.createTextNode(T('Pointer')));
++			pointer.addEventListener('click', () => arm(null));
++			list.append(pointer);
+ 			for (const item of items) {
+-				const row = el('div', 'tb-item' + (item.unavailable ? ' unavailable' : ''));
++				const row = el('div', 'tb-item' + (item.unavailable ? ' unavailable' : '') + (state.armed && state.armed.type === item.type ? ' armed' : ''));
+ 				if (item.icon) {
+ 					const icon = el('img', 'tb-icon');
+ 					icon.src = 'data:image/png;base64,' + item.icon;
+@@ -445,15 +451,11 @@
+ 					row.title = item.unavailable;
+ 					row.addEventListener('click', () => toast(item.unavailable, 'info'));
+ 				} else {
+-					row.title = (cat.library ? item.type + '\n' : '') + (item.tray ? T('Click to add to the component tray') : T('Click to add to the selected container, or drag onto the form'));
+-					row.draggable = !item.tray;
+-					row.addEventListener('dragstart', (e) => {
+-						e.dataTransfer.setData('text/netforms-type', item.type);
+-						e.dataTransfer.effectAllowed = 'copy';
+-						// dragover cannot read the data, only its kinds: whether a ToolStripPanel may take it is kept here.
+-						state.dragStrip = !!item.strip;
+-					});
+-					row.addEventListener('click', () => addFromToolbox(item));
++					row.title = (cat.library ? item.type + '\n' : '') + T('Click, then click or draw a rectangle on the form; double-click to add to the selected container; or drag onto the form');
++					// Mouse events, not HTML drag and drop: an embedded browser (Rider's JCEF) may not deliver the latter.
++					row.addEventListener('mousedown', (e) => startToolDrag(e, item));
++					row.addEventListener('click', () => { if (!state.toolDragged) arm(item); });
++					row.addEventListener('dblclick', () => { arm(null); addFromToolbox(item); });
+ 				}
+ 				list.append(row);
+ 			}
+@@ -467,6 +469,96 @@
+ 		return null;
+ 	}
+ 
++	/** Selects a toolbox tool, as VS does: the next click on the form places it (null: back to the Pointer). */
++	function arm(item) {
++		state.armed = item && !item.unavailable ? item : null;
++		document.body.classList.toggle('tool-armed', !!state.armed);
++		renderToolbox();
++		if (window.__netformsToolChanged) window.__netformsToolChanged(state.armed ? state.armed.type : null);
++	}
++
++	/**
++	 * Places a control from the toolbox at a point of the canvas, into whatever container is there (a table's cell,
++	 * a flow's place), optionally with a size (a rectangle drawn with the tool). Tray components go to the tray.
++	 */
++	function placeTool(type, p, size) {
++		if (!state.view) return;
++		const item = toolboxItem(type) || { type };
++		state.selectNew = new Set(allIds());
++		if (item.tray) { apply([{ op: 'add', type }]); return; }
++		const strip = item.strip;
++		if (!strip && G.stripsPanelAt(state.view.items, p.x, p.y)) { toast(T('A ToolStripPanel takes tool strips only.'), 'info'); return; }
++		const target = G.dropTarget(state.view.items, p.x, p.y, new Set(), strip);
++		const c = containerRect(target ? target.id : '');
++		if (target && target.table) {
++			const cell = G.cellAt(target.table, p.x, p.y);
++			apply([{ op: 'add', type, parent: target.id, column: cell.column, row: cell.row }]);
++			return;
++		}
++		if (target && target.flow) {
++			apply([{ op: 'add', type, parent: target.id, index: flowDrop(target, p, null).index }]);
++			return;
++		}
++		const op = { op: 'add', type, parent: target ? target.id : '', x: Math.max(0, p.x - c.x), y: Math.max(0, p.y - c.y) };
++		if (size && size.w >= 4 && size.h >= 4) { op.w = size.w; op.h = size.h; }
++		apply([op]);
++	}
++
++	/** A tool dragged from the toolbox with the mouse: dropped on the form, it is placed where the pointer is. */
++	function startToolDrag(e, item) {
++		if (e.button !== 0) return;
++		state.toolDragged = false;
++		const start = { x: e.clientX, y: e.clientY };
++		let ghost = null;
++		const move = (ev) => {
++			if (!ghost && Math.abs(ev.clientX - start.x) + Math.abs(ev.clientY - start.y) < 5) return;
++			if (!ghost) {
++				ghost = el('div', 'tool-ghost', item.name);
++				document.body.append(ghost);
++				state.toolDragged = true;
++			}
++			ghost.style.left = ev.clientX + 8 + 'px';
++			ghost.style.top = ev.clientY + 8 + 'px';
++		};
++		const up = (ev) => {
++			window.removeEventListener('mousemove', move);
++			if (!ghost) return;
++			ghost.remove();
++			setTimeout(() => { state.toolDragged = false; }, 0);
++			const canvas = state.canvas;
++			if (!canvas || !state.view || state.busy) return;
++			const r = canvas.getBoundingClientRect();
++			if (ev.clientX < r.left || ev.clientY < r.top || ev.clientX > r.right || ev.clientY > r.bottom) return;
++			arm(null);
++			placeTool(item.type, canvasPoint(ev), null);
++		};
++		window.addEventListener('mousemove', move);
++		window.addEventListener('mouseup', up, { once: true });
++	}
++
++	/** With a tool armed, a press on the form draws the new control's rectangle (a click: its default size). */
++	function startToolRectangle(e, p) {
++		e.preventDefault();
++		const type = state.armed.type;
++		const box = el('div', 'lasso tool-rect');
++		let rect = null;
++		const move = (ev) => {
++			const q = canvasPoint(ev);
++			if (!rect && Math.abs(q.x - p.x) + Math.abs(q.y - p.y) < 3) return;
++			if (!rect) state.canvas.append(box);
++			rect = { x: Math.min(p.x, q.x), y: Math.min(p.y, q.y), w: Math.abs(q.x - p.x), h: Math.abs(q.y - p.y) };
++			Object.assign(box.style, { left: rect.x * state.zoom + 'px', top: rect.y * state.zoom + 'px', width: rect.w * state.zoom + 'px', height: rect.h * state.zoom + 'px' });
++		};
++		const up = () => {
++			window.removeEventListener('mousemove', move);
++			box.remove();
++			arm(null); // VS: after placing, the toolbox is back on the Pointer
++			placeTool(type, rect ? { x: rect.x, y: rect.y } : p, rect);
++		};
++		window.addEventListener('mousemove', move);
++		window.addEventListener('mouseup', up, { once: true });
++	}
++
+ 	/** A click in the toolbox adds into the selected container (or the selected control's container), near its top left. */
+ 	function addFromToolbox(item) {
+ 		if (!state.view) return;
+@@ -850,6 +942,7 @@
+ 		if (e.button !== 0 || state.busy || state.tabOrder) return;
+ 		if (e.target.classList.contains('handle') || e.target.classList.contains('form-grip') || e.target.classList.contains('tl-grip')) return;
+ 		const p = canvasPoint(e);
++		if (state.armed) { startToolRectangle(e, p); return; }
+ 		const hit = G.hitTest(state.view.items, p.x, p.y);
+ 		const additive = e.ctrlKey || e.shiftKey;
+ 		// A SplitContainer's splitter is dragged, as in VS: SplitterDistance follows.
+@@ -1229,6 +1322,7 @@
+ 			e.preventDefault();
+ 			return;
+ 		}
++		if (e.key === 'Escape' && state.armed) { arm(null); e.preventDefault(); return; }
+ 		if (e.key === 'Escape') {
+ 			// Up one level, as in VS: the container of the selection, then the form.
+ 			const it = itemById(primaryId());
+@@ -2467,5 +2561,21 @@
+ 	}
+ 
+ 	renderAll();
++	// For an editor that shows its own toolbox (Formwork's native Rider tool window): arm a tool by type, or
++	// place one at a point of the window (a drop from outside the page).
++	window.NetFormsDesigner = {
++		arm: (type) => arm(type ? (toolboxItem(type) || { type, name: type }) : null),
++		dropAt: (type, clientX, clientY) => {
++			if (!state.canvas || !state.view) return false;
++			const r = state.canvas.getBoundingClientRect();
++			if (clientX < r.left || clientY < r.top || clientX > r.right || clientY > r.bottom) return false;
++			arm(null);
++			placeTool(type, canvasPoint({ clientX, clientY }), null);
++			return true;
++		},
++		addToSelection: (type) => { const item = toolboxItem(type) || { type }; arm(null); addFromToolbox(item); },
++		armed: () => (state.armed ? state.armed.type : null),
++	};
++
+ 	post({ type: 'ready' });
+ })();

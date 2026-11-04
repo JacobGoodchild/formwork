@@ -16,3 +16,20 @@ overwriting unsaved typing. With the hooks, Formwork's host reads from Rider's b
 every write back to Rider as text.
 
 **Behaviour change for NetForms users:** none (hooks unset = old behaviour).
+
+## 0002-designer-webview-vs-toolbox.patch
+
+**What:** the webview toolbox behaves like Visual Studio's: every group starts with **Pointer**;
+a click *selects* a tool (it stays highlighted), then a click on the form places it at its default
+size or a drawn rectangle gives its size; afterwards the toolbox goes back to Pointer; Escape
+cancels. Double-click adds to the selected container (NetForms' old single-click behaviour).
+Dragging a tool onto the form now uses mouse events instead of HTML5 drag-and-drop.
+Adds `window.NetFormsDesigner` (`arm`, `dropAt`, `addToSelection`, `armed`) so an editor with its
+own native toolbox can drive the canvas.
+
+**Why:** Rider's embedded browser (JCEF, out-of-process mode) doesn't deliver HTML5 drag-and-drop
+from synthetic or OSR input reliably, so dragging from the toolbox did nothing. And VS's
+click-then-place behaviour is what Jacob knows.
+
+**Behaviour change for NetForms users:** yes, deliberately: single-click no longer adds
+immediately (it arms the tool, as VS does).

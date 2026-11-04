@@ -224,6 +224,13 @@ class DesignerSession(
                             }
                             val doc = FileDocumentManager.getInstance().getDocument(v) ?: continue
                             DocumentDiff.replace(doc, text)
+                            // A fresh handler stub: indent its empty line now, in this same command, so the
+                            // cursor can sit there as in VS and one Ctrl+Z takes the whole handler away.
+                            if (createdHandler != null && file == form.code) {
+                                val method = createdHandler.str("method")
+                                val target = method?.let { HandlerLocator.bodyPosition(doc.text, it, createdHandler.get("line")?.asInt) }
+                                if (target != null && target.indentToInsert.isNotEmpty()) doc.insertString(target.offset, target.indentToInsert)
+                            }
                         }
                     }
             } finally {
@@ -321,7 +328,7 @@ class DesignerSession(
 
     /** F7: the form's code file, in Rider's text editor. */
     fun viewCode() {
-        onEdt { OpenFileDescriptor(project, vf(form.code) ?: return@onEdt).navigate(true) }
+        onEdt { val v = vf(form.code) ?: return@onEdt; CodeNavigation.expect(v); OpenFileDescriptor(project, v).navigate(true) }
     }
 
     /**
@@ -331,22 +338,14 @@ class DesignerSession(
     fun gotoHandler(method: String, line: Int?) {
         onEdt {
             val v = vf(form.code) ?: return@onEdt
+            CodeNavigation.expect(v)
             val doc = FileDocumentManager.getInstance().getDocument(v) ?: return@onEdt
             val target = HandlerLocator.bodyPosition(doc.text, method, line)
             if (target == null) {
                 OpenFileDescriptor(project, v).navigate(true)
                 return@onEdt
             }
-            if (target.indentToInsert.isNotEmpty()) {
-                applyingOwnWrites = true
-                try {
-                    // Same command group as the stub, so one Ctrl+Z takes both away.
-                    WriteCommandAction.writeCommandAction(project).withName("Formwork: Event Handler")
-                        .withUndoConfirmationPolicy(UndoConfirmationPolicy.DO_NOT_REQUEST_CONFIRMATION)
-                        .run<RuntimeException> { doc.insertString(target.offset, target.indentToInsert) }
-                } finally { applyingOwnWrites = false }
-            }
-            OpenFileDescriptor(project, v, target.offset + target.indentToInsert.length).navigate(true)
+            OpenFileDescriptor(project, v, target.offset).navigate(true)
         }
     }
 
@@ -386,7 +385,7 @@ class DesignerSession(
     /** Runs on the EDT and waits (the worker thread is never the EDT). */
     private fun onEdt(block: () -> Unit) {
         val app = ApplicationManager.getApplication()
-        if (app.isDispatchThread) block() else app.invokeAndWait(block, ModalityState.any())
+        if (app.isDispatchThread) block() else app.invokeAndWait(block, ModalityState.nonModal())
     }
 
     override fun dispose() {

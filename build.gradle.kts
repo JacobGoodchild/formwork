@@ -47,6 +47,7 @@ val dotnet: String = providers.gradleProperty("dotnetPath").orNull
 val applyNetFormsPatches by tasks.registering(Exec::class) {
     description = "Applies upstream-patches/*.patch to the NetForms submodule (once)."
     inputs.files(fileTree("upstream-patches"))
+    outputs.upToDateWhen { false }
     commandLine("bash", file("host/apply-patches.sh").absolutePath)
 }
 
@@ -99,11 +100,13 @@ intellijPlatformTesting {
             type = IntelliJPlatformType.IntellijIdea
             version = providers.gradleProperty("ideaVersion")
             task {
-                providers.gradleProperty("openPath").orNull?.let { args(it) }
+                args(listOfNotNull(providers.gradleProperty("openPath").orNull, providers.gradleProperty("openFile").orNull))
                 jvmArgumentProviders += CommandLineArgumentProvider {
                     listOf("-Dide.show.tips.on.startup.default.value=false", "-Djb.consents.confirmation.enabled=false", "-Djb.privacy.policy.text=<!--999.999-->", "-Didea.trust.all.projects=true",
                         // This test machine runs as root, where JCEF's sandbox can't start. Test runs only.
-                        "-Dide.browser.jcef.sandbox.enable=false", "-Dide.browser.jcef.run-under-superuser.allowed=true")
+                        "-Dide.browser.jcef.sandbox.enable=false", "-Dide.browser.jcef.run-under-superuser.allowed=true",
+                        // IDEA's own OS-integration daemon cannot start here; its error balloons get in the way of screenshots.
+                        "-Didea.fatal.error.notification=disabled")
                 }
             }
         }
