@@ -60,3 +60,21 @@ class ToolboxModelTest {
         }
     }
 }
+
+class AddFormTemplateTest {
+    @org.junit.jupiter.api.Test
+    fun `a new user control is Microsoft's template text`() {
+        val (code, designer) = dev.formwork.project.AddFormAction.Templates.files("UserControl1", "UcLib", userControl = true, fileScoped = true)
+        val dir = java.io.File(dev.formwork.TestSupport.repo, "src/test/resources/golden/templates")
+        org.junit.jupiter.api.Assertions.assertEquals(java.io.File(dir, "UserControl1.cs").readText().removePrefix("﻿").replace("\r\n", "\n"), code)
+        org.junit.jupiter.api.Assertions.assertEquals(java.io.File(dir, "UserControl1.Designer.cs").readText().removePrefix("﻿").replace("\r\n", "\n"), designer)
+    }
+
+    @org.junit.jupiter.api.Test
+    fun `a new form matches the Form1 of Microsoft's app template`() {
+        val (code, designer) = dev.formwork.project.AddFormAction.Templates.files("Form1", "WinFormsApp1", userControl = false, fileScoped = true)
+        val dir = java.io.File(dev.formwork.TestSupport.repo, "samples/VsTemplate.Net8/WinFormsApp1")
+        org.junit.jupiter.api.Assertions.assertEquals(java.io.File(dir, "Form1.cs").readText().removePrefix("﻿").replace("\r\n", "\n"), code)
+        org.junit.jupiter.api.Assertions.assertEquals(java.io.File(dir, "Form1.Designer.cs").readText().removePrefix("﻿").replace("\r\n", "\n"), designer)
+    }
+}
