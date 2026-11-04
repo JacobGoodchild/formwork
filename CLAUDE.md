@@ -73,59 +73,72 @@ Explorer nesting, Rider's Run button, the C# editor) are listed for Jacob in `TE
    by the platform; renaming it would mean wrapping Rider's editor, which risks breaking C# features).
    The top tab reads `Form1.cs [Design]` (+ `*`) while the Design tab is shown.
 7. Host published for linux-x64 only (35 MB instead of 574 MB for every OS).
+8. Toolbox behaves like VS: click arms a tool, click/drag on the form places it, back to Pointer
+   (NetForms patch 0002). Group order as VS 2022, empty General group with VS's hint.
+9. Menu items typed in get VS's text-based names (NetForms patch 0003).
+10. The designer measures text with **Formwork Sans** = Microsoft's Selawik (OFL) with Segoe UI's
+    vertical metrics, so the sizes written into Designer.cs match VS's (`host/fonts/README.md`).
+11. The project converter edits the .csproj text minimally (not an XML rewrite) so every other line is
+    byte-identical; NETFORMS_VERSION 0.1.5.
+12. Build against IntelliJ IDEA 2026.2.4 by default (frees 13 GB; same platform API). Rider build via
+    `-PbuildAgainst=rider`.
 
 ## Feature checklist (statuses: Not started / Partial / Done (unverified) / Verified)
 
+Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWORK_BUILD_TESTS=1`),
+**S** = screenshot in `docs/screenshots/`. All UI screenshots are from the sandbox **IntelliJ IDEA**
+2026.2.4 (same platform as Rider 2026.2), dark theme, because the sandbox Rider needs a login (see BLOCKER).
+
 ### A. Opening and switching (Must)
-- [ ] Double-click Form1.cs opens designer; Designer.cs openable as text — Not started
-- [ ] Design and Code tabs; tab title `Form1.cs [Design]` + `*` — Not started
-- [ ] F7 / Shift+F7; right-click menu; Find Action — Not started
-- [ ] Several forms open at once — Not started
-- [ ] Editing Designer.cs as text / git checkout reloads canvas — Not started
+- [x] Double-click Form1.cs opens designer; Designer.cs openable as text — **Verified (in IDEA)**: S `stage1-dark-02-designer-open.png`; Designer.cs opens as text (seen in story run 1). Rider Solution Explorer: 🔎 Jacob.
+- [x] Design and Code tabs; `Form1.cs [Design]` + `*` — **Verified (in IDEA)**, with one difference: the sub-tabs are "Design" and **"Text"** (the platform's own name for Rider's code editor; see decision 6). S `stage1-dark-04-button-placed.png` (shows `[Design]*`).
+- [ ] F7 / Shift+F7; right-click menu; Find Action — **Partial**: Shift+F7 verified in the story (S `stage1-dark-06-back-to-designer.png`); F7 wired (webview + action) but not screenshot-tested yet; menu entries registered (EditorPopup, ProjectViewPopup, EditorTabPopup), not yet seen in a screenshot.
+- [ ] Several forms open at once — **Done (unverified)**: one host process per editor by design; no two-form test yet.
+- [ ] Editing Designer.cs as text / git checkout reloads canvas — **Done (unverified)**: document listener → reopen; the undo path that uses it is verified (Ctrl+Z reloads the canvas, S `stage1-dark-07-after-ctrl-z.png`), typing in Designer.cs not yet tested.
 
 ### B. Toolbox (Must)
-- [ ] Groups, order, contents; Pointer first — Not started
-- [ ] Search filters as you type — Not started
-- [ ] Click tool then click/drag on canvas — Not started
-- [ ] Drag a tool onto canvas / into container — Not started
-- [ ] Double-click tool adds to selected container — Not started
-- [ ] Toolbox returns to Pointer after placing — Not started
-- [ ] Project's own controls group after build — Not started
-- [ ] Non-visual components go to the tray — Not started
+- [x] Groups, order, contents; Pointer first — **Verified** for order and Common Controls contents: T `ToolboxModelTest`; S `stage1-dark-03-button-tool-selected.png`. Gap: no **WebBrowser** (Windows-only IE control), Components has only ErrorProvider/HelpProvider/ImageList/Timer (VS has more).
+- [ ] Search filters as you type — **Done (unverified)** (NetForms webview feature, not yet screenshot-tested).
+- [x] Click a tool then click/drag on canvas — **Verified (click)**: S `stage1-dark-03…`, `-04…`. Drawing a rectangle: Done (unverified).
+- [ ] Drag a tool onto canvas / into container — **Done (unverified)** (mouse-based drag, patch 0002).
+- [ ] Double-click a tool adds to selected container — **Done (unverified)**.
+- [x] After placing, the toolbox returns to Pointer — **Verified**: S `stage1-dark-04-button-placed.png`.
+- [ ] Project's own controls group after build — **Done (unverified)**: loads the newest bin/**/<Assembly>.dll only when the project is trusted, group "<Project> Components", reload on build. No UserControl sample yet.
+- [ ] Non-visual components go to the tray — **Done (unverified)**: NetForms behaviour; TimerPicture/MenuDemo samples have tray items (render shows "1 in tray"/"2 in tray"), not screenshot-checked in the IDE.
 
 ### C. Canvas (Must)
-- [ ] Click / Ctrl/Shift+click / rubber-band select — Not started
-- [ ] Primary selection white handles, others dark — Not started
-- [ ] Move, resize, form resizes from right/bottom/corner — Not started
-- [ ] Snaplines (blue edges, magenta baselines, spacing) — Not started
-- [ ] Keyboard nudge/resize as VS — Not started
-- [ ] Tab / Shift+Tab, Escape selects parent — Not started
-- [ ] Drop into containers; move glyph — Not started
-- [ ] Delete, Ctrl+X/C/V, Ctrl+A — Not started
-- [ ] Undo/redo joined with Rider's undo — Not started
-- [ ] Docked controls: free-edge resize only — Not started
+- [x] Click / Ctrl/Shift+click / rubber-band select — **Partial**: click verified (S `stage1-dark-04…`); Ctrl/Shift/rubber band are NetForms webview features, untested.
+- [ ] Primary selection white handles, others dark — Not checked.
+- [ ] Move, resize, form resize handles — **Done (unverified)** (NetForms webview).
+- [ ] Snaplines — **Done (unverified)** (NetForms has edge/baseline/margin snaplines; colours not compared with VS yet).
+- [ ] Keyboard nudge/resize as VS — **Partial**: NetForms uses Ctrl+arrow = 8 px, not "next snapline" as VS. To fix.
+- [ ] Tab / Shift+Tab, Escape selects parent — **Partial**: Escape → parent exists; Tab order cycling untested.
+- [ ] Drop into containers; move glyph — **Done (unverified)**.
+- [ ] Delete, Ctrl+X/C/V, Ctrl+A — **Done (unverified)** (copy/cut/paste go through Rider's clipboard).
+- [x] Undo/redo joined with Rider's undo — **Verified**: Ctrl+Z in the designer runs Rider's undo; after 2× Ctrl+Z + save, both files are byte-identical to the template (story run 5, 20:24). S `stage1-dark-07-after-ctrl-z.png`.
+- [ ] Docked controls: free-edge resize only — **Done (unverified)** (NetForms README says so).
 
 ### D. Properties and Events (Must)
-- [ ] Selection drop-down; Categorized/Alphabetical; bold non-defaults; description pane — Not started
-- [ ] Editors: text, numbers, bool/enum, flags, expandable Size/Point/Padding/Font — Not started
-- [ ] Pop-up editors: Anchor, Dock, Color, Font, ContentAlignment, multi-line Text, Cursor — Not started
-- [ ] Collection editors — Not started
-- [ ] Image/BackgroundImage/Icon pickers into .resx — Not started
-- [ ] AcceptButton / CancelButton drop-downs — Not started
-- [ ] Right-click property → Reset — Not started
-- [ ] Multi-selection shared properties — Not started
-- [ ] (Name) rename incl. code (Ctrl+Z works) — Not started
-- [ ] Events tab — Not started
+- [ ] Selection drop-down; Categorized/Alphabetical; bold non-defaults; description pane — **Partial**: categories + bold non-defaults visible (S `stage0-designer-in-ide-dark.png`, "Text" bold); no selection drop-down, no description pane yet (Stage 2, native Properties window).
+- [ ] Editors: text, numbers, bool/enum, flags, Size/Point/Padding/Font — **Done (unverified)** (NetForms webview).
+- [ ] Pop-up editors (Anchor, Dock, Color, Font, ContentAlignment, multi-line, Cursor) — **Partial** (NetForms has Anchor/Dock/Color; Font dialog etc. not checked).
+- [ ] Collection editors — **Done (unverified)**: setItems works (samples use TabPages, menu DropDownItems, StatusStrip Items).
+- [ ] Image pickers into .resx — **Done (unverified)**: NetForms writes .resx; file chooser goes through Rider.
+- [ ] AcceptButton / CancelButton — **Verified (code)**: LoginForm sample sets both through the designer; builds (T `ProjectBuildTest`).
+- [ ] Reset — **Done (unverified)**.
+- [ ] Multi-selection shared properties — Not checked.
+- [x] (Name) rename incl. code — **Verified (host level)**: T `CodeGenerationTest.renaming…` (field, `+=` line, handler, a use in Form1.cs). Goes through the document, so Ctrl+Z works; Rider's rename refactoring for *other* files is not used (Known gap).
+- [ ] Events tab — **Done (unverified)**.
 
 ### E. Code generation (Must)
-- [ ] Double-click control creates default handler, jumps into it — Not started
-- [ ] Existing handler: jump instead — Not started
-- [ ] Designer.cs written exactly as VS writes it — Not started
-- [ ] Deleting a control keeps its handler methods — Not started
-- [ ] VS names: button1, button2, textBox1… — Not started
+- [x] Double-click control creates default handler, jumps into it — **Verified**: S `stage1-dark-05-handler-in-code.png` (button1_Click, cursor inside, indented). Also seen: form → `Form1_Load`, CheckedListBox → `SelectedIndexChanged`.
+- [x] Existing handler: no second one — **Verified (host level)**: T `CodeGenerationTest.binding an existing handler…`. Jump-to-existing in the IDE: not screenshot-tested.
+- [x] Designer.cs written exactly as VS writes it — **Verified for the tested cases**: new style (T `HostClientTest`, `CodeGenerationTest`) and old `this.` style kept (T `CodeGenerationTest.the old this-dot style…`). Default sizes now match VS thanks to Formwork Sans (`host/fonts/README.md`: 7 of 11 controls identical, the rest within 2 px). Not diffed against a real VS run (no Windows here).
+- [x] Deleting a control keeps handlers — **Verified (host level)**: T `CodeGenerationTest.deleting…`.
+- [x] VS names — **Verified (host level)**: T `CodeGenerationTest.new controls get…`; menu items named from their text (patch 0003, MenuDemo sample).
 
 ### F. Format menu (Should)
-- [ ] Align — Not started
+- [ ] Align — Not started (NetForms webview has Format commands; no Rider menu yet)
 - [ ] Make Same Size — Not started
 - [ ] Horizontal / Vertical Spacing — Not started
 - [ ] Center in Form — Not started
@@ -133,46 +146,70 @@ Explorer nesting, Rider's Run button, the C# editor) are listed for Jacob in `TE
 - [ ] Lock Controls — Not started
 
 ### G. Menus, strips, smart tags (Should)
-- [ ] MenuStrip / ContextMenuStrip "Type Here" — Not started
-- [ ] Smart-tag Tasks panel — Not started
+- [ ] MenuStrip / ContextMenuStrip "Type Here" — Not started (NetForms has it; untested)
+- [ ] Smart-tag Tasks panel — Not started (NetForms has it; untested)
 - [ ] ToolStrip / StatusStrip item-type drop-down — Not started
 
 ### H. Special containers (Should)
-- [ ] TabControl tab headers — Not started
+- [ ] TabControl tab headers — Not started (sample exists)
 - [ ] TableLayoutPanel cells — Not started
 - [ ] FlowLayoutPanel insertion/reorder — Not started
 - [ ] SplitContainer splitter — Not started
 
 ### I. Tab order and Document Outline (Should)
 - [ ] View → Tab Order — Not started
-- [ ] Document Outline tool window — Not started
+- [ ] Document Outline tool window — Not started (webview has an Outline tab)
 
 ### J. Errors and safety (Must)
-- [ ] Broken Designer.cs: error page with link, never overwrites — Not started
-- [ ] Failing control: red cross, rest works — Not started
-- [ ] Missing .NET 10 SDK notification — Not started
+- [ ] Broken Designer.cs: error page with line, never overwrites — **Partial**: host reports kind=code with line (T `HostClientTest.a broken designer file…`), nothing written; the error page itself not screenshot-tested; link to the line not implemented.
+- [ ] Failing control: red cross — Not started.
+- [ ] Missing .NET 10 SDK notification — **Done (unverified)**: `DotnetNotifier` with a "Show me how" link.
 
 ### K. Projects and running (Must)
-- [ ] Rider Run/Debug start the app on Linux — Not started
-- [ ] "Make this project work on Linux too" command — Not started
-- [ ] Add → Windows Form / User Control (+ templates) — Not started
-- [ ] New project "Windows Forms App (Formwork)" — Not started
+- [ ] Rider Run/Debug start the app on Linux — **Partial**: `dotnet build` + `dotnet run` of a converted project works and the click handler fires (S `stage1-app-running-on-linux.png`). Rider's Run button: 🔎 Jacob.
+- [x] "Make this project work on Linux too" — **Verified for SDK-style projects**: golden files for the VS .NET 8/9/10 templates + custom settings (T `ProjectConverterTest`); every converted sample builds on Linux (T `ProjectBuildTest`, 8/8); in the IDE: notice → preview → apply, backup byte-identical, result = golden (S `stage3-dark-make-linux-preview.png`). Old .NET Framework projects: not converted yet (explains what to do instead).
+- [ ] Add → Windows Form / User Control — Not started
+- [ ] New project template — Not started
 
 ### L. Settings (Later)
-- [ ] Settings page — Not started
+- [ ] Settings page — Not started (settings state exists, no UI)
 - [ ] Data binding pickers — Not started
 
 ## Known gaps
 
-(none recorded yet)
+1. **Sandbox Rider can't be tested here** (login needed). UI tested in IntelliJ IDEA 2026.2.4; Rider-only
+   checks are listed in `TESTING-FOR-JACOB.md`.
+2. **The running app's background is beige (#ECE9D8) on Linux**, not Windows' #F0F0F0. This is NetForms'
+   deliberate choice (its PLAN.md decision 10: keep .NET's own Linux system colours so code comparing
+   `SystemColors.Control` keeps working). The designer shows #F0F0F0 like VS. Not changed.
+3. **No WebBrowser control** in the toolbox (Internet Explorer ActiveX, Windows-only; NetForms has none).
+4. **Sub-tab is called "Text", not "Code"** (it's Rider's own C# editor; renaming means wrapping it).
+5. **Renaming a control** updates `Form1.Designer.cs` and `Form1.cs` (Roslyn-accurate), but not other
+   files that use it (VS's rename would). Rare for forms.
+6. **Text sizes**: the designer measures with Formwork Sans (Segoe UI's open replacement, adjusted).
+   Some widths differ by 1–2 px from VS (Label 37 vs 38, RadioButton 96 vs 94), ListBox 96 vs 94 high.
+7. **Old .NET Framework projects** aren't converted yet (the command explains what to do instead).
+8. The form's **title bar** in the designer is a flat strip (no icon, no min/max/close glyphs) — Stage 2.
 
 ## What I tried that failed
 
-(nothing yet)
+- Sandbox **Rider** (licence login), see BLOCKER.
+- IntelliJ IDEA *Community* as the free IDE: no longer published since 2025.3; the unified IntelliJ IDEA's
+  free tier works without login.
+- JCEF under root: needs `ide.browser.jcef.run-under-superuser.allowed` (test runs only).
+- NetForms' toolbox drag used HTML5 drag-and-drop, which JCEF's out-of-process mode doesn't deliver →
+  replaced by mouse-event dragging (patch 0002).
+- Separate undo commands for the handler stub and its indentation caused an "Undo last operation?"
+  prompt → merged into one command.
+- Running the sandbox IDE straight out of Gradle's cache modified it; Gradle then refused the cache entry.
+  Fix: the IDE lives in `/opt/ide/idea-2026.2.4`, used via `localIde` in `~/.gradle/gradle.properties`.
+- Disk allowance (~40 GB) filled up at 20:38 with Rider SDK + 3 IDE copies; freed by dropping the Rider SDK
+  (build against IDEA by default; `-PbuildAgainst=rider` still works).
 
 ## Next step
 
-Read NetForms, write docs/RESEARCH.md and docs/PROTOCOL.md, set up the Gradle plugin project.
+Finish Stage 1 checks (F7 screenshot, text edit reload, two forms), fresh-eyes review, then Stage 2
+(native Toolbox / Properties / Document Outline tool windows, light theme, form title bar).
 
 ---
 

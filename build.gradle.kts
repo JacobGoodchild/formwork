@@ -21,14 +21,20 @@ dependencies {
         // IDE. By default it builds against IntelliJ IDEA 2026.2.4 - the IDE the UI tests run in (the sandbox Rider
         // needs a JetBrains account login; see CLAUDE.md) - which also keeps one 10 GB IDE off the disk.
         // ./gradlew buildPlugin -PbuildAgainst=rider builds against Rider 2026.2.4.1 instead.
-        if (providers.gradleProperty("buildAgainst").orNull == "rider") rider(providers.gradleProperty("riderVersion")) { useInstaller = false }
-        else intellijIdea(providers.gradleProperty("ideaVersion"))
+        // -PlocalIde=/path/to/an/installed/IDE uses an IDE already on disk instead (set in ~/.gradle/gradle.properties).
+        val localIde = providers.gradleProperty("localIde").orNull
+        when {
+            localIde != null -> local(localIde)
+            providers.gradleProperty("buildAgainst").orNull == "rider" -> rider(providers.gradleProperty("riderVersion")) { useInstaller = false }
+            else -> intellijIdea(providers.gradleProperty("ideaVersion"))
+        }
         bundledPlugin("com.intellij.modules.jcef")
         bundledModule("intellij.platform.ui.jcef")
         bundledModule("intellij.libraries.jcef")
         jetbrainsRuntime()
     }
     testImplementation("org.junit.jupiter:junit-jupiter:5.13.4")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.13.4")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.4")
     testImplementation("junit:junit:4.13.2")
 }

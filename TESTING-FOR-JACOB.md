@@ -1,0 +1,168 @@
+# Testing Formwork — a guide for Jacob
+
+Version 1 (Stage 1). Hi Jacob! This guide walks you through trying Formwork on your Linux laptop, step by
+step. You don't need to know anything technical: just copy each command exactly, one at a time, and
+check you see what the guide says you should see.
+
+**Important, honestly:** I (Claude) couldn't test inside Rider itself, because Rider wants you to log in
+with a JetBrains account and I'm not allowed to. I tested everything in IntelliJ IDEA instead, which is
+the same program underneath, and the designer worked there. The things only *you* can check are marked
+**🔎 Rider check** below. If any of them goes wrong, that's useful to know — see part 5.
+
+---
+
+## 1. Install .NET 10
+
+Formwork's designer, and your apps on Linux, need the free **.NET 10 SDK** from Microsoft.
+(If you've already got it, skip to the check at the end of this part.)
+
+Open the **Terminal** (Menu → Terminal). Copy and paste each command below, press Enter, and wait
+for it to finish before the next one.
+
+1. Download Microsoft's installer script:
+
+   ```bash
+   wget https://dot.net/v1/dotnet-install.sh -O ~/dotnet-install.sh
+   ```
+
+   *This saves a small file called `dotnet-install.sh` in your home folder.*
+
+2. Run it to install .NET 10 (it goes into a hidden folder called `.dotnet` in your home folder):
+
+   ```bash
+   bash ~/dotnet-install.sh --channel 10.0
+   ```
+
+   *It prints a few lines and ends with "Installation finished successfully."*
+
+3. Tell the terminal where .NET lives (these two lines are added to a settings file, so you only do this once):
+
+   ```bash
+   echo 'export DOTNET_ROOT=$HOME/.dotnet' >> ~/.bashrc
+   ```
+
+   ```bash
+   echo 'export PATH=$PATH:$HOME/.dotnet' >> ~/.bashrc
+   ```
+
+4. Make sure a few small Linux libraries NetForms uses are there (Mint usually has them already; this
+   asks for your password):
+
+   ```bash
+   sudo apt install -y libice6 libsm6 libfontconfig1 libicu70
+   ```
+
+5. **Close the terminal and open a new one**, then check it worked:
+
+   ```bash
+   dotnet --list-sdks
+   ```
+
+   ✅ You should see a line starting with `10.0.` (for example `10.0.403 [/home/jacob/.dotnet/sdk]`).
+   If it says "command not found", the new terminal didn't pick up step 3 — try logging out and back in.
+
+6. Tell Rider where .NET is: in Rider open **File → Settings → Build, Execution, Deployment →
+   Toolset and Build**, and set **.NET CLI executable path** to `/home/jacob/.dotnet/dotnet`
+   (use your own user name if it isn't `jacob`). Click **OK**.
+
+## 2. Install the Formwork plugin in Rider
+
+1. Download `formwork-0.1.0.zip` (from the GitHub release, or ask me where it is). **Don't unzip it.**
+2. In Rider: **File → Settings → Plugins**.
+3. Click the **⚙** (gear) at the top, then **Install Plugin from Disk…**
+4. Pick `formwork-0.1.0.zip` and click **OK**, then **Restart IDE**.
+
+✅ After the restart, **Tools** menu has **Make This Project Work on Linux Too…** at the top.
+
+## 3. Try the "definition of done" story with a sample
+
+The `samples` folder of the Formwork repository has Visual Studio projects like the ones you make at
+college. Start with `samples/VsTemplate.Net8` (a brand-new "Windows Forms App" from Visual Studio).
+
+1. In Rider: **File → Open**, pick `samples/VsTemplate.Net8/WinFormsApp1/WinFormsApp1.csproj`.
+   If Rider asks whether to trust the project, choose **Trust**.
+2. A note pops up in the bottom right: **"This is a Windows Forms project"**. Click
+   **Make it work on Linux too…**.
+   ✅ A window shows the project file now (left) and after (right), with a short explanation. Click
+   **Make It Work on Linux**.
+   ✅ A note says "Done". A copy of the old file is kept as `WinFormsApp1.csproj.formwork.bak`.
+   🔎 **Rider check:** Rider should reload the project by itself. If the Solution Explorer looks odd,
+   right-click the project → **Reload Project**.
+3. In the Solution Explorer, **double-click `Form1.cs`**.
+   ✅ The form opens in the designer: a tab called **`Form1.cs [Design]`**, a light grey form on a dark
+   background, the **Toolbox** on the left (with *Common Controls* open, *Pointer* first) and
+   **Properties** on the right. At the bottom of the editor there are two little tabs, **Design** and
+   **Text** ("Text" is your code).
+   🔎 **Rider check:** does `Form1.Designer.cs` appear *under* `Form1.cs` in the Solution Explorer (with a ▸
+   arrow), like in Visual Studio?
+4. In the Toolbox, click **Button** (it turns blue), then click somewhere on the form.
+   ✅ `button1` appears where you clicked, with small square handles around it. The Toolbox goes back to
+   **Pointer**, and the tab title now ends in `*` (meaning "not saved yet").
+   You can also draw a rectangle on the form after clicking Button, to choose its size, or drag Button
+   straight from the Toolbox onto the form.
+5. **Double-click `button1`** on the form.
+   ✅ Rider switches to your code (the **Text** tab), with a new method `button1_Click` and the cursor
+   blinking inside it — just like Visual Studio.
+6. Type this inside the method:
+
+   ```csharp
+   button1.Text = "Clicked!";
+   ```
+
+7. Press **Ctrl+S** to save, then press **Run** (the green ▶ at the top).
+   🔎 **Rider check:** a window opens with your button. Click it: it should say "Clicked!".
+   (The window's background may look a little beige rather than grey on Linux — that's a known
+   NetForms difference, see the README.)
+8. Go back to the designer with **Shift+F7**, and press **Ctrl+Z**: the last change is undone.
+   **F7** takes you back to the code.
+
+## 4. Make one of your own college projects work on Linux
+
+### Which kind of project is it?
+
+Open the project's `.csproj` file in a text editor (right-click → Open With → Text Editor) and look
+at the **first line**:
+
+- **`<Project Sdk="Microsoft.NET.Sdk">`** → the *new kind* (.NET 6/7/8/9/10). ✅ Formwork can convert this.
+- **`<?xml version="1.0" encoding="utf-8"?>`** followed by **`<Project ToolsVersion="...`** → the *old
+  kind* (.NET Framework 4.x). ⚠️ Formwork can't convert this kind safely yet. At college, ask how to
+  make a "Windows Forms App" project for **.NET 8** instead, and copy your forms into it.
+
+### Convert it (new kind)
+
+1. Copy the whole project folder from college (USB stick, OneDrive, GitHub…) onto your laptop.
+2. Open the `.csproj` in Rider and click **Make it work on Linux too…** when the note appears (or use
+   **Tools → Make This Project Work on Linux Too…**).
+3. Double-click your form, change something small, save, press Run.
+
+### Check it at college (important!)
+
+Formwork's change is designed so Visual Studio on Windows sees exactly what it had before. But please
+check it before you rely on it:
+
+1. Take the project back to college and open it in Visual Studio.
+2. ✅ It should open with no errors. Double-click `Form1.cs`: the designer should show your form.
+3. Press **Start** (F5): your app should run as usual.
+4. If anything is wrong: your original project file is saved next to it as `<name>.csproj.formwork.bak`.
+   Delete the `.csproj`, rename the `.bak` file back to `.csproj`, and tell me what happened (part 5).
+
+## 5. If something goes wrong
+
+1. In Rider: **Help → Show Log in Files**. A folder opens with a file called `idea.log`.
+2. Open `idea.log` in a text editor, scroll to the bottom, and copy the last 100 or so lines (or search
+   for the word `formwork` and copy the lines around it).
+3. Make a new "issue" at <https://github.com/jacobgoodchild/formwork/issues>: say what you clicked, what
+   you expected, what happened instead, and paste the log lines. A screenshot helps a lot.
+
+## Rider-only checks (things I couldn't test here)
+
+Please tick these off when you try Formwork in Rider:
+
+- [ ] Installing the plugin zip works, and Rider restarts without errors.
+- [ ] Double-clicking `Form1.cs` in Rider's **Solution Explorer** opens the designer.
+- [ ] `Form1.Designer.cs` is nested under `Form1.cs` in the Solution Explorer.
+- [ ] After "Make it work on Linux too", Rider reloads the project and **Build** succeeds.
+- [ ] **Run** opens your app's window; **Debug** stops at a breakpoint in `button1_Click`.
+- [ ] **F7** and **Shift+F7** work (they're also in the right-click menu as View Code / View Designer).
+- [ ] Rider's light theme: **File → Settings → Appearance → Theme → Light**. The designer's panels turn
+      light too (the form itself always stays light, like Visual Studio).
