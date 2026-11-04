@@ -1,0 +1,75 @@
+name: CI
+
+# Linux: unit tests, the build tests of every converted sample, the plugin zip.
+# Windows: the same converted samples must still build with the real Windows Forms, as Visual Studio builds them at
+# college, including Visual Studio's design-time build (what the VS designer runs when it opens a form).
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Tests (host protocol, code generation, project converter, build of every converted sample)
+        env:
+          FORMWORK_BUILD_TESTS: '1'
+          FORMWORK_EXPORT_CONVERTED: '1'
+        run: ./gradlew test buildPlugin --console=plain
+      - name: Plugin SHA-256
+        run: sha256sum build/distributions/*.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: formwork-plugin
+          path: build/distributions/*.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: converted-samples
+          path: build/converted-samples
+
+  windows:
+    needs: linux
+    runs-on: windows-latest
+    steps:
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
+      - uses: actions/download-artifact@v4
+        with:
+          name: converted-samples
+          path: samples
+      - name: Build each converted sample with the real Windows Forms (net8.0-windows / net9.0-windows / net10.0-windows)
+        shell: pwsh
+        run: |
+          $failed = @()
+          foreach ($proj in Get-ChildItem samples -Recurse -Filter *.csproj) {
+            Write-Host "=== $($proj.FullName)"
+            dotnet build $proj.FullName -nologo -v q
+            if ($LASTEXITCODE -ne 0) { $failed += $proj.Name; continue }
+            # On Windows the project must pick Windows Forms, not NetForms.
+            $out = Get-ChildItem (Join-Path $proj.DirectoryName 'bin') -Recurse -Filter "$($proj.BaseName).dll" | Select-Object -First 1
+            if ($out.FullName -notmatch '-windows') { Write-Error "$($proj.Name) did not build for a -windows target: $($out.FullName)"; $failed += $proj.Name }
+            if (Test-Path (Join-Path $out.DirectoryName 'NetForms.dll')) { Write-Error "$($proj.Name) pulled NetForms in on Windows"; $failed += $proj.Name }
+            # Visual Studio's design-time build (what the WinForms designer runs when it loads the project).
+            dotnet msbuild $proj.FullName -nologo -v q -t:CompileDesignTime -p:DesignTimeBuild=true -p:BuildingInsideVisualStudio=true
+            if ($LASTEXITCODE -ne 0) { $failed += "$($proj.Name) (design-time)" }
+          }
+          if ($failed.Count -gt 0) { Write-Error "Failed: $($failed -join ', ')"; exit 1 }
