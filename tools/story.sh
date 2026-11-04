@@ -12,7 +12,7 @@ proj="$(dirname "$(find "$work" -name '*.csproj' | head -1)")"
 "$root/tools/run-idea.sh" "$proj" "$out/runidea.log" "$proj/Form1.cs" >/dev/null
 export DISPLAY=:99
 shot() { "$root/tools/shot.sh" "$out/$1.png" 100 1400x960+260+40; }
-for i in $(seq 1 60); do sleep 2; grep -q "Project frame set to" "$root/.intellijPlatform/sandbox/formwork/RD-2026.2.4.1/log_runIdea/idea.log" 2>/dev/null && [ "$i" -gt 10 ] && break; done
+for i in $(seq 1 60); do sleep 2; grep -q "Project frame set to" $root/.intellijPlatform/sandbox/formwork/*/log_runIdea/idea.log 2>/dev/null && [ "$i" -gt 10 ] && break; done
 sleep 8
 sleep 6
 shot 02-designer-open

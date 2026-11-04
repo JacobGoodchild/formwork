@@ -108,6 +108,8 @@ intellijPlatformTesting {
     runIde {
         register("runIdea") {
             // The same IDE the plugin is built against (IntelliJ IDEA 2026.2.4 by default).
+            // IDEA's OS-integration daemon can't start in this container and pops up error reports over the UI.
+            plugins { disablePlugin("com.intellij.platform.daemon") }
             task {
                 args(listOfNotNull(providers.gradleProperty("openPath").orNull, providers.gradleProperty("openFile").orNull))
                 jvmArgumentProviders += CommandLineArgumentProvider {

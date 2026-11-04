@@ -92,9 +92,9 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 ### A. Opening and switching (Must)
 - [x] Double-click Form1.cs opens designer; Designer.cs openable as text — **Verified (in IDEA)**: S `stage1-dark-02-designer-open.png`; Designer.cs opens as text (seen in story run 1). Rider Solution Explorer: 🔎 Jacob.
 - [x] Design and Code tabs; `Form1.cs [Design]` + `*` — **Verified (in IDEA)**, with one difference: the sub-tabs are "Design" and **"Text"** (the platform's own name for Rider's code editor; see decision 6). S `stage1-dark-04-button-placed.png` (shows `[Design]*`).
-- [ ] F7 / Shift+F7; right-click menu; Find Action — **Partial**: Shift+F7 verified in the story (S `stage1-dark-06-back-to-designer.png`); F7 wired (webview + action) but not screenshot-tested yet; menu entries registered (EditorPopup, ProjectViewPopup, EditorTabPopup), not yet seen in a screenshot.
-- [ ] Several forms open at once — **Done (unverified)**: one host process per editor by design; no two-form test yet.
-- [ ] Editing Designer.cs as text / git checkout reloads canvas — **Done (unverified)**: document listener → reopen; the undo path that uses it is verified (Ctrl+Z reloads the canvas, S `stage1-dark-07-after-ctrl-z.png`), typing in Designer.cs not yet tested.
+- [ ] F7 / Shift+F7; right-click menu; Find Action — **Partial**: F7 and Shift+F7 **Verified** (S `stage1-dark-F7-view-code.png`, `stage1-dark-shift-F7-view-designer.png`; `tools/checks.sh`); right-click menu entries and Find Action registered but not yet seen in a screenshot.
+- [x] Several forms open at once — **Verified**: S `stage1-dark-two-forms-open.png` (TwoForms sample, two Design tabs, separate canvases).
+- [x] Editing Designer.cs as text / git checkout reloads canvas — **Verified** for an outside change + Reload from Disk (S `stage1-dark-reload-after-outside-change.png`) and for undo (S `stage1-dark-07-after-ctrl-z.png`).
 
 ### B. Toolbox (Must)
 - [x] Groups, order, contents; Pointer first — **Verified** for order and Common Controls contents: T `ToolboxModelTest`; S `stage1-dark-03-button-tool-selected.png`. Gap: no **WebBrowser** (Windows-only IE control), Components has only ErrorProvider/HelpProvider/ImageList/Timer (VS has more).
@@ -161,7 +161,7 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 - [ ] Document Outline tool window — Not started (webview has an Outline tab)
 
 ### J. Errors and safety (Must)
-- [ ] Broken Designer.cs: error page with line, never overwrites — **Partial**: host reports kind=code with line (T `HostClientTest.a broken designer file…`), nothing written; the error page itself not screenshot-tested; link to the line not implemented.
+- [x] Broken Designer.cs: error page with line, never overwrites — **Verified**: S `stage1-dark-broken-designer-file.png`; the broken file is byte-identical afterwards (`tools/checks.sh` prints BROKEN FILE LEFT UNTOUCHED); T `HostClientTest`. "Open as text" opens the file at the error's line and column (not screenshot-tested).
 - [ ] Failing control: red cross — Not started.
 - [ ] Missing .NET 10 SDK notification — **Done (unverified)**: `DotnetNotifier` with a "Show me how" link.
 

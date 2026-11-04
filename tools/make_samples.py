@@ -134,6 +134,26 @@ def main():
             [prop('', 'Text', 'Menu Demo'), op('setForm', w=384, h=271)]]
     build('MenuDemo', 'MenuDemo', menu)
 
+    # --- Two forms: Form1 opens Form2 ------------------------------------------------------------------
+    two = build('TwoForms', 'TwoForms', [[add('Button', 'btnOpen', 20, 20, 120, 30), prop('btnOpen', 'Text', 'Open Form2')], [event('btnOpen', 'Click', 'btnOpen_Click')]])
+    add_second_form(two, 'TwoForms')
+
+
+def add_second_form(proj_dir, namespace):
+    """Form2 next to Form1, as Visual Studio's Add → Form (Windows Forms) makes it, then a label on it."""
+    for ext in ['.cs', '.Designer.cs']:
+        t = read(os.path.join(TEMPLATE, 'Form1' + ext)).replace('Form1', 'Form2').replace('namespace WinFormsApp1', 'namespace ' + namespace)
+        p = os.path.join(proj_dir, 'Form2' + ext)
+        with open(p, 'w', encoding='utf-8-sig' if ext == '.Designer.cs' else 'utf-8', newline='') as f: f.write(t.replace('\n', '\r\n'))
+    designer = os.path.join(proj_dir, 'Form2.Designer.cs')
+    h = Host()
+    try:
+        h.call('open', {'path': designer})
+        files = {os.path.join(proj_dir, 'Form2' + e): read(os.path.join(proj_dir, 'Form2' + e)) for e in ['.Designer.cs', '.cs', '.resx']}
+        r = h.call('apply', {'ops': [add('Label', 'label1', 20, 20), prop('label1', 'Text', 'This is Form2'), op('setForm', w=300, h=150)]}, files)
+        for path, text in (r.get('writes') or {}).items(): write(path, text)
+    finally:
+        h.close()
 
 if __name__ == "__main__":
     main()

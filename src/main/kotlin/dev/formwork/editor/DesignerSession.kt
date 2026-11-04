@@ -121,7 +121,13 @@ class DesignerSession(
                 }
                 "gotoHandler" -> gotoHandler(m.str("handler") ?: return, null)
                 "viewCode" -> viewCode()
-                "openAsText" -> onEdt { OpenFileDescriptor(project, vf(form.designer) ?: return@onEdt).navigate(true) }
+                // "Open as text": the designer file in Rider's editor, at the line the designer couldn't read.
+                "openAsText" -> onEdt {
+                    val v = vf(form.designer) ?: return@onEdt
+                    val e = lastCodeError
+                    if (e?.line != null) OpenFileDescriptor(project, v, e.line - 1, maxOf(0, (e.column ?: 1) - 1)).navigate(true)
+                    else OpenFileDescriptor(project, v).navigate(true)
+                }
                 "pickFiles" -> pickFiles(m)
                 "copy" -> {
                     val ids = m.get("ids")?.asJsonArray ?: JsonArray()
@@ -345,11 +351,15 @@ class DesignerSession(
 
     private fun show(view: JsonObject, select: JsonElement?) {
         lastView = view
+        lastCodeError = null
         post(JsonObject().apply { addProperty("type", "view"); add("view", view); if (select != null && !select.isJsonNull) add("select", select) })
         view.handlerIfCreated()?.let { h -> gotoHandler(h.str("method") ?: return@let, h.get("line")?.asInt) }
     }
 
+    @Volatile private var lastCodeError: HostException? = null
+
     private fun report(e: Throwable) {
+        if (e is HostException && e.kind == "code") lastCodeError = e
         when {
             e is HostException && e.kind == "code" -> post(JsonObject().apply {
                 addProperty("type", "parseError"); addProperty("message", e.message)
@@ -379,7 +389,7 @@ class DesignerSession(
 
     /** F7: the form's code file, in Rider's text editor. */
     fun viewCode() {
-        onEdt { val v = vf(form.code) ?: return@onEdt; CodeNavigation.expect(v); OpenFileDescriptor(project, v).navigate(true) }
+        onEdt { CodeOpener.open(project, vf(form.code) ?: return@onEdt) }
     }
 
     /**

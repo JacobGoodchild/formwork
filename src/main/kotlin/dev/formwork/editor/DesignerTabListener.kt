@@ -35,3 +35,14 @@ object CodeNavigation {
     fun expect(file: VirtualFile) { files.add(file.path) }
     fun consume(file: VirtualFile): Boolean = files.remove(file.path)
 }
+
+/** F7 (View Code): the form's code file in Rider's text editor, where its cursor last was. */
+object CodeOpener {
+    fun open(project: Project, file: VirtualFile) {
+        CodeNavigation.expect(file)
+        val text = FileEditorManager.getInstance(project).getEditors(file).filterIsInstance<com.intellij.openapi.fileEditor.TextEditor>().firstOrNull()
+        // With a position, the platform selects the text editor; without one it would stay on the Design tab.
+        val offset = text?.editor?.caretModel?.offset ?: 0
+        com.intellij.openapi.fileEditor.OpenFileDescriptor(project, file, offset).navigate(true)
+    }
+}
