@@ -3,3 +3,19 @@ html, body { background: var(--vscode-editor-background); }
 
 /* With Rider's native Toolbox and Properties tool windows, the page shows only the form (as VS's design surface). */
 body.fw-native #toolbox, body.fw-native #inspector { display: none !important; }
+
+/* --- Visual Studio's selection look (VS: primary = white squares with dark borders; the others dark) --- */
+.hit.selected, .hit.primary { outline: 1px dotted #3a3a3a; outline-offset: 0; }
+.handle { background: #3a3a3a; border: 1px solid #fff; }
+.handle.primary { background: #fff; border: 1px solid #1e1e1e; }
+.form-grip { background: #fff; border: 1px solid #1e1e1e; }
+/* The selected form: a dotted outline round the whole window, not a highlighted title bar. */
+.form-title.selected { outline: none; }
+.form-frame:has(.form-title.selected) { outline: 1px dotted #9a9a9a; outline-offset: 3px; }
+/* The form's title bar as Windows draws it: the window's icon, the caption, the three caption buttons. */
+.form-title { color: #1e1e1e; padding-left: 6px; }
+.form-title .caption::before {
+	content: ''; display: inline-block; width: 16px; height: 16px; margin-right: 6px; vertical-align: -4px;
+	background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Crect x='1.5' y='2.5' width='13' height='11' fill='%23fff' stroke='%23555'/%3E%3Crect x='2' y='3' width='12' height='3' fill='%232f6fd0'/%3E%3Crect x='4' y='8' width='4' height='3' fill='%23e0a020'/%3E%3C/svg%3E") no-repeat;
+}
+.form-title .caption-buttons { opacity: .75; }
