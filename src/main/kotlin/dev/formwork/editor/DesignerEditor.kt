@@ -51,6 +51,8 @@ class DesignerEditor(private val project: Project, private val file: VirtualFile
         session = DesignerSession(project, form, ::post) { this }
         Disposer.register(this, session)
         session.onFilesChanged = { FileEditorManagerEx.getInstanceEx(project).updateFilePresentation(file) }
+        session.editorRef = { this }
+        session.publish = { event -> ActiveDesigner.get(project).publish(this, event) }
         if (JBCefApp.isSupported()) {
             val b = JBCefBrowser.createBuilder().setOffScreenRendering(false).build()
             browser = b
@@ -63,6 +65,7 @@ class DesignerEditor(private val project: Project, private val file: VirtualFile
                 override fun onLoadEnd(cefBrowser: org.cef.browser.CefBrowser?, frame: org.cef.browser.CefFrame?, httpStatusCode: Int) {
                     if (frame?.isMain != true) return
                     com.intellij.openapi.diagnostic.logger<DesignerEditor>().info("Designer page loaded (HTTP $httpStatusCode) for ${form.code}")
+                    cefBrowser?.executeJavaScript("document.body.classList.add('fw-native');", cefBrowser.url, 0)
                     val pending = synchronized(queue) { loaded = true; queue.toList().also { queue.clear() } }
                     pending.forEach(::run)
                 }
@@ -74,6 +77,18 @@ class DesignerEditor(private val project: Project, private val file: VirtualFile
             }, b.cefBrowser)
             b.loadHTML(WebviewPage.html("function(text){${q.inject("text")}}", ThemeCss.css(), initialWebviewState()))
             panel.add(b.component, BorderLayout.CENTER)
+            // Tools dragged from the native Toolbox are placed where they are dropped (as in VS).
+            b.component.dropTarget = java.awt.dnd.DropTarget(b.component, java.awt.dnd.DnDConstants.ACTION_COPY, object : java.awt.dnd.DropTargetAdapter() {
+                override fun dragOver(e: java.awt.dnd.DropTargetDragEvent) {
+                    if (e.isDataFlavorSupported(java.awt.datatransfer.DataFlavor.stringFlavor)) e.acceptDrag(java.awt.dnd.DnDConstants.ACTION_COPY) else e.rejectDrag()
+                }
+                override fun drop(e: java.awt.dnd.DropTargetDropEvent) {
+                    e.acceptDrop(java.awt.dnd.DnDConstants.ACTION_COPY)
+                    val type = dev.formwork.toolwindows.ToolboxPanel.draggedTool(e.transferable)
+                    if (type != null) dropTool(type, e.location.x, e.location.y)
+                    e.dropComplete(type != null)
+                }
+            }, true)
             val bus = ApplicationManager.getApplication().messageBus.connect(this)
             // A build writes the project's bin/ folder: its controls are loaded again once it has settled.
             val projectDir = dev.formwork.project.ProjectLibraries.projectFileOf(form.code.parentFile)?.parentFile?.path
@@ -124,6 +139,19 @@ class DesignerEditor(private val project: Project, private val file: VirtualFile
 
     /** For UI tests: runs JavaScript in the page. */
     fun executeJavaScript(js: String) = run(js)
+
+    // ---- driven by the native tool windows ------------------------------------------------------------------
+
+    private fun jsString(s: String?) = if (s == null) "null" else com.google.gson.JsonPrimitive(s).toString()
+    fun armTool(type: String?) = run("window.NetFormsDesigner && NetFormsDesigner.arm(${jsString(type)});")
+    fun addToSelection(type: String) = run("window.NetFormsDesigner && NetFormsDesigner.addToSelection(${jsString(type)});")
+    fun select(ids: List<String>) = run("window.NetFormsDesigner && NetFormsDesigner.select(${com.google.gson.Gson().toJson(ids)});")
+    /** A tool dropped from the native Toolbox at a point of this editor's component. */
+    fun dropTool(type: String, x: Int, y: Int) = run("window.NetFormsDesigner && NetFormsDesigner.dropAt(${jsString(type)}, $x, $y);")
+
+    /** The native tool windows replace the page's own Toolbox and Properties panes. */
+    fun useNativePanes(on: Boolean) = run("document.body.classList.toggle('fw-native', $on);")
+    val browserComponent: JComponent? get() = browser?.component
 
     override fun getDocumentReferences(): Collection<DocumentReference> {
         val manager = DocumentReferenceManager.getInstance()

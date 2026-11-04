@@ -16,7 +16,7 @@ index 60a192a..a0f5284 100644
 +.tool-rect { border-style: solid; }
 +.tb-empty { color: var(--vscode-descriptionForeground, #888); text-align: center; padding: 8px 12px; white-space: normal; font-size: 0.95em; }
 diff --git a/designer/media/designer.js b/designer/media/designer.js
-index 4898450..9ac4d67 100644
+index 4898450..0a8a3f6 100644
 --- a/designer/media/designer.js
 +++ b/designer/media/designer.js
 @@ -44,6 +44,7 @@
@@ -173,7 +173,15 @@ index 4898450..9ac4d67 100644
  	/** A click in the toolbox adds into the selected container (or the selected control's container), near its top left. */
  	function addFromToolbox(item) {
  		if (!state.view) return;
-@@ -850,6 +946,7 @@
+@@ -743,6 +839,7 @@
+ 	}
+ 
+ 	function selectionChanged() {
++		if (window.__netformsSelectionChanged) window.__netformsSelectionChanged(state.selection.slice());
+ 		if (state.smartOpen && !(state.selection.length === 1 && state.selection[0] === state.smartOpen)) state.smartOpen = null;
+ 		state.props = null;
+ 		state.events = null;
+@@ -850,6 +947,7 @@
  		if (e.button !== 0 || state.busy || state.tabOrder) return;
  		if (e.target.classList.contains('handle') || e.target.classList.contains('form-grip') || e.target.classList.contains('tl-grip')) return;
  		const p = canvasPoint(e);
@@ -181,7 +189,7 @@ index 4898450..9ac4d67 100644
  		const hit = G.hitTest(state.view.items, p.x, p.y);
  		const additive = e.ctrlKey || e.shiftKey;
  		// A SplitContainer's splitter is dragged, as in VS: SplitterDistance follows.
-@@ -1229,6 +1326,7 @@
+@@ -1229,6 +1327,7 @@
  			e.preventDefault();
  			return;
  		}
@@ -189,7 +197,7 @@ index 4898450..9ac4d67 100644
  		if (e.key === 'Escape') {
  			// Up one level, as in VS: the container of the selection, then the form.
  			const it = itemById(primaryId());
-@@ -2467,5 +2565,21 @@
+@@ -2467,5 +2566,24 @@
  	}
  
  	renderAll();
@@ -207,6 +215,9 @@ index 4898450..9ac4d67 100644
 +		},
 +		addToSelection: (type) => { const item = toolboxItem(type) || { type }; arm(null); addFromToolbox(item); },
 +		armed: () => (state.armed ? state.armed.type : null),
++		// The selection, set from outside (a native Properties drop-down or Document Outline).
++		select: (ids) => { if (!state.view) return; const known = new Set(['', ...allIds()]); const list = (ids || []).filter((i) => known.has(i)); selectAll(list); },
++		selection: () => state.selection.slice(),
 +	};
 +
  	post({ type: 'ready' });

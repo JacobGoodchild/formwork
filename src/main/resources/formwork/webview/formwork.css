@@ -1,2 +1,5 @@
 /* Formwork's adjustments on top of NetForms' designer.css. */
 html, body { background: var(--vscode-editor-background); }
+
+/* With Rider's native Toolbox and Properties tool windows, the page shows only the form (as VS's design surface). */
+body.fw-native #toolbox, body.fw-native #inspector { display: none !important; }

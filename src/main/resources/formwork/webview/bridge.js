@@ -10,6 +10,9 @@
 	window.addEventListener('error', function (e) {
 		try { send(JSON.stringify({ type: '__fwLog', level: 'error', message: String(e.message) + ' at ' + e.filename + ':' + e.lineno })); } catch (_) {}
 	});
+	// Hooks NetForms' designer.js calls (patch 0002): Rider's native Toolbox and Properties follow them.
+	window.__netformsSelectionChanged = function (ids) { send(JSON.stringify({ type: '__fwSelection', ids: ids })); };
+	window.__netformsToolChanged = function (tool) { send(JSON.stringify({ type: '__fwTool', tool: tool })); };
 	window.acquireVsCodeApi = function () {
 		return {
 			postMessage: function (message) { send(JSON.stringify(message)); },

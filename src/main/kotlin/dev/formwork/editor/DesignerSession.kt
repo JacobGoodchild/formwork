@@ -72,6 +72,14 @@ class DesignerSession(
     var webviewState: JsonElement? = null
     /** Called (on the EDT) after the form's files changed, so the tab title (`*`) can be refreshed. */
     var onFilesChanged: () -> Unit = {}
+    /** News for the native tool windows (set by the editor; publishes through [ActiveDesigner]). */
+    var publish: ((DesignerListener) -> Unit) -> Unit = {}
+    @Volatile var selection: List<String> = listOf("")
+        private set
+    @Volatile var lastToolbox: JsonArray? = null
+        private set
+    @Volatile var lastNotice: String? = null
+        private set
 
     companion object {
         const val CLIPBOARD_MARKER = "netforms/components-1"
@@ -85,6 +93,12 @@ class DesignerSession(
         when (m.str("type")) {
             "__fwState" -> { webviewState = m.get("state"); DesignerStateStore.put(form.code.path, m.get("state").toString()); return }
             "__fwLog" -> { log.warn("Designer page: ${m.str("message")}"); return }
+            "__fwSelection" -> {
+                selection = m.getAsJsonArray("ids")?.map { it.asString } ?: listOf("")
+                publish { l -> l.selectionChanged(editorRef(), selection) }
+                return
+            }
+            "__fwTool" -> { val t = m.get("tool")?.takeIf { it.isJsonPrimitive }?.asString; publish { l -> l.toolChanged(editorRef(), t) }; return }
             else -> log.debug("Designer message: ${m.str("type")}")
         }
         worker.execute { if (!disposed) handle(m) }
@@ -100,6 +114,9 @@ class DesignerSession(
                     val view = h.call("open", JsonObject().apply { addProperty("path", form.designer.path) }, files()).result!!.asJsonObject
                     lastView = view
                     val toolbox = toolbox(h)
+                    lastToolbox = toolbox
+                    lastNotice = libraryNotice()
+                    publish { l -> l.toolboxChanged(editorRef(), toolbox, lastNotice); l.viewChanged(editorRef(), view) }
                     listenToDocuments()
                     post(JsonObject().apply {
                         addProperty("type", "init")
@@ -116,8 +133,18 @@ class DesignerSession(
                 "menu" -> show(ensureHost().call("menu", JsonObject().apply { addProperty("id", m.str("id") ?: "") }, files()).result!!.asJsonObject, null)
                 "properties", "events" -> {
                     val type = m.str("type")!!
-                    val rows = ensureHost().call(type, JsonObject().apply { addProperty("id", m.str("id") ?: "") }, files()).result
-                    post(JsonObject().apply { addProperty("type", type); addProperty("id", m.str("id") ?: ""); add("rows", rows) })
+                    val id = m.str("id") ?: ""
+                    // The page asks for the rows of its primary selection: that is the selection news too (after an
+                    // add or a paste the page selects the new control without another signal).
+                    if (selection.lastOrNull() != id) {
+                        selection = listOf(id)
+                        publish { l -> l.selectionChanged(editorRef(), selection) }
+                    }
+                    val rows = ensureHost().call(type, JsonObject().apply { addProperty("id", id) }, files()).result
+                    post(JsonObject().apply { addProperty("type", type); addProperty("id", id); add("rows", rows) })
+                    rows?.takeIf { it.isJsonArray }?.asJsonArray?.let { r ->
+                        publish { l -> if (type == "properties") l.propertiesChanged(editorRef(), id, r) else l.eventsChanged(editorRef(), id, r) }
+                    }
                 }
                 "gotoHandler" -> gotoHandler(m.str("handler") ?: return, null)
                 "viewCode" -> viewCode()
@@ -161,7 +188,7 @@ class DesignerSession(
         }
     }
 
-    private fun nameFor(ops: JsonArray?): String {
+    fun nameFor(ops: JsonArray?): String {
         val first = ops?.firstOrNull()?.asJsonObject?.str("op") ?: return COMMAND_NAME
         return when (first) {
             "add" -> "Add Control"
@@ -173,6 +200,48 @@ class DesignerSession(
             else -> COMMAND_NAME
         }
     }
+
+    // ---- for the native tool windows ----------------------------------------------------------------------
+
+    /** The editor this session belongs to (set by it). */
+    lateinit var editorRef: () -> DesignerEditor
+
+    /** Edits from the Properties window: one undoable step, then the canvas and the grids update. */
+    fun applyOps(ops: JsonArray, name: String = nameFor(ops)) {
+        worker.execute {
+            try { show(write(ops, name), null) } catch (e: Throwable) { report(e); refreshInspector() }
+        }
+    }
+
+    /** Asks for the property (or event) rows of a component; they arrive through the listener. */
+    fun requestRows(kind: String, id: String) {
+        worker.execute {
+            try {
+                val rows = ensureHost().call(kind, JsonObject().apply { addProperty("id", id) }, files()).result?.asJsonArray ?: return@execute
+                publish { l -> if (kind == "events") l.eventsChanged(editorRef(), id, rows) else l.propertiesChanged(editorRef(), id, rows) }
+            } catch (e: Throwable) { report(e) }
+        }
+    }
+
+    private fun refreshInspector() {
+        val id = selection.lastOrNull() ?: ""
+        requestRows("properties", id)
+    }
+
+    /** The Events window: binds a handler (writing its stub if new) and jumps to it, as a double-click in VS does. */
+    fun bindEventAndGo(id: String, event: String, handler: String) {
+        worker.execute {
+            try {
+                val op = JsonObject().apply { addProperty("op", "setEvent"); addProperty("id", id); addProperty("event", event); addProperty("handler", handler) }
+                val view = write(JsonArray().apply { add(op) }, "Event Handler")
+                show(view, null)
+                if (view.handlerIfCreated() == null && handler.isNotEmpty()) gotoHandler(handler, null)
+                requestRows("events", id)
+            } catch (e: Throwable) { report(e) }
+        }
+    }
+
+    fun gotoExistingHandler(handler: String) { worker.execute { gotoHandler(handler, null) } }
 
     // ---- the project's own controls ---------------------------------------------------------------------
 
@@ -219,7 +288,11 @@ class DesignerSession(
                 val h = host?.takeIf { it.alive } ?: return@execute
                 if (!loadLibraries(h)) return@execute
                 reopen()
-                post(JsonObject().apply { addProperty("type", "toolbox"); add("toolbox", toolbox(h)); libraryNotice()?.let { addProperty("notice", it) } })
+                val tb = toolbox(h)
+                lastToolbox = tb
+                lastNotice = libraryNotice()
+                post(JsonObject().apply { addProperty("type", "toolbox"); add("toolbox", tb); lastNotice?.let { addProperty("notice", it) } })
+                publish { l -> l.toolboxChanged(editorRef(), tb, lastNotice) }
             } catch (e: Throwable) { report(e) }
         }
     }
@@ -352,6 +425,7 @@ class DesignerSession(
     private fun show(view: JsonObject, select: JsonElement?) {
         lastView = view
         lastCodeError = null
+        publish { l -> l.viewChanged(editorRef(), view) }
         post(JsonObject().apply { addProperty("type", "view"); add("view", view); if (select != null && !select.isJsonNull) add("select", select) })
         view.handlerIfCreated()?.let { h -> gotoHandler(h.str("method") ?: return@let, h.get("line")?.asInt) }
     }

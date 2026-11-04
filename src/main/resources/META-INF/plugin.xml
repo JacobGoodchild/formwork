@@ -17,6 +17,12 @@
     <fileEditorProvider implementation="dev.formwork.editor.DesignerEditorProvider"/>
     <editorTabTitleProvider implementation="dev.formwork.editor.DesignerTabTitleProvider" order="first"/>
     <notificationGroup id="Formwork" displayType="BALLOON"/>
+    <toolWindow id="Toolbox" anchor="left" secondary="false" icon="AllIcons.Toolwindows.ToolWindowPalette"
+                factoryClass="dev.formwork.toolwindows.ToolboxToolWindowFactory"/>
+    <toolWindow id="Document Outline" anchor="left" secondary="true" icon="AllIcons.Toolwindows.ToolWindowStructure"
+                factoryClass="dev.formwork.toolwindows.OutlineToolWindowFactory"/>
+    <toolWindow id="Properties" anchor="right" secondary="false" icon="AllIcons.Toolwindows.ToolWindowPalette"
+                factoryClass="dev.formwork.toolwindows.PropertiesToolWindowFactory"/>
     <applicationService serviceImplementation="dev.formwork.settings.FormworkSettings"/>
     <postStartupActivity implementation="dev.formwork.project.LinuxProjectNotifier"/>
   </extensions>

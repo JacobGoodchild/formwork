@@ -15,6 +15,13 @@ import java.util.Collections
  * - switching between Design and Text changes the tab title (`Form1.cs [Design]` ↔ `Form1.cs`).
  */
 class DesignerTabListener(private val project: Project) : FileEditorManagerListener {
+    private var shownToolWindows = false
+
+    override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
+        val active = ActiveDesigner.get(project)
+        if (active.editor?.file == file) active.setActive(source.selectedEditors.filterIsInstance<DesignerEditor>().firstOrNull())
+    }
+
     override fun fileOpened(source: FileEditorManager, file: VirtualFile) {
         if (CodeNavigation.consume(file)) return
         if (source.getEditors(file).none { it is DesignerEditor }) return
@@ -22,6 +29,17 @@ class DesignerTabListener(private val project: Project) : FileEditorManagerListe
     }
 
     override fun selectionChanged(event: FileEditorManagerEvent) {
+        // The Toolbox and Properties follow the designer in front (they stay on the last one when code is shown,
+        // as Visual Studio keeps them on the last designer).
+        (event.newEditor as? DesignerEditor)?.let {
+            ActiveDesigner.get(project).setActive(it)
+            // The first designer of the session opens the Toolbox and Properties, as Visual Studio does.
+            if (!shownToolWindows) {
+                shownToolWindows = true
+                val manager = com.intellij.openapi.wm.ToolWindowManager.getInstance(project)
+                for (id in listOf("Toolbox", "Properties")) manager.getToolWindow(id)?.show()
+            }
+        }
         val file = event.newFile ?: event.oldFile ?: return
         if (event.newEditor is DesignerEditor || event.oldEditor is DesignerEditor) {
             FileEditorManagerEx.getInstanceEx(project).updateFilePresentation(file)
