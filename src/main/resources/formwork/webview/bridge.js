@@ -6,6 +6,10 @@
 	var send = /*FW_SEND*/null;
 	var state = /*FW_STATE*/null;
 	window.__formworkSend = function (message) { send(JSON.stringify(message)); };
+	// Script errors are reported to Rider's log (Help → Show Log in Files), so problems can be found.
+	window.addEventListener('error', function (e) {
+		try { send(JSON.stringify({ type: '__fwLog', level: 'error', message: String(e.message) + ' at ' + e.filename + ':' + e.lineno })); } catch (_) {}
+	});
 	window.acquireVsCodeApi = function () {
 		return {
 			postMessage: function (message) { send(JSON.stringify(message)); },

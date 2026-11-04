@@ -12,7 +12,24 @@ chain at 21:05, 22:35, 00:05, 01:35, 03:05, 04:35, 06:05 UK). Deadline: 07:00 UK
 
 ## Status
 
-**Current stage:** Stage 0 (research and pipeline proof). Started 19:33 UK, 4 Nov 2026.
+**Current stage:** Stage 1 (definition-of-done story). Stage 0 finished 20:12 UK: **GO**.
+
+### Stage 0 result (20:12)
+The pipeline works: in the sandbox IDE, double-clicking `Form1.cs` opens a **Design** tab; the
+JCEF page runs NetForms' webview; Formwork.Host (started by the plugin with an argument list)
+reads the form from the editor's buffers and the form is drawn by NetForms in light Windows colours.
+Screenshot: `docs/screenshots/stage0-designer-in-ide-dark.png`. 8 unit tests pass
+(`./gradlew test`: host protocol, buffers-not-disk, broken file error, close; diff; handler cursor).
+
+Honest comparison with Jacob's VS screenshots: the form's **title bar is a flat strip** (no icon,
+no min/max/close buttons); the toolbox is one long "All Windows Forms" list (VS has groups); no
+description pane under Properties; top tab showed `Form1.cs` instead of `Form1.cs [Design]`
+(refresh missing). All are Stage 1/2 work.
+
+Test-environment notes (not product issues): this machine runs as root, so JCEF needs
+`ide.browser.jcef.run-under-superuser.allowed` (set only in the runIdea task); the IDEA build from
+JetBrains' Maven repo lacks JCEF's native folder, so `plugins/jcef-plugin/jcef` in the Gradle cache
+is linked to the JetBrains Runtime's copy (a real Rider install has it).
 
 ## Network check (Stage 0, 19:35)
 

@@ -82,7 +82,11 @@ class DesignerSession(
 
     fun onMessage(json: String) {
         val m = try { JsonParser.parseString(json).asJsonObject } catch (_: Exception) { return }
-        if (m.str("type") == "__fwState") { webviewState = m.get("state"); return }
+        when (m.str("type")) {
+            "__fwState" -> { webviewState = m.get("state"); return }
+            "__fwLog" -> { log.warn("Designer page: ${m.str("message")}"); return }
+            else -> log.debug("Designer message: ${m.str("type")}")
+        }
         worker.execute { if (!disposed) handle(m) }
     }
 
@@ -90,6 +94,7 @@ class DesignerSession(
         try {
             when (m.str("type")) {
                 "ready" -> {
+                    log.info("Designer page ready for ${form.designer}")
                     val h = ensureHost()
                     val view = h.call("open", JsonObject().apply { addProperty("path", form.designer.path) }, files()).result!!.asJsonObject
                     lastView = view

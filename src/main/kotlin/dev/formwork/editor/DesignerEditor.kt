@@ -62,8 +62,14 @@ class DesignerEditor(private val project: Project, private val file: VirtualFile
             b.jbCefClient.addLoadHandler(object : org.cef.handler.CefLoadHandlerAdapter() {
                 override fun onLoadEnd(cefBrowser: org.cef.browser.CefBrowser?, frame: org.cef.browser.CefFrame?, httpStatusCode: Int) {
                     if (frame?.isMain != true) return
+                    com.intellij.openapi.diagnostic.logger<DesignerEditor>().info("Designer page loaded (HTTP $httpStatusCode) for ${form.code}")
                     val pending = synchronized(queue) { loaded = true; queue.toList().also { queue.clear() } }
                     pending.forEach(::run)
+                }
+            }, b.cefBrowser)
+            b.jbCefClient.addLoadHandler(object : org.cef.handler.CefLoadHandlerAdapter() {
+                override fun onLoadError(cefBrowser: org.cef.browser.CefBrowser?, frame: org.cef.browser.CefFrame?, errorCode: org.cef.handler.CefLoadHandler.ErrorCode?, errorText: String?, failedUrl: String?) {
+                    com.intellij.openapi.diagnostic.logger<DesignerEditor>().warn("Designer page failed to load: $errorCode $errorText $failedUrl")
                 }
             }, b.cefBrowser)
             b.loadHTML(WebviewPage.html("function(text){${q.inject("text")}}", ThemeCss.css(), "{}"))

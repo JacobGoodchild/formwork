@@ -1,5 +1,4 @@
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
-import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 
 plugins {
     id("java")
@@ -24,7 +23,6 @@ dependencies {
         bundledModule("intellij.platform.ui.jcef")
         bundledModule("intellij.libraries.jcef")
         jetbrainsRuntime()
-        testFramework(TestFrameworkType.Platform)
     }
     testImplementation("org.junit.jupiter:junit-jupiter:5.13.4")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.4")
@@ -77,7 +75,7 @@ tasks.processResources {
     from("external/NetForms/THIRD-PARTY-NOTICES.md") { into("formwork/licenses/NetForms") }
 }
 
-tasks.named<org.jetbrains.intellij.platform.gradle.tasks.PrepareSandboxTask>("prepareSandbox") {
+tasks.withType<org.jetbrains.intellij.platform.gradle.tasks.PrepareSandboxTask>().configureEach {
     dependsOn(publishHost)
     from(hostOut) { into(pluginName.map { "$it/host" }) }
 }
@@ -94,16 +92,18 @@ tasks.named<org.jetbrains.intellij.platform.gradle.tasks.RunIdeTask>("runIde") {
 // The plugin only uses the shared IntelliJ Platform for its UI, so UI screenshots run in the free
 // IntelliJ IDEA Community of the same platform version (2026.2). See TESTING-FOR-JACOB.md for the
 // checks only Rider can do.
-//   ./gradlew runIdeaCommunity -PopenPath=/path/to/project
+//   ./gradlew runIdea -PopenPath=/path/to/project
 intellijPlatformTesting {
     runIde {
-        register("runIdeaCommunity") {
-            type = IntelliJPlatformType.IntellijIdeaCommunity
-            version = providers.gradleProperty("ideaCommunityVersion")
+        register("runIdea") {
+            type = IntelliJPlatformType.IntellijIdea
+            version = providers.gradleProperty("ideaVersion")
             task {
                 providers.gradleProperty("openPath").orNull?.let { args(it) }
                 jvmArgumentProviders += CommandLineArgumentProvider {
-                    listOf("-Dide.show.tips.on.startup.default.value=false", "-Djb.consents.confirmation.enabled=false", "-Djb.privacy.policy.text=<!--999.999-->", "-Didea.trust.all.projects=false")
+                    listOf("-Dide.show.tips.on.startup.default.value=false", "-Djb.consents.confirmation.enabled=false", "-Djb.privacy.policy.text=<!--999.999-->", "-Didea.trust.all.projects=true",
+                        // This test machine runs as root, where JCEF's sandbox can't start. Test runs only.
+                        "-Dide.browser.jcef.sandbox.enable=false", "-Dide.browser.jcef.run-under-superuser.allowed=true")
                 }
             }
         }
