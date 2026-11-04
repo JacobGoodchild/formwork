@@ -75,6 +75,19 @@ class DesignerEditor(private val project: Project, private val file: VirtualFile
             b.loadHTML(WebviewPage.html("function(text){${q.inject("text")}}", ThemeCss.css(), initialWebviewState()))
             panel.add(b.component, BorderLayout.CENTER)
             val bus = ApplicationManager.getApplication().messageBus.connect(this)
+            // A build writes the project's bin/ folder: its controls are loaded again once it has settled.
+            val projectDir = dev.formwork.project.ProjectLibraries.projectFileOf(form.code.parentFile)?.parentFile?.path
+            if (projectDir != null) {
+                val alarm = com.intellij.util.Alarm(com.intellij.util.Alarm.ThreadToUse.POOLED_THREAD, this)
+                bus.subscribe(com.intellij.openapi.vfs.VirtualFileManager.VFS_CHANGES, object : com.intellij.openapi.vfs.newvfs.BulkFileListener {
+                    override fun after(events: List<com.intellij.openapi.vfs.newvfs.events.VFileEvent>) {
+                        if (events.any { it.path.startsWith("$projectDir/bin/") && it.path.endsWith(".dll") }) {
+                            alarm.cancelAllRequests()
+                            alarm.addRequest({ session.librariesChanged() }, 1500)
+                        }
+                    }
+                })
+            }
             bus.subscribe(LafManagerListener.TOPIC, LafManagerListener { refreshTheme() })
             bus.subscribe(EditorColorsManager.TOPIC, EditorColorsListener { refreshTheme() })
         } else {

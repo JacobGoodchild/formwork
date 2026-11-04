@@ -1,4 +1,3 @@
-import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 
 plugins {
     id("java")
@@ -18,7 +17,12 @@ repositories {
 
 dependencies {
     intellijPlatform {
-        rider(providers.gradleProperty("riderVersion")) { useInstaller = false }
+        // Formwork uses only the shared IntelliJ Platform (plus JCEF), so it compiles the same against any 2026.2
+        // IDE. By default it builds against IntelliJ IDEA 2026.2.4 - the IDE the UI tests run in (the sandbox Rider
+        // needs a JetBrains account login; see CLAUDE.md) - which also keeps one 10 GB IDE off the disk.
+        // ./gradlew buildPlugin -PbuildAgainst=rider builds against Rider 2026.2.4.1 instead.
+        if (providers.gradleProperty("buildAgainst").orNull == "rider") rider(providers.gradleProperty("riderVersion")) { useInstaller = false }
+        else intellijIdea(providers.gradleProperty("ideaVersion"))
         bundledPlugin("com.intellij.modules.jcef")
         bundledModule("intellij.platform.ui.jcef")
         bundledModule("intellij.libraries.jcef")
@@ -97,8 +101,7 @@ tasks.named<org.jetbrains.intellij.platform.gradle.tasks.RunIdeTask>("runIde") {
 intellijPlatformTesting {
     runIde {
         register("runIdea") {
-            type = IntelliJPlatformType.IntellijIdea
-            version = providers.gradleProperty("ideaVersion")
+            // The same IDE the plugin is built against (IntelliJ IDEA 2026.2.4 by default).
             task {
                 args(listOfNotNull(providers.gradleProperty("openPath").orNull, providers.gradleProperty("openFile").orNull))
                 jvmArgumentProviders += CommandLineArgumentProvider {

@@ -16,7 +16,7 @@ for i in $(seq 1 60); do sleep 2; grep -q "Project frame set to" "$root/.intelli
 sleep 8
 sleep 6
 shot 02-designer-open
-xdotool mousemove 803 349 click 1; sleep 1          # Button in the toolbox
+xdotool mousemove 802 327 click 1; sleep 1          # Button in Common Controls
 shot 03-button-tool-selected
 xdotool mousemove 1117 397 click 1; sleep 3         # click on the form
 shot 04-button-placed

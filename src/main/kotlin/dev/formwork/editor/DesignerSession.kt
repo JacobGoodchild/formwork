@@ -96,15 +96,16 @@ class DesignerSession(
                 "ready" -> {
                     log.info("Designer page ready for ${form.designer}")
                     val h = ensureHost()
+                    loadLibraries(h)
                     val view = h.call("open", JsonObject().apply { addProperty("path", form.designer.path) }, files()).result!!.asJsonObject
                     lastView = view
-                    val toolbox = ToolboxModel.vsOrder(h.call("toolbox").result)
+                    val toolbox = toolbox(h)
                     listenToDocuments()
                     post(JsonObject().apply {
                         addProperty("type", "init")
                         add("view", view)
                         add("toolbox", toolbox)
-                        if (!project.isTrusted()) addProperty("notice", "This project isn't trusted, so only the built-in controls are shown (your project's own controls would run its code).")
+                        libraryNotice()?.let { addProperty("notice", it) }
                         addProperty("snap", FormworkSettings.getInstance().state.snapToLines)
                         add("strings", JsonObject())
                     })
@@ -164,6 +165,56 @@ class DesignerSession(
             "setEvent" -> "Event Handler"
             "rename" -> "Rename"
             else -> COMMAND_NAME
+        }
+    }
+
+    // ---- the project's own controls ---------------------------------------------------------------------
+
+    @Volatile private var libraries = dev.formwork.project.ProjectLibraries(null, null)
+    private var loadedSignature = ""
+
+    /**
+     * Loads the project's last build into the host, so its own controls and UserControls draw and appear in the
+     * toolbox - only when Rider trusts the project, because that runs the project's code (as Visual Studio does).
+     */
+    private fun loadLibraries(h: HostClient): Boolean {
+        libraries = dev.formwork.project.ProjectLibraries.of(form.code.parentFile)
+        val output = libraries.output
+        val signature = if (project.isTrusted() && output != null) libraries.signature() else ""
+        if (signature == loadedSignature) return false
+        loadedSignature = signature
+        val assemblies = JsonArray().apply { if (signature.isNotEmpty()) add(output!!.path) }
+        return try {
+            val r = h.call("libraries", JsonObject().apply { add("assemblies", assemblies) }, files()).result?.asJsonObject
+            r?.getAsJsonArray("errors")?.forEach { log.warn("Project controls: ${it.asString}") }
+            true
+        } catch (e: HostException) {
+            log.warn("Could not load the project's controls: ${e.message}")
+            false
+        }
+    }
+
+    private fun toolbox(h: HostClient): JsonArray {
+        val groups = if (project.isTrusted()) libraries.groups() else JsonArray()
+        val raw = try { h.call("toolbox", JsonObject().apply { add("libraries", groups) }).result } catch (_: HostException) { h.call("toolbox").result }
+        return ToolboxModel.vsOrder(raw)
+    }
+
+    private fun libraryNotice(): String? = when {
+        !project.isTrusted() -> "This project isn't trusted, so only the built-in controls are shown: showing your own controls would run the project's code."
+        else -> null
+    }
+
+    /** After a build: the project's controls are loaded again, and the toolbox shows them. */
+    fun librariesChanged() {
+        if (disposed) return
+        worker.execute {
+            try {
+                val h = host?.takeIf { it.alive } ?: return@execute
+                if (!loadLibraries(h)) return@execute
+                reopen()
+                post(JsonObject().apply { addProperty("type", "toolbox"); add("toolbox", toolbox(h)); libraryNotice()?.let { addProperty("notice", it) } })
+            } catch (e: Throwable) { report(e) }
         }
     }
 
