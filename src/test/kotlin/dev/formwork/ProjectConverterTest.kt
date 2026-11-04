@@ -61,3 +61,20 @@ class ProjectConverterTest {
         assertTrue(ProjectConverter.convert(old) is ProjectConverter.Result.OldFormat)
     }
 }
+
+class LegacyProjectConverterTest {
+    @org.junit.jupiter.api.Test
+    fun `an old NET Framework project becomes the two-world project`() {
+        val old = java.io.File(TestSupport.repo, "external/NetForms/tests/Fixtures/NetFrameworkApp/FrameworkApp.csproj").readText()
+        // What NetForms' converter writes for it (recorded from `NetForms.Convert --apply` on a copy).
+        val converted = java.io.File(TestSupport.repo, "src/test/resources/golden/projects/FrameworkApp.netforms-convert.csproj").readText()
+        val after = dev.formwork.project.LegacyProjectConverter.dualTarget(converted, old)
+        val expected = java.io.File(TestSupport.repo, "src/test/resources/golden/projects/FrameworkApp.after.csproj")
+        if (System.getenv("FORMWORK_UPDATE_GOLDEN") == "1" || !expected.isFile) expected.writeText(after)
+        org.junit.jupiter.api.Assertions.assertEquals(expected.readText(), after)
+        org.junit.jupiter.api.Assertions.assertTrue(after.contains("<TargetFramework>net481</TargetFramework>"))
+        org.junit.jupiter.api.Assertions.assertTrue(after.contains("<Reference Include=\"System.Net.Http\" />"))
+        org.junit.jupiter.api.Assertions.assertTrue(after.contains("<Compile Remove=\"Unlisted.cs\" />"), "the file list is kept exactly")
+        org.junit.jupiter.api.Assertions.assertTrue(dev.formwork.project.ProjectConverter.convert(after) is dev.formwork.project.ProjectConverter.Result.AlreadyDone)
+    }
+}

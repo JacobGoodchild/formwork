@@ -71,12 +71,18 @@ class MakeLinuxAction : DumbAwareAction() {
             when (val result = ProjectConverter.convert(before)) {
                 is ProjectConverter.Result.AlreadyDone -> Messages.showInfoMessage(project, result.reason, TITLE)
                 is ProjectConverter.Result.NotPossible -> Messages.showWarningDialog(project, result.reason, TITLE)
-                is ProjectConverter.Result.OldFormat -> Messages.showWarningDialog(
-                    project,
-                    "This is an old-style .NET Framework project (its first line mentions ToolsVersion). Formwork can't convert these safely yet.\n\n" +
-                        "What you can do: at college, open it in Visual Studio and use \"Upgrade\" (or make a new Windows Forms App (.NET 8) project and copy your forms into it). Then bring that project home.",
-                    TITLE,
-                )
+                is ProjectConverter.Result.OldFormat -> {
+                    val legacy = com.intellij.openapi.progress.ProgressManager.getInstance().runProcessWithProgressSynchronously<ProjectConverter.Result, RuntimeException>(
+                        { LegacyProjectConverter.convert(java.io.File(csproj.path)) }, "Converting an old-style project…", false, project)
+                    when (legacy) {
+                        is ProjectConverter.Result.Converted -> {
+                            val after = StringUtil.convertLineSeparators(legacy.text)
+                            if (PreviewDialog(project, csproj, before, after, legacy).showAndGet()) apply(project, csproj, document, after)
+                        }
+                        is ProjectConverter.Result.NotPossible -> Messages.showWarningDialog(project, legacy.reason, TITLE)
+                        else -> {}
+                    }
+                }
                 is ProjectConverter.Result.Converted -> {
                     val after = StringUtil.convertLineSeparators(result.text)
                     if (!PreviewDialog(project, csproj, before, after, result).showAndGet()) return

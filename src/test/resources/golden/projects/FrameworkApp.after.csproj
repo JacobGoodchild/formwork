@@ -1,0 +1,60 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>FrameworkApp</RootNamespace>
+    <AssemblyName>FrameworkApp</AssemblyName>
+    <!-- Properties\AssemblyInfo.cs has the attributes the SDK would generate. -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+
+  <!-- Formwork: on Windows (college), the real Windows Forms on .NET Framework, as the project was. -->
+  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+    <TargetFramework>net481</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(OS)' == 'Windows_NT'">
+    <Reference Include="System.Net.Http" />
+  </ItemGroup>
+
+  <!-- Formwork: anywhere else (Linux at home), NetForms runs the same code on .NET 10. -->
+  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(OS)' != 'Windows_NT'">
+    <PackageReference Include="NetForms" Version="0.1.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="Legacy\Legacy.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Legacy\**" />
+    <EmbeddedResource Remove="Legacy\**" />
+    <None Remove="Legacy\**" />
+    <Compile Remove="Unlisted.cs" />
+    <Compile Update="Form1.Designer.cs">
+      <DependentUpon>Form1.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <None Update="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Update="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Content Include="Picture\closed.png" />
+  </ItemGroup>
+
+</Project>

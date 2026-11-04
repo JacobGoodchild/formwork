@@ -79,6 +79,20 @@ val publishHost by tasks.registering(Exec::class) {
     )
 }
 
+val publishConverter by tasks.registering(Exec::class) {
+    description = "Builds NetForms' project converter (used for old .NET Framework projects) next to the host."
+    dependsOn(publishHost)
+    inputs.files(fileTree("external/NetForms/tools/NetForms.Convert") { exclude("**/bin/**", "**/obj/**") })
+    outputs.file(hostOut.map { it.file("NetForms.Convert.dll") })
+    environment("DOTNET_CLI_TELEMETRY_OPTOUT", "1")
+    environment("DOTNET_NOLOGO", "1")
+    commandLine(
+        dotnet, "publish", file("external/NetForms/tools/NetForms.Convert/NetForms.Convert.csproj").absolutePath,
+        "-c", "Release", "-r", "linux-x64", "--self-contained", "false", "-p:DebugType=none",
+        "-o", hostOut.get().asFile.absolutePath,
+    )
+}
+
 tasks.processResources {
     // NetForms' designer webview (MIT), served to JCEF from the plugin's resources.
     from("external/NetForms/designer/media") { into("formwork/webview/netforms") }
@@ -88,7 +102,7 @@ tasks.processResources {
 }
 
 tasks.withType<org.jetbrains.intellij.platform.gradle.tasks.PrepareSandboxTask>().configureEach {
-    dependsOn(publishHost)
+    dependsOn(publishHost, publishConverter)
     from(hostOut) { into(pluginName.map { "$it/host" }) }
 }
 
