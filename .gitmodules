@@ -1,3 +1,4 @@
 [submodule "external/NetForms"]
 	path = external/NetForms
 	url = https://github.com/Go-Forms/.NetForms.git
+	ignore = dirty
