@@ -182,7 +182,7 @@ class ToolboxPanel(private val project: Project, parent: Disposable) : JPanel(Bo
                 is Node.Group -> append(node.name, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES)
                 is Node.Pointer -> { icon = PointerIcon; append("Pointer") }
                 is Node.Tool -> {
-                    icon = node.icon ?: BlankIcon
+                    icon = node.icon ?: ToolboxIcons.forControl(node.name)
                     append(node.name, if (node.unavailable != null) SimpleTextAttributes.GRAYED_ATTRIBUTES else SimpleTextAttributes.REGULAR_ATTRIBUTES)
                     toolTipText = node.unavailable ?: node.type
                 }

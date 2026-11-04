@@ -385,6 +385,7 @@ class PropertiesPanel(private val project: Project, parent: Disposable) : JPanel
             val comp = super.getTableCellRendererComponent(t, "", selected, false, r, c) as DefaultTableCellRenderer
             comp.icon = null
             comp.border = JBUI.Borders.empty(0, 4)
+            comp.foreground = if (selected) t.selectionForeground else t.foreground
             when (row) {
                 is Row.Category -> {
                     comp.text = if (c == 0) (if (row.name in collapsed) "⊞ " else "⊟ ") + row.name else ""
