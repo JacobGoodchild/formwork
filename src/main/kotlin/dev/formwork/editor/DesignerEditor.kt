@@ -149,6 +149,9 @@ class DesignerEditor(private val project: Project, private val file: VirtualFile
     /** A tool dropped from the native Toolbox at a point of this editor's component. */
     fun dropTool(type: String, x: Int, y: Int) = run("window.NetFormsDesigner && NetFormsDesigner.dropAt(${jsString(type)}, $x, $y);")
 
+    /** A command of the Format menu (see FormatAction). */
+    fun format(how: String, grid: Int) = run("window.NetFormsDesigner && NetFormsDesigner.format(${jsString(how)}, $grid);")
+
     /** The native tool windows replace the page's own Toolbox and Properties panes. */
     fun useNativePanes(on: Boolean) = run("document.body.classList.toggle('fw-native', $on);")
     val browserComponent: JComponent? get() = browser?.component

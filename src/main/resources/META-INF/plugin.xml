@@ -53,5 +53,52 @@
       <add-to-group group-id="ToolsMenu" anchor="first"/>
       <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
     </action>
+    <group id="Formwork.FormatMenu" text="F_ormat" popup="true" description="Visual Studio's Format menu for the Windows Forms designer">
+      <group id="Formwork.Format.Align" text="Align" popup="true">
+        <action id="Formwork.Format.left" class="dev.formwork.actions.FormatAction" text="Lefts"/>
+        <action id="Formwork.Format.center" class="dev.formwork.actions.FormatAction" text="Centers"/>
+        <action id="Formwork.Format.right" class="dev.formwork.actions.FormatAction" text="Rights"/>
+        <separator/>
+        <action id="Formwork.Format.top" class="dev.formwork.actions.FormatAction" text="Tops"/>
+        <action id="Formwork.Format.middle" class="dev.formwork.actions.FormatAction" text="Middles"/>
+        <action id="Formwork.Format.bottom" class="dev.formwork.actions.FormatAction" text="Bottoms"/>
+        <separator/>
+        <action id="Formwork.Format.toGrid" class="dev.formwork.actions.FormatAction" text="to Grid"/>
+      </group>
+      <group id="Formwork.Format.MakeSameSize" text="Make Same Size" popup="true">
+        <action id="Formwork.Format.sameWidth" class="dev.formwork.actions.FormatAction" text="Width"/>
+        <action id="Formwork.Format.sameHeight" class="dev.formwork.actions.FormatAction" text="Height"/>
+        <action id="Formwork.Format.sameSize" class="dev.formwork.actions.FormatAction" text="Both"/>
+        <separator/>
+        <action id="Formwork.Format.sizeToGrid" class="dev.formwork.actions.FormatAction" text="Size to Grid"/>
+      </group>
+      <group id="Formwork.Format.HorizontalSpacing" text="Horizontal Spacing" popup="true">
+        <action id="Formwork.Format.spaceX" class="dev.formwork.actions.FormatAction" text="Make Equal"/>
+        <action id="Formwork.Format.incX" class="dev.formwork.actions.FormatAction" text="Increase"/>
+        <action id="Formwork.Format.decX" class="dev.formwork.actions.FormatAction" text="Decrease"/>
+        <action id="Formwork.Format.removeX" class="dev.formwork.actions.FormatAction" text="Remove"/>
+      </group>
+      <group id="Formwork.Format.VerticalSpacing" text="Vertical Spacing" popup="true">
+        <action id="Formwork.Format.spaceY" class="dev.formwork.actions.FormatAction" text="Make Equal"/>
+        <action id="Formwork.Format.incY" class="dev.formwork.actions.FormatAction" text="Increase"/>
+        <action id="Formwork.Format.decY" class="dev.formwork.actions.FormatAction" text="Decrease"/>
+        <action id="Formwork.Format.removeY" class="dev.formwork.actions.FormatAction" text="Remove"/>
+      </group>
+      <group id="Formwork.Format.CenterinForm" text="Center in Form" popup="true">
+        <action id="Formwork.Format.centerH" class="dev.formwork.actions.FormatAction" text="Horizontally"/>
+        <action id="Formwork.Format.centerV" class="dev.formwork.actions.FormatAction" text="Vertically"/>
+      </group>
+      <separator/>
+      <group id="Formwork.Format.Order" text="Order" popup="true">
+        <action id="Formwork.Format.bringToFront" class="dev.formwork.actions.FormatAction" text="Bring to Front"/>
+        <action id="Formwork.Format.sendToBack" class="dev.formwork.actions.FormatAction" text="Send to Back"/>
+      </group>
+      <separator/>
+      <action id="Formwork.Format.lock" class="dev.formwork.actions.FormatAction" text="Lock Controls" description="Lock the controls so they can't be moved or resized by accident"/>
+      <add-to-group group-id="MainMenu" relative-to-action="CodeMenu" anchor="after"/>
+    </group>
+    <action id="Formwork.Format.tabOrder" class="dev.formwork.actions.FormatAction" text="Tab Order" description="Show the tab order on the form: click the controls in the order the Tab key should visit them">
+      <add-to-group group-id="ViewMenu" anchor="last"/>
+    </action>
   </actions>
 </idea-plugin>

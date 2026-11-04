@@ -16,7 +16,7 @@ index 60a192a..a0f5284 100644
 +.tool-rect { border-style: solid; }
 +.tb-empty { color: var(--vscode-descriptionForeground, #888); text-align: center; padding: 8px 12px; white-space: normal; font-size: 0.95em; }
 diff --git a/designer/media/designer.js b/designer/media/designer.js
-index 4898450..0a8a3f6 100644
+index 4898450..e655fb5 100644
 --- a/designer/media/designer.js
 +++ b/designer/media/designer.js
 @@ -44,6 +44,7 @@
@@ -197,7 +197,74 @@ index 4898450..0a8a3f6 100644
  		if (e.key === 'Escape') {
  			// Up one level, as in VS: the container of the selection, then the form.
  			const it = itemById(primaryId());
-@@ -2467,5 +2566,24 @@
+@@ -2443,6 +2542,66 @@
+ 		apply(ops, state.selection);
+ 	}
+ 
++	/**
++	 * Visual Studio's Format menu, for an editor that shows it (Formwork's Rider menu): align (also to the grid), make
++	 * same size (also size to grid), horizontal / vertical spacing (make equal, increase, decrease, remove), center
++	 * in form, order. The primary (last selected) control is the reference, as in VS.
++	 */
++	function formatCommand(how, gridSize) {
++		const grid = gridSize || 8;
++		if (how === 'bringToFront' || how === 'sendToBack') { zorder(how); return; }
++		if (how === 'lock') { state.locked = !state.locked; remember(); renderAll(); return; }
++		if (how === 'tabOrder') { toggleTabOrder(); return; }
++		const ids = movableSelection();
++		if (!ids.length) return;
++		const rects = {};
++		for (const id of ids) { const it = itemById(id); rects[id] = { x: it.x, y: it.y, w: it.w, h: it.h }; }
++		const primary = ids.includes(primaryId()) ? primaryId() : ids[ids.length - 1];
++		const snap = (v) => Math.round(v / grid) * grid;
++		let out = {};
++		if (['left', 'center', 'right', 'top', 'middle', 'bottom', 'sameWidth', 'sameHeight', 'sameSize'].includes(how)) {
++			if (ids.length < 2) return;
++			out = G.align(rects, primary, how);
++		} else if (how === 'spaceX' || how === 'spaceY') {
++			if (ids.length < 3) return;
++			out = G.spaceEvenly(rects, how === 'spaceX' ? 'x' : 'y');
++		} else if (how === 'toGrid' || how === 'sizeToGrid') {
++			for (const id of ids) {
++				const r = rects[id], c = containerRect(itemById(id).parent);
++				out[id] = how === 'toGrid' ? { ...r, x: c.x + snap(r.x - c.x), y: c.y + snap(r.y - c.y) } : { ...r, w: Math.max(grid, snap(r.w)), h: Math.max(grid, snap(r.h)) };
++			}
++		} else if (/^(inc|dec|remove)[XY]$/.test(how)) {
++			if (ids.length < 2) return;
++			const horizontal = how.endsWith('X');
++			const [pos, size] = horizontal ? ['x', 'w'] : ['y', 'h'];
++			const order = ids.slice().sort((a, b) => rects[a][pos] - rects[b][pos]);
++			let end = rects[order[0]][pos] + rects[order[0]][size];
++			out[order[0]] = rects[order[0]];
++			for (let i = 1; i < order.length; i++) {
++				const r = rects[order[i]], prev = rects[order[i - 1]];
++				const gap = r[pos] - (prev[pos] + prev[size]);
++				const next = how.startsWith('inc') ? gap + grid : how.startsWith('dec') ? Math.max(0, gap - grid) : 0;
++				out[order[i]] = { ...r, [pos]: end + next };
++				end = end + next + r[size];
++			}
++		} else if (how === 'centerH' || how === 'centerV') {
++			const c = containerRect(itemById(ids[0]).parent);
++			const cw = c.w, ch = c.h;
++			const minX = Math.min(...ids.map((id) => rects[id].x)), maxX = Math.max(...ids.map((id) => rects[id].x + rects[id].w));
++			const minY = Math.min(...ids.map((id) => rects[id].y)), maxY = Math.max(...ids.map((id) => rects[id].y + rects[id].h));
++			const dx = how === 'centerH' ? Math.round(c.x + (cw - (maxX - minX)) / 2 - minX) : 0;
++			const dy = how === 'centerV' ? Math.round(c.y + (ch - (maxY - minY)) / 2 - minY) : 0;
++			for (const id of ids) out[id] = { ...rects[id], x: rects[id].x + dx, y: rects[id].y + dy };
++		} else return;
++		const ops = [];
++		for (const id of ids) {
++			const it = itemById(id), r = out[id];
++			if (!r || (r.x === it.x && r.y === it.y && r.w === it.w && r.h === it.h)) continue;
++			ops.push({ op: 'setBounds', id, x: it.left + (r.x - it.x), y: it.top + (r.y - it.y), w: r.w, h: r.h });
++		}
++		apply(ops, state.selection);
++	}
++
+ 	// --- status and toasts --------------------------------------------------------------------------
+ 
+ 	function renderStatus(text) {
+@@ -2467,5 +2626,27 @@
  	}
  
  	renderAll();
@@ -218,6 +285,9 @@ index 4898450..0a8a3f6 100644
 +		// The selection, set from outside (a native Properties drop-down or Document Outline).
 +		select: (ids) => { if (!state.view) return; const known = new Set(['', ...allIds()]); const list = (ids || []).filter((i) => known.has(i)); selectAll(list); },
 +		selection: () => state.selection.slice(),
++		format: (how, grid) => formatCommand(how, grid),
++		// What the Format menu can do now: [selected movable controls, locked, tab order on].
++		formatState: () => [movableSelection().length, state.locked, state.tabOrder],
 +	};
 +
  	post({ type: 'ready' });
