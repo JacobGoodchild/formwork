@@ -84,6 +84,7 @@ tasks.processResources {
     from("external/NetForms/designer/media") { into("formwork/webview/netforms") }
     from("external/NetForms/LICENSE") { into("formwork/licenses/NetForms") }
     from("external/NetForms/THIRD-PARTY-NOTICES.md") { into("formwork/licenses/NetForms") }
+    from("LICENSE") { into("formwork/licenses/Formwork") }
 }
 
 tasks.withType<org.jetbrains.intellij.platform.gradle.tasks.PrepareSandboxTask>().configureEach {
