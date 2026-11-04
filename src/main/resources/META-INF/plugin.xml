@@ -1,0 +1,7 @@
+<idea-plugin>
+  <id>dev.formwork</id>
+  <name>Formwork</name>
+  <vendor>Formwork</vendor>
+  <description>Windows Forms designer for Rider on Linux, built on NetForms.</description>
+  <depends>com.intellij.modules.platform</depends>
+</idea-plugin>

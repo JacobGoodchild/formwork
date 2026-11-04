@@ -1,0 +1,45 @@
+diff --git a/src/NetForms.Design/DesignSurface.cs b/src/NetForms.Design/DesignSurface.cs
+index d4cf89a..86ea81f 100644
+--- a/src/NetForms.Design/DesignSurface.cs
++++ b/src/NetForms.Design/DesignSurface.cs
+@@ -95,10 +95,22 @@ public sealed partial class DesignSurface : IDisposable
+     public static DesignSurface Open(string designerPath, DesignerLibraries? libraries)
+     {
+         var companionPath = DesignerCodeReader.CompanionPath(designerPath);
+-        var companion = companionPath != null && File.Exists(companionPath) ? File.ReadAllText(companionPath) : null;
+-        return new DesignSurface(File.ReadAllText(designerPath), companion, Path.GetFullPath(designerPath), companion != null ? Path.GetFullPath(companionPath!) : null, libraries);
++        var companion = companionPath != null ? ReadIfExists(companionPath) : null;
++        var source = ReadIfExists(designerPath) ?? File.ReadAllText(designerPath);
++        return new DesignSurface(source, companion, Path.GetFullPath(designerPath), companion != null ? Path.GetFullPath(companionPath!) : null, libraries);
+     }
+ 
++    /// <summary>
++    /// Where the form's three files (the designer file, the code-behind, the .resx) are read from and written to.
++    /// Null, the default: the disk. An editor that keeps the files in buffers of its own (unsaved changes, its own
++    /// undo) sets both, so the designer builds on what the user sees and hands its writes to the editor instead of
++    /// the disk. The reader returns null for a file that does not exist.
++    /// </summary>
++    public static Func<string, string?>? ReadFileOverride { get; set; }
++
++    /// <inheritdoc cref="ReadFileOverride"/>
++    public static Action<string, string>? WriteFileOverride { get; set; }
++
+     /// <summary>A form from memory; <see cref="Save"/> is then a no-op.</summary>
+     public static DesignSurface Load(string designerSource, string? companionSource = null, DesignerLibraries? libraries = null) =>
+         new(designerSource, companionSource, null, null, libraries);
+@@ -240,6 +252,7 @@ public sealed partial class DesignSurface : IDisposable
+ 
+     private static string? ReadIfExists(string path)
+     {
++        if (ReadFileOverride is { } read) return read(Path.GetFullPath(path));
+         try { return File.Exists(path) ? File.ReadAllText(path) : null; }
+         catch (IOException) { return null; }
+     }
+@@ -273,6 +286,7 @@ public sealed partial class DesignSurface : IDisposable
+ 
+     private static void WriteKeepingBom(string path, string text, bool bomIfNew = false)
+     {
++        if (WriteFileOverride is { } write) { write(Path.GetFullPath(path), text); return; }
+         bool bom = bomIfNew && !File.Exists(path);
+         if (File.Exists(path))
+         {
