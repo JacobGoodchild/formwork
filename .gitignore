@@ -1,0 +1,9 @@
+.gradle/
+build/
+out/
+.idea/
+*.iml
+bin/
+obj/
+.intellijPlatform/
+host-build/
