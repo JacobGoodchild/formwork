@@ -138,12 +138,12 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 - [x] VS names — **Verified (host level)**: T `CodeGenerationTest.new controls get…`; menu items named from their text (patch 0003, MenuDemo sample).
 
 ### F. Format menu (Should)
-- [ ] Align — Not started (NetForms webview has Format commands; no Rider menu yet)
-- [ ] Make Same Size — Not started
-- [ ] Horizontal / Vertical Spacing — Not started
-- [ ] Center in Form — Not started
-- [ ] Order — Not started
-- [ ] Lock Controls — Not started
+- [x] Align — **Verified** (Lefts): S `stage4-light-format-align-lefts-find-action.png`, `stage4-light-format-align-lefts-result.png`. Others + to Grid: Done (unverified).
+- [ ] Make Same Size — **Done (unverified)** (Format menu → NetForms' align helper; Size to Grid added).
+- [ ] Horizontal / Vertical Spacing — **Done (unverified)**: Make Equal, Increase, Decrease, Remove (grid step = settings grid, 8).
+- [ ] Center in Form — **Done (unverified)**.
+- [ ] Order — **Done (unverified)** (Bring to Front / Send to Back).
+- [ ] Lock Controls — **Partial**: toggles NetForms' designer-wide lock; no padlock glyph, and VS's per-control `Locked` property isn't written.
 
 ### G. Menus, strips, smart tags (Should)
 - [ ] MenuStrip / ContextMenuStrip "Type Here" — Not started (NetForms has it; untested)
@@ -157,7 +157,7 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 - [ ] SplitContainer splitter — Not started
 
 ### I. Tab order and Document Outline (Should)
-- [ ] View → Tab Order — Not started
+- [ ] View → Tab Order — **Done (unverified)** (View menu → NetForms' tab-order mode).
 - [ ] Document Outline tool window — **Done (unverified)**: native tool window (tree, click selects); drag to reorder not implemented.
 
 ### J. Errors and safety (Must)
@@ -167,8 +167,8 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 
 ### K. Projects and running (Must)
 - [ ] Rider Run/Debug start the app on Linux — **Partial**: `dotnet build` + `dotnet run` of a converted project works and the click handler fires (S `stage1-app-running-on-linux.png`). Rider's Run button: 🔎 Jacob.
-- [x] "Make this project work on Linux too" — **Verified for SDK-style projects**: golden files for the VS .NET 8/9/10 templates + custom settings (T `ProjectConverterTest`); every converted sample builds on Linux (T `ProjectBuildTest`, 8/8); in the IDE: notice → preview → apply, backup byte-identical, result = golden (S `stage3-dark-make-linux-preview.png`). Old .NET Framework projects: not converted yet (explains what to do instead).
-- [ ] Add → Windows Form / User Control — Not started
+- [x] "Make this project work on Linux too" — **Verified for SDK-style projects**: golden files for the VS .NET 8/9/10 templates + custom settings (T `ProjectConverterTest`); every converted sample builds on Linux (T `ProjectBuildTest`, 8/8); in the IDE: notice → preview → apply, backup byte-identical, result = golden (S `stage3-dark-make-linux-preview.png`). Old .NET Framework projects: **Done (unverified on Windows)** — NetForms' converter on a temp copy, then split into `net48x`+WinForms / `net10.0`+NetForms, warning shown (T `LegacyProjectConverterTest`, golden file). Limit: other old-style projects in the same solution must be converted too.
+- [ ] Add → Windows Form / User Control (+ templates) — **Partial**: Add → Windows Form… / User Control (Windows Forms)… in the New menu, text byte-identical to Microsoft's SDK templates (T `AddFormTemplateTest`), opens the designer. Not screenshot-tested; NetForms' dialog / About box / login / splash templates not offered yet.
 - [ ] New project template — Not started
 
 ### L. Settings (Later)
@@ -214,7 +214,9 @@ OS-integration daemon (not Formwork; now disabled in the test IDE). These are th
    files that use it (VS's rename would). Rare for forms.
 6. **Text sizes**: the designer measures with Formwork Sans (Segoe UI's open replacement, adjusted).
    Some widths differ by 1–2 px from VS (Label 37 vs 38, RadioButton 96 vs 94), ListBox 96 vs 94 high.
-7. **Old .NET Framework projects** aren't converted yet (the command explains what to do instead).
+7. **Old .NET Framework projects** convert (with a clear "check it at college" warning), but a solution
+   whose *other* projects are also old-style needs each converted, and the Windows half is only checked by
+   the golden file, not by a Windows build yet.
 8. The form's title bar now has an icon and caption glyphs, but they're flat (Windows 10 style), not
    the boxed Windows 7-style buttons of one reference screenshot.
 9. **Button face** is NetForms' grey (#E1E1E1, Windows 10 style), not the white Windows 11 face in
