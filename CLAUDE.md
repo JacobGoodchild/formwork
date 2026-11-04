@@ -175,6 +175,32 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 - [ ] Settings page — Not started (settings state exists, no UI)
 - [ ] Data binding pickers — Not started
 
+## Fresh-eyes review, end of Stage 1 (21:02, sub-agent that saw only the references, screenshots and checklist)
+
+> **Verdict: Formwork works, but it does not look like Visual Studio.** A VS user will find the right parts,
+> but they won't feel at home. The behaviour is further along than the appearance.
+> - Toolbox and Properties are panes inside the editor tab, not docked tool windows.
+> - Toolbox: "Toolbox | Outline" tabs instead of a title; "Search toolbox" lower case; extra "+ Control
+>   Library..." row and "(tray)" suffixes; only Pointer has an icon.
+> - Form title bar looks like a focused text field; Form1 (800 wide) is cut off so its caption buttons and
+>   right/bottom handles never show.
+> - Button is grey, not white; handles look dark/filled.
+> - Properties: no "Properties" title, no selection drop-down, text tabs instead of the 5-icon toolbar,
+>   a search box VS doesn't have, no description pane.
+> - Design and code are one tab with "Design | Text" switches (VS: two tabs).
+> - "IDE error occurred" toast visible in several screenshots.
+> - Checklist: several forms, toolbox order, click-to-place, back to Pointer, handler with cursor, Linux
+>   preview = Verified. F7/Shift+F7, outside-edit reload, broken file = Partly (evidence not explicit).
+>   **Ctrl+Z = Not shown** (07 looks like 06; the button is still there).
+> Top 5: real tool windows; proper form title bar + whole form visible + white handles; VS Properties header
+> with selection drop-down, toolbar, description pane; toolbox icons and VS wording; fix the error toast and
+> re-take the Ctrl+Z / F7 / "never overwritten" evidence.
+
+My response: agreed on all points. On Ctrl+Z: screenshot 07 shows the undo of the *handler* (the last step),
+so the button correctly stays; the file-level proof is in the log (byte-identical after 2× Ctrl+Z) but the
+screenshot doesn't show it — I'll re-take it showing the button disappearing. The error toast was IDEA's own
+OS-integration daemon (not Formwork; now disabled in the test IDE). These are the Stage 2 to-do list.
+
 ## Known gaps
 
 1. **Sandbox Rider can't be tested here** (login needed). UI tested in IntelliJ IDEA 2026.2.4; Rider-only
