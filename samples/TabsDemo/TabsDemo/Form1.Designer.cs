@@ -88,10 +88,10 @@ partial class Form1
         tabPage1.Controls.Add(splitContainer1);
         tabPage1.Controls.Add(panel1);
         tabPage1.Controls.Add(groupBox1);
-        tabPage1.Location = new Point(4, 22);
+        tabPage1.Location = new Point(4, 24);
         tabPage1.Name = "tabPage1";
         tabPage1.Padding = new Padding(3);
-        tabPage1.Size = new Size(552, 304);
+        tabPage1.Size = new Size(552, 302);
         tabPage1.TabIndex = 0;
         tabPage1.Text = "Boxes";
         tabPage1.UseVisualStyleBackColor = true;
@@ -100,10 +100,10 @@ partial class Form1
         //
         tabPage2.Controls.Add(flowLayoutPanel1);
         tabPage2.Controls.Add(tableLayoutPanel1);
-        tabPage2.Location = new Point(4, 22);
+        tabPage2.Location = new Point(4, 24);
         tabPage2.Name = "tabPage2";
         tabPage2.Padding = new Padding(3);
-        tabPage2.Size = new Size(552, 304);
+        tabPage2.Size = new Size(552, 302);
         tabPage2.TabIndex = 1;
         tabPage2.Text = "Layouts";
         tabPage2.UseVisualStyleBackColor = true;
@@ -149,7 +149,7 @@ partial class Form1
         checkBox1.AutoSize = true;
         checkBox1.Location = new Point(12, 24);
         checkBox1.Name = "checkBox1";
-        checkBox1.Size = new Size(90, 18);
+        checkBox1.Size = new Size(83, 19);
         checkBox1.TabIndex = 0;
         checkBox1.Text = "checkBox1";
         checkBox1.UseVisualStyleBackColor = true;
@@ -159,7 +159,7 @@ partial class Form1
         radioButton1.AutoSize = true;
         radioButton1.Location = new Point(12, 50);
         radioButton1.Name = "radioButton1";
-        radioButton1.Size = new Size(102, 18);
+        radioButton1.Size = new Size(96, 19);
         radioButton1.TabIndex = 1;
         radioButton1.Text = "radioButton1";
         radioButton1.UseVisualStyleBackColor = true;
@@ -184,7 +184,7 @@ partial class Form1
         //
         textBox1.Location = new Point(6, 6);
         textBox1.Name = "textBox1";
-        textBox1.Size = new Size(200, 21);
+        textBox1.Size = new Size(200, 23);
         textBox1.TabIndex = 0;
         //
         // tableLayoutPanel1
@@ -215,7 +215,7 @@ partial class Form1
         label1.AutoSize = true;
         label1.Location = new Point(3, 0);
         label1.Name = "label1";
-        label1.Size = new Size(41, 14);
+        label1.Size = new Size(37, 15);
         label1.TabIndex = 0;
         label1.Text = "label1";
         //

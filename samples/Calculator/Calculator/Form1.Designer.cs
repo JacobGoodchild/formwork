@@ -69,7 +69,7 @@ partial class Form1
         txtDisplay.Location = new Point(12, 12);
         txtDisplay.Name = "txtDisplay";
         txtDisplay.ReadOnly = true;
-        txtDisplay.Size = new Size(236, 21);
+        txtDisplay.Size = new Size(236, 23);
         txtDisplay.TabIndex = 0;
         txtDisplay.Text = "0";
         txtDisplay.TextAlign = HorizontalAlignment.Right;

@@ -47,7 +47,7 @@ partial class Form1
         lblUser.AutoSize = true;
         lblUser.Location = new Point(12, 15);
         lblUser.Name = "lblUser";
-        lblUser.Size = new Size(70, 14);
+        lblUser.Size = new Size(63, 15);
         lblUser.TabIndex = 0;
         lblUser.Text = "Username:";
         //
@@ -55,7 +55,7 @@ partial class Form1
         //
         txtUser.Location = new Point(90, 12);
         txtUser.Name = "txtUser";
-        txtUser.Size = new Size(180, 21);
+        txtUser.Size = new Size(180, 23);
         txtUser.TabIndex = 1;
         //
         // lblPassword
@@ -63,7 +63,7 @@ partial class Form1
         lblPassword.AutoSize = true;
         lblPassword.Location = new Point(12, 48);
         lblPassword.Name = "lblPassword";
-        lblPassword.Size = new Size(65, 14);
+        lblPassword.Size = new Size(59, 15);
         lblPassword.TabIndex = 2;
         lblPassword.Text = "Password:";
         //
@@ -72,7 +72,7 @@ partial class Form1
         txtPassword.Location = new Point(90, 45);
         txtPassword.Name = "txtPassword";
         txtPassword.PasswordChar = '*';
-        txtPassword.Size = new Size(180, 21);
+        txtPassword.Size = new Size(180, 23);
         txtPassword.TabIndex = 3;
         //
         // btnOK

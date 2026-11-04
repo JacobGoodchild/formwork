@@ -16,6 +16,9 @@
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="../fonts/*.ttf;../fonts/Selawik-OFL.txt" Link="fonts/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="../../external/NetForms/src/NetForms.Design/NetForms.Design.csproj" />
   </ItemGroup>
 </Project>

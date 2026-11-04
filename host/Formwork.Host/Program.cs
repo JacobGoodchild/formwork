@@ -31,6 +31,7 @@ public static class Program
         Console.SetOut(Console.Error);
 
         WindowsPalette.Install();
+        WindowsPalette.InstallFonts();
         DesignSurface.ReadFileOverride = Read;
         DesignSurface.WriteFileOverride = (path, text) => { s_buffers[path] = text; s_writes[path] = text; };
 

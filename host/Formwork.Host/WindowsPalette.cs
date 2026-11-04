@@ -15,6 +15,31 @@ internal static class WindowsPalette
 {
     public static bool Installed { get; private set; }
 
+    /// <summary>
+    /// Text is measured with Selawik (Segoe UI's open-source, metric-compatible replacement, bundled in fonts/)
+    /// when Segoe UI isn't installed, so the sizes written to Designer.cs match Visual Studio's more closely.
+    /// </summary>
+    public static bool InstallFonts()
+    {
+        try
+        {
+            var dir = System.IO.Path.Combine(AppContext.BaseDirectory, "fonts");
+            var regular = System.IO.Path.Combine(dir, "FormworkSans-Regular.ttf");
+            var bold = System.IO.Path.Combine(dir, "FormworkSans-Bold.ttf");
+            if (!System.IO.File.Exists(regular)) return false;
+            var type = typeof(System.Drawing.Graphics).Assembly.GetType("System.Drawing.HermeticRendering", throwOnError: false);
+            var property = type?.GetProperty("FallbackFontFiles", BindingFlags.Public | BindingFlags.Static);
+            if (property == null) return false;
+            property.SetValue(null, System.IO.File.Exists(bold) ? new[] { regular, bold } : new[] { regular });
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Formwork: could not set up the Segoe UI stand-in font: {ex.Message}");
+            return false;
+        }
+    }
+
     public static void Install()
     {
         try

@@ -54,7 +54,7 @@ partial class Form1
         lblTime.Font = new Font("Segoe UI", 14.25F);
         lblTime.Location = new Point(12, 175);
         lblTime.Name = "lblTime";
-        lblTime.Size = new Size(93, 23);
+        lblTime.Size = new Size(77, 24);
         lblTime.TabIndex = 1;
         lblTime.Text = "00:00:00";
         //
