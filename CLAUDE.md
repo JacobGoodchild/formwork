@@ -12,7 +12,7 @@ chain at 21:05, 22:35, 00:05, 01:35, 03:05, 04:35, 06:05 UK). Deadline: 07:00 UK
 
 ## Status
 
-**Current stage:** Stage 1 (definition-of-done story). Stage 0 finished 20:12 UK: **GO**.
+**Current stage:** Stage 2 (look and feel like VS). Stage 1 finished 21:00 UK (story works end to end; review verdict below). Stage 0 finished 20:12: **GO**.
 
 ### Stage 0 result (20:12)
 The pipeline works: in the sandbox IDE, double-clicking `Form1.cs` opens a **Design** tab; the
@@ -108,7 +108,7 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 
 ### C. Canvas (Must)
 - [x] Click / Ctrl/Shift+click / rubber-band select — **Partial**: click verified (S `stage1-dark-04…`); Ctrl/Shift/rubber band are NetForms webview features, untested.
-- [ ] Primary selection white handles, others dark — Not checked.
+- [ ] Primary selection white handles, others dark — **Partial**: primary = dotted outline + white squares with dark borders (S `stage2-light-selection-handles-zoom.png`); a multi-selection shows dotted outlines but NetForms draws no handles on the others (S `stage2-light-multi-select-zoom.png`).
 - [ ] Move, resize, form resize handles — **Done (unverified)** (NetForms webview).
 - [ ] Snaplines — **Done (unverified)** (NetForms has edge/baseline/margin snaplines; colours not compared with VS yet).
 - [ ] Keyboard nudge/resize as VS — **Partial**: NetForms uses Ctrl+arrow = 8 px, not "next snapline" as VS. To fix.
@@ -119,7 +119,7 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 - [ ] Docked controls: free-edge resize only — **Done (unverified)** (NetForms README says so).
 
 ### D. Properties and Events (Must)
-- [ ] Selection drop-down; Categorized/Alphabetical; bold non-defaults; description pane — **Partial**: categories + bold non-defaults visible (S `stage0-designer-in-ide-dark.png`, "Text" bold); no selection drop-down, no description pane yet (Stage 2, native Properties window).
+- [x] Selection drop-down; Categorized/Alphabetical; bold non-defaults; description pane — **Verified (native Properties tool window)**: S `stage2-dark-native-toolbox-properties.png`, `stage2-light-designer-native-windows.png` ("btnOK System.Windows.Forms.Button", 5-button toolbar, ⊟ categories, bold FixedDialog/Log In/OK). Description pane exists (below the grid); its text shows when a row is selected — not yet in a screenshot.
 - [ ] Editors: text, numbers, bool/enum, flags, Size/Point/Padding/Font — **Done (unverified)** (NetForms webview).
 - [ ] Pop-up editors (Anchor, Dock, Color, Font, ContentAlignment, multi-line, Cursor) — **Partial** (NetForms has Anchor/Dock/Color; Font dialog etc. not checked).
 - [ ] Collection editors — **Done (unverified)**: setItems works (samples use TabPages, menu DropDownItems, StatusStrip Items).
@@ -128,7 +128,7 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 - [ ] Reset — **Done (unverified)**.
 - [ ] Multi-selection shared properties — Not checked.
 - [x] (Name) rename incl. code — **Verified (host level)**: T `CodeGenerationTest.renaming…` (field, `+=` line, handler, a use in Form1.cs). Goes through the document, so Ctrl+Z works; Rider's rename refactoring for *other* files is not used (Known gap).
-- [ ] Events tab — **Done (unverified)**.
+- [x] Events tab — **Verified**: S `stage2-light-events-tab.png` (events by category, Click → btnOK_Click), `stage2-light-event-double-click-creates-handler.png` (double-click Enter → btnOK_Enter created, cursor inside). Typing a name + Enter, clearing to unbind: Done (unverified).
 
 ### E. Code generation (Must)
 - [x] Double-click control creates default handler, jumps into it — **Verified**: S `stage1-dark-05-handler-in-code.png` (button1_Click, cursor inside, indented). Also seen: form → `Form1_Load`, CheckedListBox → `SelectedIndexChanged`.
@@ -158,7 +158,7 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 
 ### I. Tab order and Document Outline (Should)
 - [ ] View → Tab Order — Not started
-- [ ] Document Outline tool window — Not started (webview has an Outline tab)
+- [ ] Document Outline tool window — **Done (unverified)**: native tool window (tree, click selects); drag to reorder not implemented.
 
 ### J. Errors and safety (Must)
 - [x] Broken Designer.cs: error page with line, never overwrites — **Verified**: S `stage1-dark-broken-designer-file.png`; the broken file is byte-identical afterwards (`tools/checks.sh` prints BROKEN FILE LEFT UNTOUCHED); T `HostClientTest`. "Open as text" opens the file at the error's line and column (not screenshot-tested).
@@ -215,7 +215,12 @@ OS-integration daemon (not Formwork; now disabled in the test IDE). These are th
 6. **Text sizes**: the designer measures with Formwork Sans (Segoe UI's open replacement, adjusted).
    Some widths differ by 1–2 px from VS (Label 37 vs 38, RadioButton 96 vs 94), ListBox 96 vs 94 high.
 7. **Old .NET Framework projects** aren't converted yet (the command explains what to do instead).
-8. The form's **title bar** in the designer is a flat strip (no icon, no min/max/close glyphs) — Stage 2.
+8. The form's title bar now has an icon and caption glyphs, but they're flat (Windows 10 style), not
+   the boxed Windows 7-style buttons of one reference screenshot.
+9. **Button face** is NetForms' grey (#E1E1E1, Windows 10 style), not the white Windows 11 face in
+   Jacob's screenshot: it's what the app really looks like when it runs on Linux, so the designer keeps it.
+10. Toolbox icons are Formwork's own simple drawings (NetForms has none for built-in controls; VS's
+   can't be copied).
 
 ## What I tried that failed
 
