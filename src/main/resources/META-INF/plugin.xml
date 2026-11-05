@@ -26,6 +26,7 @@
     <toolWindow id="Properties" anchor="right" secondary="false" icon="AllIcons.Toolwindows.ToolWindowPalette"
                 factoryClass="dev.formwork.toolwindows.PropertiesToolWindowFactory"/>
     <applicationService serviceImplementation="dev.formwork.settings.FormworkSettings"/>
+    <applicationConfigurable parentId="tools" instance="dev.formwork.settings.FormworkConfigurable" id="dev.formwork.settings" displayName="Formwork"/>
     <postStartupActivity implementation="dev.formwork.project.LinuxProjectNotifier"/>
   </extensions>
 

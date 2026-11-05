@@ -172,7 +172,7 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 - [ ] New project template — Not started
 
 ### L. Settings (Later)
-- [ ] Settings page — Not started (settings state exists, no UI)
+- [ ] Settings page — **Done (unverified)**: Settings → Tools → Formwork: layout mode, grid size, snap while dragging, dotnet path, host path. "Show grid" not wired to the canvas yet.
 - [ ] Data binding pickers — Not started
 
 ## Fresh-eyes review, end of Stage 1 (21:02, sub-agent that saw only the references, screenshots and checklist)
@@ -200,6 +200,10 @@ My response: agreed on all points. On Ctrl+Z: screenshot 07 shows the undo of th
 so the button correctly stays; the file-level proof is in the log (byte-identical after 2× Ctrl+Z) but the
 screenshot doesn't show it — I'll re-take it showing the button disappearing. The error toast was IDEA's own
 OS-integration daemon (not Formwork; now disabled in the test IDE). These are the Stage 2 to-do list.
+
+## Interruption
+
+The session was stopped from 21:28 to 00:06 UK (usage limit / worker restart); the wake-up chain brought it back. Nothing was lost (all committed).
 
 ## Known gaps
 
