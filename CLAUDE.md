@@ -22,8 +22,11 @@ decide; pushing a tag like `v0.1.0` runs CI's release job, which attaches the zi
 
 ## Renamed: Formwork → Penguin Forms (5 Nov, 17:45 UK, at Jacob's request)
 
-Marketplace name **"Penguin Forms - WinForms Designer for Rider"** (JetBrains' rules: the name mustn't *start* with a
-product name like "Rider"; "for Rider" at the end is the usual allowed form). Checked free: no Marketplace plugin, no
+Name: just **"Penguin Forms"** (Jacob's decision after checking the Marketplace rules: names are at most 30 characters
+and may not contain other companies' trademarks, so no "WinForms", "Rider" or "Linux" in the name). The descriptive
+part, "A Visual Studio-style Windows Forms designer for Rider on Linux", is the first line of the description, which
+also says the product names are trademarks of their owners and Penguin Forms isn't endorsed by them. Any icon must be
+our own penguin drawing (not Tux, not like a JetBrains logo); no icon yet. Checked free: no Marketplace plugin, no
 NuGet package; on GitHub only an unrelated, unstarred `penguincms/Penguin.Forms.Abstractions`. Changed: plugin ID
 `dev.formwork` → **`dev.penguinforms`** (must be final before publishing: it can't change on the Marketplace), vendor
 "Jacob Goodchild", Kotlin package and classes, resources, every user-visible text, settings page, notifications,

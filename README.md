@@ -1,6 +1,6 @@
-# Penguin Forms – WinForms Designer for Rider
+# Penguin Forms
 
-_(Formerly called "Formwork".)_
+_A Visual Studio-style Windows Forms designer for Rider on Linux. (Formerly called "Formwork".)_
 
 **The Windows Forms designer for JetBrains Rider on Linux**, laid out and behaving like the one in
 Visual Studio 2022: a `Form1.cs [Design]` tab, a docked **Toolbox**, a **Properties** window with
@@ -95,5 +95,6 @@ which downloads the NetForms package from NuGet (that's .NET's own build, not Pe
 - **Selawik** © Microsoft, SIL Open Font License 1.1 — the basis of Formwork Sans (`host/fonts/`).
 - Penguin Forms itself: **MIT licence** (`LICENSE`). Toolbox icons are Penguin Forms' own drawings; nothing is copied
   from Visual Studio.
-- "Rider" and "IntelliJ IDEA" are JetBrains trademarks; "Visual Studio" and "Windows Forms" are Microsoft's.
-  Penguin Forms is an independent project.
+- "Rider" and "IntelliJ IDEA" are JetBrains trademarks; "Visual Studio" and "Windows Forms" are Microsoft's;
+  "Linux" is a trademark of Linus Torvalds. They're named only to say what Penguin Forms works with. Penguin Forms is
+  an independent project, not made or endorsed by any of them, and uses none of their logos.
