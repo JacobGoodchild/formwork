@@ -33,7 +33,7 @@ object LegacyProjectConverter {
         val nl = if (converted.contains("\r\n")) "\r\n" else "\n"
         var out = converted.replace(Regex("""[ \t]*<TargetFramework>net10\.0</TargetFramework>[ \t]*\r?\n"""), "")
         val netforms = Regex("""[ \t]*<PackageReference Include="NetForms" Version="([^"]+)" />[ \t]*\r?\n""").find(out)
-        val version = netforms?.groupValues?.get(1) ?: ProjectConverter.NETFORMS_VERSION
+        val version = ProjectConverter.NETFORMS_VERSION // pinned, whatever the converter wrote
         if (netforms != null) out = out.removeRange(netforms.range)
         out = out.replace(Regex("""\s*<ItemGroup>\s*</ItemGroup>"""), "")
         val extra = Regex("""<Reference\s+Include\s*=\s*"([^",]+)"\s*/>""").findAll(oldText).map { it.groupValues[1] }

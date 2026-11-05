@@ -90,24 +90,24 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 2026.2.4 (same platform as Rider 2026.2), dark theme, because the sandbox Rider needs a login (see BLOCKER).
 
 ### A. Opening and switching (Must)
-- [x] Double-click Form1.cs opens designer; Designer.cs openable as text — **Verified (in IDEA)**: S `stage1-dark-02-designer-open.png`; Designer.cs opens as text (seen in story run 1). Rider Solution Explorer: 🔎 Jacob.
-- [x] Design and Code tabs; `Form1.cs [Design]` + `*` — **Verified (in IDEA)**, with one difference: the sub-tabs are "Design" and **"Text"** (the platform's own name for Rider's code editor; see decision 6). S `stage1-dark-04-button-placed.png` (shows `[Design]*`).
+- [x] Double-click Form1.cs opens designer; Designer.cs openable as text — **Verified (in IDEA)**: S `story-dark-02-designer-open.png`; Designer.cs opens as text (seen in story run 1). Rider Solution Explorer: 🔎 Jacob.
+- [x] Design and Code tabs; `Form1.cs [Design]` + `*` — **Verified (in IDEA)**, with one difference: the sub-tabs are "Design" and **"Text"** (the platform's own name for Rider's code editor; see decision 6). S `story-dark-04-button-placed.png` (shows `[Design]*`).
 - [ ] F7 / Shift+F7; right-click menu; Find Action — **Partial**: F7 and Shift+F7 **Verified** (S `stage1-dark-F7-view-code.png`, `stage1-dark-shift-F7-view-designer.png`; `tools/checks.sh`); right-click menu entries and Find Action registered but not yet seen in a screenshot.
 - [x] Several forms open at once — **Verified**: S `stage1-dark-two-forms-open.png` (TwoForms sample, two Design tabs, separate canvases).
-- [x] Editing Designer.cs as text / git checkout reloads canvas — **Verified** for an outside change + Reload from Disk (S `stage1-dark-reload-after-outside-change.png`) and for undo (S `stage1-dark-07-after-ctrl-z.png`).
+- [x] Editing Designer.cs as text / git checkout reloads canvas — **Verified** for an outside change + Reload from Disk (S `stage1-dark-reload-after-outside-change.png`) and for undo (S `story-dark-08-after-second-ctrl-z-button-gone.png`).
 
 ### B. Toolbox (Must)
-- [x] Groups, order, contents; Pointer first — **Verified** for order and Common Controls contents: T `ToolboxModelTest`; S `stage1-dark-03-button-tool-selected.png`. Gap: no **WebBrowser** (Windows-only IE control), Components has only ErrorProvider/HelpProvider/ImageList/Timer (VS has more).
+- [x] Groups, order, contents; Pointer first — **Verified** for order and Common Controls contents: T `ToolboxModelTest`; S `story-dark-03-button-tool-selected.png`. Gap: no **WebBrowser** (Windows-only IE control), Components has only ErrorProvider/HelpProvider/ImageList/Timer (VS has more).
 - [ ] Search filters as you type — **Done (unverified)** (NetForms webview feature, not yet screenshot-tested).
-- [x] Click a tool then click/drag on canvas — **Verified (click)**: S `stage1-dark-03…`, `-04…`. Drawing a rectangle: Done (unverified).
+- [x] Click a tool then click/drag on canvas — **Verified (click)**: S `story-dark-03…`, `-04…`. Drawing a rectangle: Done (unverified).
 - [ ] Drag a tool onto canvas / into container — **Done (unverified)** (mouse-based drag, patch 0002).
 - [ ] Double-click a tool adds to selected container — **Done (unverified)**.
-- [x] After placing, the toolbox returns to Pointer — **Verified**: S `stage1-dark-04-button-placed.png`.
+- [x] After placing, the toolbox returns to Pointer — **Verified**: S `story-dark-04-button-placed.png`.
 - [ ] Project's own controls group after build — **Done (unverified)**: loads the newest bin/**/<Assembly>.dll only when the project is trusted, group "<Project> Components", reload on build. No UserControl sample yet.
 - [ ] Non-visual components go to the tray — **Done (unverified)**: NetForms behaviour; TimerPicture/MenuDemo samples have tray items (render shows "1 in tray"/"2 in tray"), not screenshot-checked in the IDE.
 
 ### C. Canvas (Must)
-- [x] Click / Ctrl/Shift+click / rubber-band select — **Partial**: click verified (S `stage1-dark-04…`); Ctrl/Shift/rubber band are NetForms webview features, untested.
+- [x] Click / Ctrl/Shift+click / rubber-band select — **Partial**: click verified (S `story-dark-04…`); Ctrl/Shift/rubber band are NetForms webview features, untested.
 - [ ] Primary selection white handles, others dark — **Partial**: primary = dotted outline + white squares with dark borders (S `stage2-light-selection-handles-zoom.png`); a multi-selection shows dotted outlines but NetForms draws no handles on the others (S `stage2-light-multi-select-zoom.png`).
 - [ ] Move, resize, form resize handles — **Done (unverified)** (NetForms webview).
 - [ ] Snaplines — **Done (unverified)** (NetForms has edge/baseline/margin snaplines; colours not compared with VS yet).
@@ -115,7 +115,7 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 - [ ] Tab / Shift+Tab, Escape selects parent — **Partial**: Escape → parent exists; Tab order cycling untested.
 - [ ] Drop into containers; move glyph — **Done (unverified)**.
 - [ ] Delete, Ctrl+X/C/V, Ctrl+A — **Done (unverified)** (copy/cut/paste go through Rider's clipboard).
-- [x] Undo/redo joined with Rider's undo — **Verified**: Ctrl+Z in the designer runs Rider's undo; after 2× Ctrl+Z + save, both files are byte-identical to the template (story run 5, 20:24). S `stage1-dark-07-after-ctrl-z.png`.
+- [x] Undo/redo joined with Rider's undo — **Verified**: Ctrl+Z in the designer runs Rider's undo; after 2× Ctrl+Z + save, both files are byte-identical to the template (story run 5, 20:24). S `story-dark-07-after-ctrl-z-handler-gone.png` then `story-dark-08-after-second-ctrl-z-button-gone.png` (re-taken 00:35 with the native tool windows: the button visibly disappears).
 - [ ] Docked controls: free-edge resize only — **Done (unverified)** (NetForms README says so).
 
 ### D. Properties and Events (Must)
@@ -131,7 +131,7 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 - [x] Events tab — **Verified**: S `stage2-light-events-tab.png` (events by category, Click → btnOK_Click), `stage2-light-event-double-click-creates-handler.png` (double-click Enter → btnOK_Enter created, cursor inside). Typing a name + Enter, clearing to unbind: Done (unverified).
 
 ### E. Code generation (Must)
-- [x] Double-click control creates default handler, jumps into it — **Verified**: S `stage1-dark-05-handler-in-code.png` (button1_Click, cursor inside, indented). Also seen: form → `Form1_Load`, CheckedListBox → `SelectedIndexChanged`.
+- [x] Double-click control creates default handler, jumps into it — **Verified**: S `story-dark-05-handler-in-code.png` (button1_Click, cursor inside, indented). Also seen: form → `Form1_Load`, CheckedListBox → `SelectedIndexChanged`.
 - [x] Existing handler: no second one — **Verified (host level)**: T `CodeGenerationTest.binding an existing handler…`. Jump-to-existing in the IDE: not screenshot-tested.
 - [x] Designer.cs written exactly as VS writes it — **Verified for the tested cases**: new style (T `HostClientTest`, `CodeGenerationTest`) and old `this.` style kept (T `CodeGenerationTest.the old this-dot style…`). Default sizes now match VS thanks to Formwork Sans (`host/fonts/README.md`: 7 of 11 controls identical, the rest within 2 px). Not diffed against a real VS run (no Windows here).
 - [x] Deleting a control keeps handlers — **Verified (host level)**: T `CodeGenerationTest.deleting…`.
@@ -201,6 +201,20 @@ so the button correctly stays; the file-level proof is in the log (byte-identica
 screenshot doesn't show it — I'll re-take it showing the button disappearing. The error toast was IDEA's own
 OS-integration daemon (not Formwork; now disabled in the test IDE). These are the Stage 2 to-do list.
 
+## Security review (00:25, sub-agent, code only) — verdict and what I changed
+
+Rules: 1 backups **PARTIAL**, 2 no phone-home **PASS**, 3 argument lists **PASS**, 4 trust **PASS**, 5 pinning **PARTIAL**,
+6 no orphans **PASS (one race)**, 7 no secrets **PASS**. Most important finding: the plugin wrote any path the
+host named in `writes` (and the host runs project code in trusted projects).
+
+Fixed (00:30): writes limited to the form's three files, in the plugin **and** in the host; the .csproj backup is
+taken outside the undoable command (after saving the document, so it equals the preview); page edits are
+allow-listed and picture paths must come from the file chooser; the page's Run only in trusted projects; a host
+that finishes starting after its editor closed is closed at once; host started in its own folder; relative PATH
+entries ignored when looking for `dotnet`; saved page state escaped inside `<script>`; a Content-Security-Policy on
+the page; the old-project converter always writes NetForms 0.1.5.
+Not fixed (Known gaps): no NuGet lock files / Gradle dependency verification; CI actions pinned by tag, not SHA.
+
 ## Performance (measured 00:15, `PerformanceTest`, TabsDemo sample, 18 controls; build/perf.txt)
 
 | Target | Measured | Result |
@@ -233,6 +247,8 @@ The session was stopped from 21:28 to 00:06 UK (usage limit / worker restart); t
    the boxed Windows 7-style buttons of one reference screenshot.
 9. **Button face** is NetForms' grey (#E1E1E1, Windows 10 style), not the white Windows 11 face in
    Jacob's screenshot: it's what the app really looks like when it runs on Linux, so the designer keeps it.
+11. **Dependency checksums:** versions are pinned and the Gradle wrapper is checksum-verified, but NuGet
+   packages and Maven artifacts aren't checksum-locked (no lock files / verification metadata yet).
 10. Toolbox icons are Formwork's own simple drawings (NetForms has none for built-in controls; VS's
    can't be copied).
 

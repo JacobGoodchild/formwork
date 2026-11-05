@@ -13,6 +13,7 @@ object DotnetLocator {
         configured?.takeIf { it.isNotBlank() }?.let { File(it) }?.takeIf { it.canExecute() }?.let { return it }
         System.getenv("DOTNET_ROOT")?.let { File(it, "dotnet") }?.takeIf { it.canExecute() }?.let { return it }
         System.getenv("PATH")?.split(File.pathSeparatorChar)?.forEach { dir ->
+            if (dir.isEmpty() || !File(dir).isAbsolute) return@forEach // never "." or a relative folder
             val f = File(dir, "dotnet")
             if (f.canExecute()) return f.canonicalFile
         }

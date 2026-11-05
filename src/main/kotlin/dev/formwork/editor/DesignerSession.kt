@@ -114,6 +114,7 @@ class DesignerSession(
                     val view = h.call("open", JsonObject().apply { addProperty("path", form.designer.path) }, files()).result!!.asJsonObject
                     lastView = view
                     val toolbox = toolbox(h)
+                    requestRows("properties", selection.lastOrNull() ?: "")
                     lastToolbox = toolbox
                     lastNotice = libraryNotice()
                     publish { l -> l.toolboxChanged(editorRef(), toolbox, lastNotice); l.viewChanged(editorRef(), view) }
@@ -127,7 +128,11 @@ class DesignerSession(
                         add("strings", JsonObject())
                     })
                 }
-                "apply" -> show(write(m.get("ops")?.asJsonArray ?: JsonArray(), nameFor(m.get("ops")?.asJsonArray)), m.get("select"))
+                "apply" -> {
+                    val ops = m.get("ops")?.asJsonArray ?: JsonArray()
+                    checkOps(ops)
+                    show(write(ops, nameFor(ops)), m.get("select"))
+                }
                 "undo" -> undoRedo(undo = true)
                 "redo" -> undoRedo(undo = false)
                 "menu" -> show(ensureHost().call("menu", JsonObject().apply { addProperty("id", m.str("id") ?: "") }, files()).result!!.asJsonObject, null)
@@ -177,7 +182,7 @@ class DesignerSession(
                     val op = JsonObject().apply { addProperty("op", "duplicate"); add("ids", m.get("ids")) }
                     show(write(JsonArray().apply { add(op) }, "Duplicate"), null)
                 }
-                "run" -> onEdt {
+                "run" -> if (project.isTrusted()) onEdt {
                     val action = com.intellij.openapi.actionSystem.ActionManager.getInstance().getAction("Run") ?: return@onEdt
                     com.intellij.openapi.actionSystem.ex.ActionUtil.invokeAction(action, com.intellij.openapi.actionSystem.impl.SimpleDataContext.getProjectContext(project), "FormworkDesigner", null, null)
                 }
@@ -216,6 +221,8 @@ class DesignerSession(
     /** Asks for the property (or event) rows of a component; they arrive through the listener. */
     fun requestRows(kind: String, id: String) {
         worker.execute {
+            // Before the form has opened there is nothing to ask (the rows follow the first view).
+            if (lastView == null) return@execute
             try {
                 val rows = ensureHost().call(kind, JsonObject().apply { addProperty("id", id) }, files()).result?.asJsonArray ?: return@execute
                 publish { l -> if (kind == "events") l.eventsChanged(editorRef(), id, rows) else l.propertiesChanged(editorRef(), id, rows) }
@@ -302,6 +309,11 @@ class DesignerSession(
     private fun ensureHost(): HostClient {
         host?.takeIf { it.alive }?.let { return it }
         val started = HostLauncher.start(form.code.parentFile)
+        if (disposed) {
+            // The editor closed while the host was starting: no orphan.
+            try { started.close() } finally { HostRegistry.unregister(started) }
+            throw HostException("internal", "The designer was closed.")
+        }
         host = started
         return started
     }
@@ -344,9 +356,13 @@ class DesignerSession(
                     .withUndoConfirmationPolicy(UndoConfirmationPolicy.DO_NOT_REQUEST_CONFIRMATION)
                     .withGlobalUndo()
                     .run<RuntimeException> {
+                        val allowed = form.all.map { it.canonicalPath }.toSet()
                         for ((path, raw) in writes) {
                             val text = StringUtil.convertLineSeparators(raw)
                             val file = File(path)
+                            // Only the form's own three files: the host runs project code in trusted projects, so a
+                            // write to any other path is refused, whatever the host says.
+                            if (file.canonicalPath !in allowed) { log.warn("Refused a designer write outside the form: $path"); continue }
                             var v = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file)
                             if (v == null) {
                                 val dir = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file.parentFile) ?: continue
@@ -497,6 +513,27 @@ class DesignerSession(
         return text
     }
 
+    /** Pictures the user chose in the file chooser: the only files an image edit may read into the .resx. */
+    private val pickedFiles = java.util.Collections.synchronizedSet(HashSet<String>())
+
+    private val knownOps = setOf("setBounds", "setForm", "setProp", "resetProp", "setItems", "setEvent", "add", "remove", "setParent",
+        "setImage", "setImages", "reorder", "setCell", "setStyles", "rename", "paste", "duplicate", "bringToFront", "sendToBack")
+
+    /** Edits from the page: known kinds only, and picture paths only from the file chooser. */
+    private fun checkOps(ops: JsonArray) {
+        for (o in ops) {
+            val op = o.asJsonObject
+            val kind = op.str("op")
+            if (kind !in knownOps) throw HostException("edit", "Unknown designer edit '$kind'.")
+            val paths = when (kind) {
+                "setImage" -> listOfNotNull(op.str("value")?.takeIf { it.isNotEmpty() })
+                "setImages" -> op.getAsJsonArray("ids")?.mapNotNull { it.takeIf { e -> e.isJsonPrimitive }?.asString }?.filter { !it.startsWith("#") && it.isNotEmpty() } ?: emptyList()
+                else -> emptyList()
+            }
+            for (path in paths) if (File(path).canonicalPath !in pickedFiles) throw HostException("edit", "Choose the picture with the file chooser.")
+        }
+    }
+
     private fun pickFiles(m: JsonObject) {
         val many = m.get("many")?.asBoolean == true
         val icon = m.get("icon")?.asBoolean == true
@@ -508,6 +545,7 @@ class DesignerSession(
                 .withFileFilter { it.extension?.lowercase() in extensions }
             val start = vf(form.code.parentFile)
             paths = FileChooser.chooseFiles(descriptor, project, start).map { it.path }
+            paths.forEach { pickedFiles.add(File(it).canonicalPath) }
         }
         post(JsonObject().apply {
             addProperty("type", "pickedFiles"); add("requestId", m.get("requestId"))

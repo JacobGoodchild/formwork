@@ -33,9 +33,15 @@ public static class Program
         WindowsPalette.Install();
         WindowsPalette.InstallFonts();
         DesignSurface.ReadFileOverride = Read;
-        DesignSurface.WriteFileOverride = (path, text) => { s_buffers[path] = text; s_writes[path] = text; };
-
         using var protocol = new DesignerProtocol();
+        // Only the open form's own files may be written (the plugin checks this too).
+        DesignSurface.WriteFileOverride = (path, text) =>
+        {
+            var surface = protocol.Surface;
+            var allowed = new[] { surface?.FilePath, surface?.CompanionPath, surface?.ResxPath };
+            if (Array.IndexOf(allowed, path) < 0) { Console.Error.WriteLine($"Formwork: refused a write outside the form: {path}"); return; }
+            s_buffers[path] = text; s_writes[path] = text;
+        };
         string? line;
         while ((line = Console.In.ReadLine()) != null)
         {

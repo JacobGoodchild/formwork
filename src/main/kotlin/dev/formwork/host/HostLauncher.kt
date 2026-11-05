@@ -27,7 +27,7 @@ object HostLauncher {
             ?: throw HostNotAvailable("Formwork needs the .NET 10 SDK, and it could not find the 'dotnet' program on this computer.", needsDotnet = true)
         val dll = hostDll() ?: throw HostNotAvailable("Formwork's designer host is missing from the plugin. Please reinstall the Formwork plugin.")
         val cmd = GeneralCommandLine(dotnet.path, dll.path)
-            .withWorkDirectory(workingDir ?: dll.parentFile)
+            .withWorkDirectory(dll.parentFile)
             .withEnvironment("DOTNET_CLI_TELEMETRY_OPTOUT", "1")
             .withEnvironment("DOTNET_NOLOGO", "1")
             .withCharset(Charsets.UTF_8)

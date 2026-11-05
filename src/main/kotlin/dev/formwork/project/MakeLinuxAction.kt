@@ -95,10 +95,14 @@ class MakeLinuxAction : DumbAwareAction() {
             val dir = csproj.parent
             val backupName = generateSequence(0) { it + 1 }.map { if (it == 0) "${csproj.name}.formwork.bak" else "${csproj.name}.formwork.bak$it" }
                 .first { dir.findChild(it) == null }
-            WriteCommandAction.writeCommandAction(project).withName(TITLE).withGlobalUndo().run<RuntimeException> {
-                // The original, byte for byte, before anything changes.
+            // The backup first, outside the undoable command (so Ctrl+Z of the change can't remove it): the file as it is
+            // on disk, byte for byte, after saving any unsaved edit so it is also exactly what the preview showed.
+            com.intellij.openapi.application.ApplicationManager.getApplication().runWriteAction {
+                FileDocumentManager.getInstance().saveDocument(document)
                 val backup = dir.createChildData(this, backupName)
                 backup.setBinaryContent(csproj.contentsToByteArray())
+            }
+            WriteCommandAction.writeCommandAction(project).withName(TITLE).withGlobalUndo().run<RuntimeException> {
                 document.setText(after)
             }
             FileDocumentManager.getInstance().saveDocument(document)
