@@ -161,7 +161,7 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 - [ ] SplitContainer splitter — **Done (unverified)** (NetForms drags the splitter).
 
 ### I. Tab order and Document Outline (Should)
-- [ ] View → Tab Order — **Done (unverified)** (View menu → NetForms' tab-order mode).
+- [x] View → Tab Order — **Verified**: numbers on each control; clicking the Password box made it `txtPassword.TabIndex = 0;`; toggling off with the same command (S `stage4-light-tab-order.png`).
 - [ ] Document Outline tool window — **Done (unverified)**: native tool window (tree, click selects); drag to reorder not implemented.
 
 ### J. Errors and safety (Must)
