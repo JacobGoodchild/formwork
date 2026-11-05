@@ -67,7 +67,12 @@ for it to finish before the next one.
 
 ## 2. Install the Formwork plugin in Rider
 
-1. Download `formwork-0.1.0.zip` (from the GitHub release, or ask me where it is). **Don't unzip it.**
+1. Get `formwork-0.1.0.zip`. **Don't unzip it.** Two ways:
+   - **Easiest:** on GitHub, open the `formwork` repository → **Actions** → the newest green **CI** run → scroll
+     to **Artifacts** → click **formwork-plugin**. That downloads a small zip *containing* `formwork-0.1.0.zip`:
+     unzip that outer one once (right-click → Extract Here) to get `formwork-0.1.0.zip`.
+   - **Or build it yourself** (needs Java 21 and .NET 10): in a terminal in the repository folder, run
+     `./gradlew buildPlugin`; the zip appears in `build/distributions/`.
 2. In Rider: **File → Settings → Plugins**.
 3. Click the **⚙** (gear) at the top, then **Install Plugin from Disk…**
 4. Pick `formwork-0.1.0.zip` and click **OK**, then **Restart IDE**.
