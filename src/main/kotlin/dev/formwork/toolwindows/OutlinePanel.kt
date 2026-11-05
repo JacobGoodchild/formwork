@@ -20,7 +20,7 @@ import javax.swing.tree.TreePath
 
 /** Document Outline (VS: View → Other Windows → Document Outline): the form's controls as a tree; click to select. */
 class OutlinePanel(private val project: Project, parent: Disposable) : JPanel(BorderLayout()), DesignerListener {
-    private data class Entry(val id: String, val type: String)
+    private data class Entry(val id: String, val type: String, val container: Boolean = false)
 
     private val root = DefaultMutableTreeNode()
     private val model = DefaultTreeModel(root)
@@ -42,10 +42,37 @@ class OutlinePanel(private val project: Project, parent: Disposable) : JPanel(Bo
             val ids = tree.selectionPaths?.mapNotNull { ((it.lastPathComponent as? DefaultMutableTreeNode)?.userObject as? Entry)?.id } ?: return@addTreeSelectionListener
             ActiveDesigner.get(project).editor?.select(ids)
         }
+        // Drag a control onto a container (or the form) to move it there, as in VS's Document Outline.
+        tree.dragEnabled = true
+        tree.dropMode = javax.swing.DropMode.ON
+        tree.transferHandler = object : javax.swing.TransferHandler() {
+            override fun getSourceActions(c: javax.swing.JComponent) = MOVE
+            override fun createTransferable(c: javax.swing.JComponent): java.awt.datatransfer.Transferable? {
+                val e = (tree.selectionPath?.lastPathComponent as? DefaultMutableTreeNode)?.userObject as? Entry ?: return null
+                return if (e.id.isEmpty() || e.id.contains('.')) null else java.awt.datatransfer.StringSelection(PREFIX + e.id)
+            }
+            override fun canImport(support: TransferSupport): Boolean {
+                val target = ((support.dropLocation as? javax.swing.JTree.DropLocation)?.path?.lastPathComponent as? DefaultMutableTreeNode)?.userObject as? Entry
+                return support.isDataFlavorSupported(java.awt.datatransfer.DataFlavor.stringFlavor) && target != null && target.container
+            }
+            override fun importData(support: TransferSupport): Boolean {
+                if (!canImport(support)) return false
+                val target = ((support.dropLocation as javax.swing.JTree.DropLocation).path.lastPathComponent as DefaultMutableTreeNode).userObject as Entry
+                val id = (support.transferable.getTransferData(java.awt.datatransfer.DataFlavor.stringFlavor) as? String)?.removePrefix(PREFIX) ?: return false
+                if (id == target.id) return false
+                val op = com.google.gson.JsonObject().apply {
+                    addProperty("op", "setParent"); addProperty("id", id); addProperty("parent", target.id); addProperty("x", 8); addProperty("y", 8)
+                }
+                ActiveDesigner.get(project).editor?.session?.applyOps(com.google.gson.JsonArray().apply { add(op) }, "Move")
+                return true
+            }
+        }
         add(JBScrollPane(tree), BorderLayout.CENTER)
         ActiveDesigner.get(project).addListener(this, parent)
         activeChanged(ActiveDesigner.get(project).editor)
     }
+
+    private companion object { const val PREFIX = "formwork-outline:" }
 
     override fun activeChanged(editor: DesignerEditor?) {
         view = editor?.session?.lastView
@@ -67,7 +94,7 @@ class OutlinePanel(private val project: Project, parent: Disposable) : JPanel(Bo
     private fun rebuild() {
         val v = view
         root.removeAllChildren()
-        root.userObject = Entry("", v?.get("rootType")?.asString ?: "")
+        root.userObject = Entry("", v?.get("rootType")?.asString ?: "", true)
         if (v != null) {
             val nodes = HashMap<String, DefaultMutableTreeNode>()
             nodes[""] = root
@@ -80,7 +107,7 @@ class OutlinePanel(private val project: Project, parent: Disposable) : JPanel(Bo
                 while (it.hasNext()) {
                     val o = it.next()
                     val parent = nodes[o.get("parent")?.asString ?: ""] ?: continue
-                    val node = DefaultMutableTreeNode(Entry(o.get("id").asString, o.get("type")?.asString ?: ""))
+                    val node = DefaultMutableTreeNode(Entry(o.get("id").asString, o.get("type")?.asString ?: "", o.get("container")?.asBoolean == true))
                     parent.add(node); nodes[o.get("id").asString] = node; it.remove()
                 }
             }

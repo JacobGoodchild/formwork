@@ -162,7 +162,7 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 
 ### I. Tab order and Document Outline (Should)
 - [x] View → Tab Order — **Verified**: numbers on each control; clicking the Password box made it `txtPassword.TabIndex = 0;`; toggling off with the same command (S `stage4-light-tab-order.png`).
-- [ ] Document Outline tool window — **Done (unverified)**: native tool window (tree, click selects); drag to reorder not implemented.
+- [x] Document Outline tool window — **Verified**: native tool window docked under the Toolbox with the whole control tree; dragging button1 onto groupBox1 moves it there (canvas and tree) (S `stage4-light-document-outline-drag-into-groupbox.png`). Reordering among siblings by drag: not implemented.
 
 ### J. Errors and safety (Must)
 - [x] Broken Designer.cs: error page with line, never overwrites — **Verified**: S `stage1-dark-broken-designer-file.png`; the broken file is byte-identical afterwards (`tools/checks.sh` prints BROKEN FILE LEFT UNTOUCHED); T `HostClientTest`. "Open as text" opens the file at the error's line and column (not screenshot-tested).
