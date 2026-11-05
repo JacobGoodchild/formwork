@@ -12,7 +12,15 @@ chain at 21:05, 22:35, 00:05, 01:35, 03:05, 04:35, 06:05 UK). Deadline: 07:00 UK
 
 ## Status
 
-**Current stage:** Stage 2 (look and feel like VS). Stage 1 finished 21:00 UK (story works end to end; review verdict below). Stage 0 finished 20:12: **GO**.
+**Current stage:** Stage 5 (finish) and Known gaps. Stages 0–4 done to the level recorded in the checklist below
+(01:15 UK, 5 Nov). Stage 1 finished 21:00; stages 2–4 worked on 21:00–01:15 (with a 21:28–00:06 interruption).
+
+### Stage 1–4 ready for Jacob to test
+
+Follow `TESTING-FOR-JACOB.md`: install .NET 10, install the plugin zip (from the newest green CI run's
+artifacts), open `samples/VsTemplate.Net8`, click "Make it work on Linux too", double-click `Form1.cs`, place a
+Button from the Toolbox, double-click it, write code, Run. Then try Properties/Events, the Format menu, Document
+Outline, Add → Windows Form / Dialog, and File → Windows Forms App (Formwork).
 
 ### Stage 0 result (20:12)
 The pipeline works: in the sandbox IDE, double-clicking `Form1.cs` opens a **Design** tab; the
@@ -289,8 +297,7 @@ The session was stopped from 21:28 to 00:06 UK (usage limit / worker restart); t
 
 ## Next step
 
-Finish Stage 1 checks (F7 screenshot, text edit reload, two forms), fresh-eyes review, then Stage 2
-(native Toolbox / Properties / Document Outline tool windows, light theme, form title bar).
+Known gaps in order of how often a student would hit them; then the final summary before 07:00.
 
 ---
 

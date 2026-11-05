@@ -18,9 +18,11 @@ class ExportConvertedSamplesTest {
             s.copyRecursively(target)
             target.walkTopDown().filter { it.isDirectory && (it.name == "bin" || it.name == "obj") }.toList().forEach { it.deleteRecursively() }
             val csproj = target.walkTopDown().first { it.name.endsWith(".csproj") }
-            val r = ProjectConverter.convert(csproj.readText())
-            assertTrue(r is ProjectConverter.Result.Converted, "${s.name}: $r")
-            csproj.writeText((r as ProjectConverter.Result.Converted).text)
+            when (val r = ProjectConverter.convert(csproj.readText())) {
+                is ProjectConverter.Result.Converted -> csproj.writeText(r.text)
+                is ProjectConverter.Result.AlreadyDone -> {} // a sample written in the two-world form already (CustomControls)
+                else -> assertTrue(false, "${s.name}: $r")
+            }
         }
     }
 }
