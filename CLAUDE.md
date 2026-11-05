@@ -111,7 +111,7 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 - [ ] Primary selection white handles, others dark — **Partial**: primary = dotted outline + white squares with dark borders (S `stage2-light-selection-handles-zoom.png`); a multi-selection shows dotted outlines but NetForms draws no handles on the others (S `stage2-light-multi-select-zoom.png`).
 - [ ] Move, resize, form resize handles — **Done (unverified)** (NetForms webview).
 - [ ] Snaplines — **Done (unverified)** (NetForms has edge/baseline/margin snaplines; colours not compared with VS yet).
-- [ ] Keyboard nudge/resize as VS — **Partial**: NetForms uses Ctrl+arrow = 8 px, not "next snapline" as VS. To fix.
+- [ ] Keyboard nudge/resize as VS — **Partial, Ctrl+arrow verified**: arrows 1 px, Shift+arrows resize 1 px (NetForms); Ctrl+arrow now jumps to the next snapline (neighbour edges, margin spacing, container padding) — OK button 114 → 90, aligned with the text boxes (S `stage2-light-ctrl-left-jumps-to-snapline.png`, Designer.cs `Point(90, 85)`); Ctrl+Shift+arrow resizes to the next snapline (Done, unverified). Added to patch 0002.
 - [ ] Tab / Shift+Tab, Escape selects parent — **Partial**: Escape → parent exists; Tab order cycling untested.
 - [ ] Drop into containers; move glyph — **Done (unverified)**.
 - [ ] Delete, Ctrl+X/C/V, Ctrl+A — **Done (unverified)** (copy/cut/paste go through Rider's clipboard).

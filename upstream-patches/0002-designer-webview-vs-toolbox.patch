@@ -20,7 +20,7 @@ index 60a192a..bb9f9f0 100644
 +.type-here::placeholder { color: #8a8a8a; }
 +.type-here:focus { border-color: #0078d4; }
 diff --git a/designer/media/designer.js b/designer/media/designer.js
-index 4898450..a4f119b 100644
+index 4898450..148921a 100644
 --- a/designer/media/designer.js
 +++ b/designer/media/designer.js
 @@ -44,6 +44,7 @@
@@ -185,7 +185,7 @@ index 4898450..a4f119b 100644
  		if (state.smartOpen && !(state.selection.length === 1 && state.selection[0] === state.smartOpen)) state.smartOpen = null;
  		state.props = null;
  		state.events = null;
-@@ -802,7 +899,49 @@
+@@ -802,7 +899,77 @@
  
  	// --- handles and badges -------------------------------------------------------------------------
  
@@ -230,12 +230,40 @@ index 4898450..a4f119b 100644
 +		if (state.typeHereAgain === owner.id) { state.typeHereAgain = null; setTimeout(() => box.focus(), 0); }
 +	}
 +
++	/**
++	 * The next snapline position for Ctrl+arrow (move: where the control's left/top edge goes) or Ctrl+Shift+arrow
++	 * (resize: where its right/bottom edge goes), in direction dir (+1/-1). Snaplines: the neighbours' edges, the
++	 * neighbours' edges plus the margins between (VS's spacing lines), and the container's padding edges.
++	 */
++	function nextSnap(it, axis, dir, resizing) {
++		const pos = axis === 'x' ? 'x' : 'y', size = axis === 'x' ? 'w' : 'h';
++		const c = containerRect(it.parent);
++		const [ml, mt, mr, mb] = it.margin || [3, 3, 3, 3];
++		const before = axis === 'x' ? ml : mt, after = axis === 'x' ? mr : mb;
++		const pad = c.padding || [0, 0, 0, 0];
++		const lines = [];
++		const start = c[pos] + (axis === 'x' ? pad[0] : pad[1]), end = c[pos] + c[size] - (axis === 'x' ? pad[2] : pad[3]);
++		for (const s of state.view.items) {
++			if (s.id === it.id || s.parent !== it.parent || s.kind !== 'control' || !s.visible) continue;
++			const [sl, st, sr, sb] = s.margin || [3, 3, 3, 3];
++			const a = s[pos], b = s[pos] + s[size];
++			const gapBefore = Math.max(axis === 'x' ? sr : sb, before), gapAfter = Math.max(axis === 'x' ? sl : st, after);
++			lines.push(a, b, b + gapBefore, a - gapAfter);
++		}
++		lines.push(start + before, end - after);
++		const cur = resizing ? it[pos] + it[size] : it[pos];
++		const cands = resizing ? lines : lines.concat(lines.map((l) => l - it[size]));
++		const ahead = cands.filter((l) => (dir > 0 ? l > cur : l < cur) && (!resizing || l > it[pos]));
++		if (!ahead.length) return cur + dir;
++		return dir > 0 ? Math.min(...ahead) : Math.max(...ahead);
++	}
++
  	function drawHandles(canvas) {
 +		drawTypeHere(canvas);
  		const id = primaryId();
  		const it = itemById(id);
  		if (!it || state.selection.length !== 1 || !it.visible || state.locked) return;
-@@ -850,6 +989,7 @@
+@@ -850,6 +1017,7 @@
  		if (e.button !== 0 || state.busy || state.tabOrder) return;
  		if (e.target.classList.contains('handle') || e.target.classList.contains('form-grip') || e.target.classList.contains('tl-grip')) return;
  		const p = canvasPoint(e);
@@ -243,7 +271,7 @@ index 4898450..a4f119b 100644
  		const hit = G.hitTest(state.view.items, p.x, p.y);
  		const additive = e.ctrlKey || e.shiftKey;
  		// A SplitContainer's splitter is dragged, as in VS: SplitterDistance follows.
-@@ -1229,6 +1369,7 @@
+@@ -1229,6 +1397,7 @@
  			e.preventDefault();
  			return;
  		}
@@ -251,7 +279,34 @@ index 4898450..a4f119b 100644
  		if (e.key === 'Escape') {
  			// Up one level, as in VS: the container of the selection, then the form.
  			const it = itemById(primaryId());
-@@ -2443,6 +2584,66 @@
+@@ -1239,11 +1408,24 @@
+ 		const arrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+ 		if (arrows[e.key] && !state.locked) {
+ 			const [ax, ay] = arrows[e.key];
+-			const step = ctrl ? 8 : 1;
++			const step = 1;
+ 			const ops = [];
+ 			if (e.shiftKey) {
+ 				const it = itemById(primaryId());
+-				if (it && it.resizable) ops.push({ op: 'setBounds', id: it.id, w: Math.max(1, it.w + ax * step), h: Math.max(1, it.h + ay * step) });
++				if (it && it.resizable) {
++					// Ctrl+Shift: the right or bottom edge to the next snapline (VS); Shift alone: 1 px.
++					let w = it.w + ax * step, h = it.h + ay * step;
++					if (ctrl) {
++						if (ax) w = Math.max(1, nextSnap(it, 'x', ax, true) - it.x);
++						else h = Math.max(1, nextSnap(it, 'y', ay, true) - it.y);
++					}
++					ops.push({ op: 'setBounds', id: it.id, w: Math.max(1, w), h: Math.max(1, h) });
++				}
++			} else if (ctrl && movableSelection().length === 1 && !itemById(movableSelection()[0]).cell && itemById(movableSelection()[0]).flowIndex == null) {
++				// Ctrl+arrow: to the next snapline - an edge of a neighbour (aligned, or a margin apart) or of the container.
++				const it = itemById(movableSelection()[0]);
++				const to = nextSnap(it, ax ? 'x' : 'y', ax || ay, false);
++				ops.push({ op: 'setBounds', id: it.id, x: it.left + (ax ? to - it.x : 0), y: it.top + (ay ? to - it.y : 0) });
+ 			} else {
+ 				const only = movableSelection().length === 1 ? itemById(movableSelection()[0]) : null;
+ 				if (only && only.flowIndex !== undefined && only.flowIndex !== null) {
+@@ -2443,6 +2625,66 @@
  		apply(ops, state.selection);
  	}
  
@@ -318,7 +373,7 @@ index 4898450..a4f119b 100644
  	// --- status and toasts --------------------------------------------------------------------------
  
  	function renderStatus(text) {
-@@ -2467,5 +2668,27 @@
+@@ -2467,5 +2709,27 @@
  	}
  
  	renderAll();
