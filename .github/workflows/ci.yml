@@ -69,7 +69,9 @@ jobs:
             if ($out.FullName -notmatch '-windows') { Write-Error "$($proj.Name) did not build for a -windows target: $($out.FullName)"; $failed += $proj.Name }
             if (Test-Path (Join-Path $out.DirectoryName 'NetForms.dll')) { Write-Error "$($proj.Name) pulled NetForms in on Windows"; $failed += $proj.Name }
             # Visual Studio's design-time build (what the WinForms designer runs when it loads the project).
-            dotnet msbuild $proj.FullName -nologo -v q -t:CompileDesignTime -p:DesignTimeBuild=true -p:BuildingInsideVisualStudio=true
+            # CompileDesignTime itself only exists inside Visual Studio; this is the same design-time evaluation
+            # run from the command line (as OmniSharp/Roslyn tooling do): references resolved, compiler not run.
+            dotnet msbuild $proj.FullName -nologo -v q "-t:ResolveAssemblyReferences;CoreCompile" -p:DesignTimeBuild=true -p:BuildingInsideVisualStudio=true -p:SkipCompilerExecution=true -p:ProvideCommandLineArgs=true
             if ($LASTEXITCODE -ne 0) { $failed += "$($proj.Name) (design-time)" }
           }
           if ($failed.Count -gt 0) { Write-Error "Failed: $($failed -join ', ')"; exit 1 }
