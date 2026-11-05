@@ -1,8 +1,8 @@
 diff --git a/designer/media/designer.css b/designer/media/designer.css
-index 60a192a..a0f5284 100644
+index 60a192a..bb9f9f0 100644
 --- a/designer/media/designer.css
 +++ b/designer/media/designer.css
-@@ -320,3 +320,12 @@ button, input, select { font: inherit; color: inherit; }
+@@ -320,3 +320,16 @@ button, input, select { font: inherit; color: inherit; }
  .smart-link { border: none; background: transparent; padding: 1px 0; color: var(--vscode-textLink-foreground, #0066bf); cursor: pointer; text-align: left; }
  .smart-link:hover { text-decoration: underline; }
  
@@ -15,8 +15,12 @@ index 60a192a..a0f5284 100644
 +	background: var(--vscode-editorWidget-background); color: var(--vscode-foreground); opacity: 0.9; }
 +.tool-rect { border-style: solid; }
 +.tb-empty { color: var(--vscode-descriptionForeground, #888); text-align: center; padding: 8px 12px; white-space: normal; font-size: 0.95em; }
++.type-here { position: absolute; z-index: 26; box-sizing: border-box; border: 1px solid #7f9db9; background: #fff; color: #000;
++	font: 12px 'Segoe UI', sans-serif; padding: 0 4px; outline: none; }
++.type-here::placeholder { color: #8a8a8a; }
++.type-here:focus { border-color: #0078d4; }
 diff --git a/designer/media/designer.js b/designer/media/designer.js
-index 4898450..e655fb5 100644
+index 4898450..a4f119b 100644
 --- a/designer/media/designer.js
 +++ b/designer/media/designer.js
 @@ -44,6 +44,7 @@
@@ -181,7 +185,57 @@ index 4898450..e655fb5 100644
  		if (state.smartOpen && !(state.selection.length === 1 && state.selection[0] === state.smartOpen)) state.smartOpen = null;
  		state.props = null;
  		state.events = null;
-@@ -850,6 +947,7 @@
+@@ -802,7 +899,49 @@
+ 
+ 	// --- handles and badges -------------------------------------------------------------------------
+ 
++	/**
++	 * Visual Studio's "Type Here" box: at the end of a selected MenuStrip, and at the bottom of an open menu or
++	 * ContextMenuStrip. Typing a caption and pressing Enter adds the item (named from its text, as VS does);
++	 * "-" adds a separator; '&' marks the mnemonic as usual.
++	 */
++	function drawTypeHere(canvas) {
++		const v = state.view;
++		const owner = itemById(primaryId());
++		if (!v || !owner || state.locked || state.selection.length !== 1) return;
++		const t = shortType(owner.type);
++		let vertical, prop;
++		if (t === 'MenuStrip') { vertical = false; prop = 'Items'; }
++		else if (t === 'ContextMenuStrip' && v.openMenu === owner.id) { vertical = true; prop = 'Items'; }
++		else if (t === 'ToolStripMenuItem' && v.openMenu === owner.id) { vertical = true; prop = 'DropDownItems'; }
++		else return;
++		const kids = v.items.filter((i) => i.parent === owner.id && i.kind === 'item').sort((a, b) => (vertical ? a.y - b.y : a.x - b.x));
++		const last = kids[kids.length - 1];
++		const dd = (v.dropDowns || []).find((d) => d.owner === owner.id);
++		let r;
++		if (vertical) r = last ? { x: last.x, y: last.y + last.h, w: Math.max(last.w, 90), h: 22 } : dd ? { x: dd.x + 2, y: dd.y + 2, w: Math.max(dd.w - 4, 90), h: 22 } : null;
++		else r = last ? { x: last.x + last.w + 2, y: last.y, w: 90, h: last.h } : { x: owner.x + 4, y: owner.y + 2, w: 90, h: Math.max(18, owner.h - 4) };
++		if (!r) return;
++		const box = el('input', 'type-here');
++		box.placeholder = T('Type Here');
++		Object.assign(box.style, { left: r.x * state.zoom + 'px', top: r.y * state.zoom + 'px', width: r.w * state.zoom + 'px', height: r.h * state.zoom + 'px' });
++		box.addEventListener('mousedown', (e) => e.stopPropagation());
++		box.addEventListener('keydown', (e) => {
++			e.stopPropagation();
++			if (e.key === 'Escape') { box.value = ''; box.blur(); return; }
++			if (e.key !== 'Enter' || !box.value.trim()) return;
++			const row = state.props && state.props.id === owner.id ? state.props.rows.find((x) => x.name === prop) : null;
++			if (!row) { toast(T('One moment: the menu is still loading.'), 'info'); return; }
++			const values = (row.items || []).concat([box.value]);
++			const ids = (row.itemIds || []).concat(['']);
++			state.typeHereAgain = owner.id; // keep typing into the same menu, as in VS
++			apply([{ op: 'setItems', id: owner.id, prop, values, ids }], state.selection);
++		});
++		canvas.append(box);
++		if (state.typeHereAgain === owner.id) { state.typeHereAgain = null; setTimeout(() => box.focus(), 0); }
++	}
++
+ 	function drawHandles(canvas) {
++		drawTypeHere(canvas);
+ 		const id = primaryId();
+ 		const it = itemById(id);
+ 		if (!it || state.selection.length !== 1 || !it.visible || state.locked) return;
+@@ -850,6 +989,7 @@
  		if (e.button !== 0 || state.busy || state.tabOrder) return;
  		if (e.target.classList.contains('handle') || e.target.classList.contains('form-grip') || e.target.classList.contains('tl-grip')) return;
  		const p = canvasPoint(e);
@@ -189,7 +243,7 @@ index 4898450..e655fb5 100644
  		const hit = G.hitTest(state.view.items, p.x, p.y);
  		const additive = e.ctrlKey || e.shiftKey;
  		// A SplitContainer's splitter is dragged, as in VS: SplitterDistance follows.
-@@ -1229,6 +1327,7 @@
+@@ -1229,6 +1369,7 @@
  			e.preventDefault();
  			return;
  		}
@@ -197,7 +251,7 @@ index 4898450..e655fb5 100644
  		if (e.key === 'Escape') {
  			// Up one level, as in VS: the container of the selection, then the form.
  			const it = itemById(primaryId());
-@@ -2443,6 +2542,66 @@
+@@ -2443,6 +2584,66 @@
  		apply(ops, state.selection);
  	}
  
@@ -264,7 +318,7 @@ index 4898450..e655fb5 100644
  	// --- status and toasts --------------------------------------------------------------------------
  
  	function renderStatus(text) {
-@@ -2467,5 +2626,27 @@
+@@ -2467,5 +2668,27 @@
  	}
  
  	renderAll();

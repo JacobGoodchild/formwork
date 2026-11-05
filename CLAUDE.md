@@ -146,15 +146,15 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 - [ ] Lock Controls — **Partial**: toggles NetForms' designer-wide lock; no padlock glyph, and VS's per-control `Locked` property isn't written.
 
 ### G. Menus, strips, smart tags (Should)
-- [ ] MenuStrip / ContextMenuStrip "Type Here" — Not started (NetForms has it; untested)
+- [ ] MenuStrip / ContextMenuStrip "Type Here" — **Partial, verified for the core**: click a menu on the canvas → its drop-down opens with a Type Here box (S `stage4-dark-menu-open-type-here.png`); type `&Save` + Enter → `saveToolStripMenuItem` added at the end, box ready for the next (S `stage4-dark-menu-type-here-added-save.png`; added to NetForms patch 0002 — NetForms had no Type Here). `-` makes a separator (host behaviour, tested via MenuDemo sample). Not done: Type Here for a new sub-menu to the right, drag to reorder.
 - [ ] Smart-tag Tasks panel — Not started (NetForms has it; untested)
 - [ ] ToolStrip / StatusStrip item-type drop-down — Not started
 
 ### H. Special containers (Should)
-- [ ] TabControl tab headers — Not started (sample exists)
-- [ ] TableLayoutPanel cells — Not started
-- [ ] FlowLayoutPanel insertion/reorder — Not started
-- [ ] SplitContainer splitter — Not started
+- [x] TabControl tab headers — **Verified**: clicking "Layouts" shows that page (S `stage4-dark-tabcontrol-switch-page-and-table-cells.png`).
+- [ ] TableLayoutPanel cells — **Partial, verified for cells + drop**: cells drawn dashed (same S); a Button dropped into the bottom-right cell is written `tableLayoutPanel1.Controls.Add(button4, 1, 1);` (S `stage4-dark-drop-into-table-cell.png`). Dragging row/column borders: NetForms feature, untested.
+- [ ] FlowLayoutPanel insertion/reorder — **Done (unverified)** (NetForms has an insertion bar and arrow-key reorder).
+- [ ] SplitContainer splitter — **Done (unverified)** (NetForms drags the splitter).
 
 ### I. Tab order and Document Outline (Should)
 - [ ] View → Tab Order — **Done (unverified)** (View menu → NetForms' tab-order mode).
