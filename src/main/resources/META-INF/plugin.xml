@@ -1,49 +1,49 @@
 <idea-plugin>
-  <id>dev.formwork</id>
-  <name>Formwork</name>
-  <vendor>Formwork</vendor>
+  <id>dev.penguinforms</id>
+  <name>Penguin Forms - WinForms Designer for Rider</name>
+  <vendor>Jacob Goodchild</vendor>
   <description><![CDATA[
     <p>The Windows Forms drag-and-drop designer for Rider on Linux, laid out like Visual Studio's:
     a Design tab for each form, the toolbox, the property grid with Events, F7 / Shift+F7.
     Your code stays exactly as Visual Studio writes it, so a form designed at home opens unchanged
     in Visual Studio, and the other way round.</p>
     <p>Built on <a href="https://github.com/Go-Forms/.NetForms">NetForms</a> (MIT licence),
-    which runs WinForms code on Linux and paints the form. Formwork makes no network requests of its own.</p>
+    which runs WinForms code on Linux and paints the form. Penguin Forms makes no network requests of its own.</p>
     <p>Credits: NetForms © NetForms contributors (MIT); Selawik © Microsoft (SIL OFL 1.1), the basis of the
-    Formwork Sans font the designer measures text with. Formwork is MIT-licensed.</p>
+    Formwork Sans font the designer measures text with. Penguin Forms is MIT-licensed.</p>
   ]]></description>
   <depends>com.intellij.modules.platform</depends>
   <depends>com.intellij.modules.jcef</depends>
 
   <extensions defaultExtensionNs="com.intellij">
-    <fileEditorProvider implementation="dev.formwork.editor.DesignerEditorProvider"/>
-    <editorTabTitleProvider implementation="dev.formwork.editor.DesignerTabTitleProvider" order="first"/>
-    <notificationGroup id="Formwork" displayType="BALLOON"/>
+    <fileEditorProvider implementation="dev.penguinforms.editor.DesignerEditorProvider"/>
+    <editorTabTitleProvider implementation="dev.penguinforms.editor.DesignerTabTitleProvider" order="first"/>
+    <notificationGroup id="Penguin Forms" displayType="BALLOON"/>
     <toolWindow id="Toolbox" anchor="left" secondary="false" icon="AllIcons.Toolwindows.ToolWindowPalette"
-                factoryClass="dev.formwork.toolwindows.ToolboxToolWindowFactory"/>
+                factoryClass="dev.penguinforms.toolwindows.ToolboxToolWindowFactory"/>
     <toolWindow id="Document Outline" anchor="left" secondary="true" icon="AllIcons.Toolwindows.ToolWindowStructure"
-                factoryClass="dev.formwork.toolwindows.OutlineToolWindowFactory"/>
+                factoryClass="dev.penguinforms.toolwindows.OutlineToolWindowFactory"/>
     <toolWindow id="Properties" anchor="right" secondary="false" icon="AllIcons.Toolwindows.ToolWindowPalette"
-                factoryClass="dev.formwork.toolwindows.PropertiesToolWindowFactory"/>
-    <applicationService serviceImplementation="dev.formwork.settings.FormworkSettings"/>
-    <applicationConfigurable parentId="tools" instance="dev.formwork.settings.FormworkConfigurable" id="dev.formwork.settings" displayName="Formwork"/>
-    <postStartupActivity implementation="dev.formwork.project.LinuxProjectNotifier"/>
+                factoryClass="dev.penguinforms.toolwindows.PropertiesToolWindowFactory"/>
+    <applicationService serviceImplementation="dev.penguinforms.settings.PenguinFormsSettings"/>
+    <applicationConfigurable parentId="tools" instance="dev.penguinforms.settings.PenguinFormsConfigurable" id="dev.penguinforms.settings" displayName="Penguin Forms"/>
+    <postStartupActivity implementation="dev.penguinforms.project.LinuxProjectNotifier"/>
   </extensions>
 
   <applicationListeners>
-    <listener class="dev.formwork.project.FormworkProjectListener" topic="com.intellij.openapi.project.ProjectCloseListener"/>
+    <listener class="dev.penguinforms.project.PenguinFormsProjectListener" topic="com.intellij.openapi.project.ProjectCloseListener"/>
   </applicationListeners>
 
   <projectListeners>
-    <listener class="dev.formwork.editor.DesignerTabListener" topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"/>
+    <listener class="dev.penguinforms.editor.DesignerTabListener" topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"/>
   </projectListeners>
 
   <actions>
-    <group id="Formwork.FormGroup">
-      <action id="Formwork.ViewCode" class="dev.formwork.actions.ViewCodeAction" text="View Code" description="Show the form's code (Form1.cs)">
+    <group id="Penguin Forms.FormGroup">
+      <action id="Penguin Forms.ViewCode" class="dev.penguinforms.actions.ViewCodeAction" text="View Code" description="Show the form's code (Form1.cs)">
         <keyboard-shortcut keymap="$default" first-keystroke="F7"/>
       </action>
-      <action id="Formwork.ViewDesigner" class="dev.formwork.actions.ViewDesignerAction" text="View Designer" description="Show the form in the Windows Forms designer">
+      <action id="Penguin Forms.ViewDesigner" class="dev.penguinforms.actions.ViewDesignerAction" text="View Designer" description="Show the form in the Windows Forms designer">
         <keyboard-shortcut keymap="$default" first-keystroke="shift F7"/>
       </action>
       <add-to-group group-id="EditorPopupMenu" anchor="first"/>
@@ -51,69 +51,69 @@
       <add-to-group group-id="EditorTabPopupMenu" anchor="first"/>
       <separator/>
     </group>
-    <group id="Formwork.AddGroup">
-      <action id="Formwork.AddForm" class="dev.formwork.project.AddFormAction$Form" text="Windows Form…" description="Add a Windows Form (Form2.cs and Form2.Designer.cs), as Visual Studio does"/>
-      <action id="Formwork.AddUserControl" class="dev.formwork.project.AddFormAction$UserControl" text="User Control (Windows Forms)…" description="Add a Windows Forms UserControl"/>
-      <action id="Formwork.AddDialog" class="dev.formwork.project.AddFormAction$Dialog" text="Dialog (Windows Forms)…" description="A dialog box with OK and Cancel (NetForms template)"/>
-      <action id="Formwork.AddAboutBox" class="dev.formwork.project.AddFormAction$AboutBox" text="About Box (Windows Forms)…" description="An About box (NetForms template)"/>
-      <action id="Formwork.AddLoginForm" class="dev.formwork.project.AddFormAction$LoginForm" text="Login Form (Windows Forms)…" description="A login form (NetForms template)"/>
-      <action id="Formwork.AddSplash" class="dev.formwork.project.AddFormAction$SplashScreen" text="Splash Screen (Windows Forms)…" description="A splash screen (NetForms template)"/>
+    <group id="Penguin Forms.AddGroup">
+      <action id="Penguin Forms.AddForm" class="dev.penguinforms.project.AddFormAction$Form" text="Windows Form…" description="Add a Windows Form (Form2.cs and Form2.Designer.cs), as Visual Studio does"/>
+      <action id="Penguin Forms.AddUserControl" class="dev.penguinforms.project.AddFormAction$UserControl" text="User Control (Windows Forms)…" description="Add a Windows Forms UserControl"/>
+      <action id="Penguin Forms.AddDialog" class="dev.penguinforms.project.AddFormAction$Dialog" text="Dialog (Windows Forms)…" description="A dialog box with OK and Cancel (NetForms template)"/>
+      <action id="Penguin Forms.AddAboutBox" class="dev.penguinforms.project.AddFormAction$AboutBox" text="About Box (Windows Forms)…" description="An About box (NetForms template)"/>
+      <action id="Penguin Forms.AddLoginForm" class="dev.penguinforms.project.AddFormAction$LoginForm" text="Login Form (Windows Forms)…" description="A login form (NetForms template)"/>
+      <action id="Penguin Forms.AddSplash" class="dev.penguinforms.project.AddFormAction$SplashScreen" text="Splash Screen (Windows Forms)…" description="A splash screen (NetForms template)"/>
       <add-to-group group-id="NewGroup" anchor="first"/>
     </group>
-    <action id="Formwork.NewProject" class="dev.formwork.project.NewProjectAction" text="Windows Forms App (Formwork)…"
+    <action id="Penguin Forms.NewProject" class="dev.penguinforms.project.NewProjectAction" text="Windows Forms App (Penguin Forms)…"
             description="A new Windows Forms App, as Visual Studio makes it, that also works on Linux">
       <add-to-group group-id="FileMenu" anchor="first"/>
     </action>
-    <action id="Formwork.MakeLinux" class="dev.formwork.project.MakeLinuxAction" text="Make This Project Work on Linux Too…"
+    <action id="Penguin Forms.MakeLinux" class="dev.penguinforms.project.MakeLinuxAction" text="Make This Project Work on Linux Too…"
             description="Change the .csproj so it builds with NetForms on Linux and with Windows Forms on Windows (a backup is kept)">
       <add-to-group group-id="ToolsMenu" anchor="first"/>
       <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
     </action>
-    <group id="Formwork.FormatMenu" text="F_ormat" popup="true" description="Visual Studio's Format menu for the Windows Forms designer">
-      <group id="Formwork.Format.Align" text="Align" popup="true">
-        <action id="Formwork.Format.left" class="dev.formwork.actions.FormatAction" text="Lefts"/>
-        <action id="Formwork.Format.center" class="dev.formwork.actions.FormatAction" text="Centers"/>
-        <action id="Formwork.Format.right" class="dev.formwork.actions.FormatAction" text="Rights"/>
+    <group id="PenguinForms.FormatMenu" text="F_ormat" popup="true" description="Visual Studio's Format menu for the Windows Forms designer">
+      <group id="PenguinForms.Format.Align" text="Align" popup="true">
+        <action id="PenguinForms.Format.left" class="dev.penguinforms.actions.FormatAction" text="Lefts"/>
+        <action id="PenguinForms.Format.center" class="dev.penguinforms.actions.FormatAction" text="Centers"/>
+        <action id="PenguinForms.Format.right" class="dev.penguinforms.actions.FormatAction" text="Rights"/>
         <separator/>
-        <action id="Formwork.Format.top" class="dev.formwork.actions.FormatAction" text="Tops"/>
-        <action id="Formwork.Format.middle" class="dev.formwork.actions.FormatAction" text="Middles"/>
-        <action id="Formwork.Format.bottom" class="dev.formwork.actions.FormatAction" text="Bottoms"/>
+        <action id="PenguinForms.Format.top" class="dev.penguinforms.actions.FormatAction" text="Tops"/>
+        <action id="PenguinForms.Format.middle" class="dev.penguinforms.actions.FormatAction" text="Middles"/>
+        <action id="PenguinForms.Format.bottom" class="dev.penguinforms.actions.FormatAction" text="Bottoms"/>
         <separator/>
-        <action id="Formwork.Format.toGrid" class="dev.formwork.actions.FormatAction" text="to Grid"/>
+        <action id="PenguinForms.Format.toGrid" class="dev.penguinforms.actions.FormatAction" text="to Grid"/>
       </group>
-      <group id="Formwork.Format.MakeSameSize" text="Make Same Size" popup="true">
-        <action id="Formwork.Format.sameWidth" class="dev.formwork.actions.FormatAction" text="Width"/>
-        <action id="Formwork.Format.sameHeight" class="dev.formwork.actions.FormatAction" text="Height"/>
-        <action id="Formwork.Format.sameSize" class="dev.formwork.actions.FormatAction" text="Both"/>
+      <group id="PenguinForms.Format.MakeSameSize" text="Make Same Size" popup="true">
+        <action id="PenguinForms.Format.sameWidth" class="dev.penguinforms.actions.FormatAction" text="Width"/>
+        <action id="PenguinForms.Format.sameHeight" class="dev.penguinforms.actions.FormatAction" text="Height"/>
+        <action id="PenguinForms.Format.sameSize" class="dev.penguinforms.actions.FormatAction" text="Both"/>
         <separator/>
-        <action id="Formwork.Format.sizeToGrid" class="dev.formwork.actions.FormatAction" text="Size to Grid"/>
+        <action id="PenguinForms.Format.sizeToGrid" class="dev.penguinforms.actions.FormatAction" text="Size to Grid"/>
       </group>
-      <group id="Formwork.Format.HorizontalSpacing" text="Horizontal Spacing" popup="true">
-        <action id="Formwork.Format.spaceX" class="dev.formwork.actions.FormatAction" text="Make Equal"/>
-        <action id="Formwork.Format.incX" class="dev.formwork.actions.FormatAction" text="Increase"/>
-        <action id="Formwork.Format.decX" class="dev.formwork.actions.FormatAction" text="Decrease"/>
-        <action id="Formwork.Format.removeX" class="dev.formwork.actions.FormatAction" text="Remove"/>
+      <group id="PenguinForms.Format.HorizontalSpacing" text="Horizontal Spacing" popup="true">
+        <action id="PenguinForms.Format.spaceX" class="dev.penguinforms.actions.FormatAction" text="Make Equal"/>
+        <action id="PenguinForms.Format.incX" class="dev.penguinforms.actions.FormatAction" text="Increase"/>
+        <action id="PenguinForms.Format.decX" class="dev.penguinforms.actions.FormatAction" text="Decrease"/>
+        <action id="PenguinForms.Format.removeX" class="dev.penguinforms.actions.FormatAction" text="Remove"/>
       </group>
-      <group id="Formwork.Format.VerticalSpacing" text="Vertical Spacing" popup="true">
-        <action id="Formwork.Format.spaceY" class="dev.formwork.actions.FormatAction" text="Make Equal"/>
-        <action id="Formwork.Format.incY" class="dev.formwork.actions.FormatAction" text="Increase"/>
-        <action id="Formwork.Format.decY" class="dev.formwork.actions.FormatAction" text="Decrease"/>
-        <action id="Formwork.Format.removeY" class="dev.formwork.actions.FormatAction" text="Remove"/>
+      <group id="PenguinForms.Format.VerticalSpacing" text="Vertical Spacing" popup="true">
+        <action id="PenguinForms.Format.spaceY" class="dev.penguinforms.actions.FormatAction" text="Make Equal"/>
+        <action id="PenguinForms.Format.incY" class="dev.penguinforms.actions.FormatAction" text="Increase"/>
+        <action id="PenguinForms.Format.decY" class="dev.penguinforms.actions.FormatAction" text="Decrease"/>
+        <action id="PenguinForms.Format.removeY" class="dev.penguinforms.actions.FormatAction" text="Remove"/>
       </group>
-      <group id="Formwork.Format.CenterinForm" text="Center in Form" popup="true">
-        <action id="Formwork.Format.centerH" class="dev.formwork.actions.FormatAction" text="Horizontally"/>
-        <action id="Formwork.Format.centerV" class="dev.formwork.actions.FormatAction" text="Vertically"/>
+      <group id="PenguinForms.Format.CenterinForm" text="Center in Form" popup="true">
+        <action id="PenguinForms.Format.centerH" class="dev.penguinforms.actions.FormatAction" text="Horizontally"/>
+        <action id="PenguinForms.Format.centerV" class="dev.penguinforms.actions.FormatAction" text="Vertically"/>
       </group>
       <separator/>
-      <group id="Formwork.Format.Order" text="Order" popup="true">
-        <action id="Formwork.Format.bringToFront" class="dev.formwork.actions.FormatAction" text="Bring to Front"/>
-        <action id="Formwork.Format.sendToBack" class="dev.formwork.actions.FormatAction" text="Send to Back"/>
+      <group id="PenguinForms.Format.Order" text="Order" popup="true">
+        <action id="PenguinForms.Format.bringToFront" class="dev.penguinforms.actions.FormatAction" text="Bring to Front"/>
+        <action id="PenguinForms.Format.sendToBack" class="dev.penguinforms.actions.FormatAction" text="Send to Back"/>
       </group>
       <separator/>
-      <action id="Formwork.Format.lock" class="dev.formwork.actions.FormatAction" text="Lock Controls" description="Lock the controls so they can't be moved or resized by accident"/>
+      <action id="PenguinForms.Format.lock" class="dev.penguinforms.actions.FormatAction" text="Lock Controls" description="Lock the controls so they can't be moved or resized by accident"/>
       <add-to-group group-id="MainMenu" relative-to-action="CodeMenu" anchor="after"/>
     </group>
-    <action id="Formwork.Format.tabOrder" class="dev.formwork.actions.FormatAction" text="Tab Order" description="Show the tab order on the form: click the controls in the order the Tab key should visit them">
+    <action id="PenguinForms.Format.tabOrder" class="dev.penguinforms.actions.FormatAction" text="Tab Order" description="Show the tab order on the form: click the controls in the order the Tab key should visit them">
       <add-to-group group-id="ViewMenu" anchor="last"/>
     </action>
   </actions>

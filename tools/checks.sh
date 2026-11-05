@@ -9,7 +9,7 @@ proj="$work/TwoForms"
 "$root/tools/run-idea.sh" "$proj" "$out/runidea.log" "$proj/Form1.cs" >/dev/null
 export DISPLAY=:99
 shot() { "$root/tools/shot.sh" "$out/$1.png" 100 1400x960+260+40; }
-for i in $(seq 1 60); do sleep 2; grep -q "Designer page ready" $root/.intellijPlatform/sandbox/formwork/*/log_runIdea/idea.log 2>/dev/null && [ "$i" -gt 5 ] && break; done
+for i in $(seq 1 60); do sleep 2; grep -q "Designer page ready" $root/.intellijPlatform/sandbox/penguin-forms/*/log_runIdea/idea.log 2>/dev/null && [ "$i" -gt 5 ] && break; done
 sleep 6
 shot 01-form1-design
 xdotool mousemove 1300 700 click 1; sleep 1; xdotool key F7; sleep 3

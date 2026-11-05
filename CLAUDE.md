@@ -1,4 +1,4 @@
-# CLAUDE.md — Formwork
+# CLAUDE.md — Penguin Forms (formerly Formwork)
 
 Read this file and `git log` first, every session. Never redo committed work.
 Part 1 is the progress log (kept up to date). Part 2 is a copy of Jacob's brief.
@@ -19,6 +19,23 @@ stretch went on tidying up: Lock Controls' padlock, and bringing README / TESTIN
 **Jacob: start with `TESTING-FOR-JACOB.md`.** The final honest summary is at the very end of this file.
 Not done on purpose: no GitHub Release was made (that needs a version tag pushed, which I left for Jacob to
 decide; pushing a tag like `v0.1.0` runs CI's release job, which attaches the zip and its SHA-256).
+
+## Renamed: Formwork → Penguin Forms (5 Nov, 17:45 UK, at Jacob's request)
+
+Marketplace name **"Penguin Forms - WinForms Designer for Rider"** (JetBrains' rules: the name mustn't *start* with a
+product name like "Rider"; "for Rider" at the end is the usual allowed form). Checked free: no Marketplace plugin, no
+NuGet package; on GitHub only an unrelated, unstarred `penguincms/Penguin.Forms.Abstractions`. Changed: plugin ID
+`dev.formwork` → **`dev.penguinforms`** (must be final before publishing: it can't change on the Marketplace), vendor
+"Jacob Goodchild", Kotlin package and classes, resources, every user-visible text, settings page, notifications,
+backup suffix (`<name>.csproj.penguinforms.bak`), comments written into converted .csproj files, log prefix
+**"Penguin Forms add:"**, zip `penguin-forms-0.1.0.zip`, CI artifact `penguin-forms-plugin`. Kept on purpose
+(internal, not shown to users): the host program `Formwork.Host`, its `formwork.hello` handshake, the `Formwork Sans`
+font, `FORMWORK_*` test switches, `-PformworkTestMachine`, and the GitHub repository name (Jacob can rename it in
+GitHub's settings; old links redirect). Projects already converted under the old name are still recognised (the
+converter looks for the NetForms reference, not the comments); old `.formwork.bak` files are left alone. Proof: all
+tests pass; in IDEA 2026.1 the renamed plugin loads, a Button is placed and double-clicked into `button1_Click`
+(S `rename-dark-penguin-forms-handler-in-idea-2026.1.png`). The history below still says "Formwork": it was written
+under that name.
 
 ## Add-a-control fix (5 Nov, 14:35 UK, short fix session)
 

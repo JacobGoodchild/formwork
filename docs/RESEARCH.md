@@ -35,7 +35,7 @@ NetForms' own notes (`CLAUDE.md`, `docs/PLAN.md`) are written in Russian; summar
 
 Barely: `acquireVsCodeApi()` (postMessage / getState / setState), `window` `message` events, and
 about 40 `--vscode-*` CSS colour variables. **Decision: reuse it inside JCEF** with a JS shim that
-provides `acquireVsCodeApi` over a `JBCefJSQuery`, and Formwork sets the `--vscode-*` variables
+provides `acquireVsCodeApi` over a `JBCefJSQuery`, and Penguin Forms sets the `--vscode-*` variables
 from Rider's current theme colours. The TypeScript half (`designerEditorProvider.ts`) is rewritten
 in Kotlin.
 
@@ -44,11 +44,11 @@ in Kotlin.
 - **The host writes files to disk itself** (`DesignSurface.Save`, after every edit when autoSave
   is on), and reads them from disk before each edit. The VS Code extension even saves your open
   editors first. That would break Rider's undo and the `*` marker. Fix: a small NetForms patch
-  (`upstream-patches/0001-designer-file-overrides.patch`) adds read/write hooks, and Formwork's
+  (`upstream-patches/0001-designer-file-overrides.patch`) adds read/write hooks, and Penguin Forms'
   host (`host/Formwork.Host`) uses them so files come from Rider's buffers and writes go back to
   Rider as text.
 - **Beige form.** Off Windows .NET's system colour table is Windows XP's (`Control = #ECE9D8`).
-  NetForms ships the Windows 10/11 table but only its tests switch it on. Formwork's host switches
+  NetForms ships the Windows 10/11 table but only its tests switch it on. Penguin Forms' host switches
   it on (designer only), so the form is `#F0F0F0` as in Visual Studio. Checked: rendered PNG
   pixel is `#F0F0F0`.
 
@@ -56,7 +56,7 @@ in Kotlin.
 
 Rewrites a WinForms project for NetForms only (`UseWindowsForms` → `PackageReference NetForms`,
 `net8.0-windows` → `net10.0`), backup `*.csproj.winforms.bak`. Handles old .NET Framework projects
-too. It makes a Linux-only project, which would break Jacob's college build, so Formwork writes the
+too. It makes a Linux-only project, which would break Jacob's college build, so Penguin Forms writes the
 dual-target project from brief section 7 instead (its own code, using the converter's findings as
 a guide).
 

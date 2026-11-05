@@ -35,7 +35,7 @@ internal static class WindowsPalette
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Formwork: could not set up the Segoe UI stand-in font: {ex.Message}");
+            Console.Error.WriteLine($"Penguin Forms: could not set up the Segoe UI stand-in font: {ex.Message}");
             return false;
         }
     }
@@ -48,7 +48,7 @@ internal static class WindowsPalette
             var theme = typeof(System.Windows.Forms.Control).Assembly.GetType("System.Windows.Forms.Theme", throwOnError: false);
             theme?.GetProperty("Windows11Buttons", BindingFlags.NonPublic | BindingFlags.Static)?.SetValue(null, true);
         }
-        catch (Exception ex) { Console.Error.WriteLine($"Formwork: could not switch on Windows 11 buttons: {ex.Message}"); }
+        catch (Exception ex) { Console.Error.WriteLine($"Penguin Forms: could not switch on Windows 11 buttons: {ex.Message}"); }
     }
 
     public static void Install()
@@ -66,7 +66,7 @@ internal static class WindowsPalette
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Formwork: could not switch on the Windows palette: {ex.Message}");
+            Console.Error.WriteLine($"Penguin Forms: could not switch on the Windows palette: {ex.Message}");
         }
     }
 }

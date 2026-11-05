@@ -29,7 +29,7 @@ fun platformBranch(): Int {
 
 dependencies {
     intellijPlatform {
-        // Formwork uses only the shared IntelliJ Platform (plus JCEF), so it compiles the same against any 2026.1 or
+        // Penguin Forms uses only the shared IntelliJ Platform (plus JCEF), so it compiles the same against any 2026.1 or
         // 2026.2 IDE. By default it builds against IntelliJ IDEA 2026.2.4 - the IDE the UI tests run in (the sandbox Rider
         // needs a JetBrains account login; see CLAUDE.md) - which also keeps one 10 GB IDE off the disk.
         // ./gradlew buildPlugin -PbuildAgainst=rider builds against Rider 2026.2.4.1 instead.
@@ -81,7 +81,7 @@ val applyNetFormsPatches by tasks.registering(Exec::class) {
 val hostOut = layout.buildDirectory.dir("host/linux-x64")
 
 val publishHost by tasks.registering(Exec::class) {
-    description = "Builds Formwork.Host (NetForms' designer host + Formwork's buffer bridge) for Linux x64."
+    description = "Builds Formwork.Host (NetForms' designer host + Penguin Forms' buffer bridge) for Linux x64."
     dependsOn(applyNetFormsPatches)
     inputs.files(fileTree("host") { exclude("**/bin/**", "**/obj/**") })
     inputs.files(fileTree("external/NetForms/src") { exclude("**/bin/**", "**/obj/**") })
@@ -114,13 +114,13 @@ val publishConverter by tasks.registering(Exec::class) {
 
 tasks.processResources {
     // NetForms' designer webview (MIT), served to JCEF from the plugin's resources.
-    from("external/NetForms/designer/media") { into("formwork/webview/netforms") }
-    from("external/NetForms/LICENSE") { into("formwork/licenses/NetForms") }
-    from("external/NetForms/THIRD-PARTY-NOTICES.md") { into("formwork/licenses/NetForms") }
-    from("LICENSE") { into("formwork/licenses/Formwork") }
+    from("external/NetForms/designer/media") { into("penguinforms/webview/netforms") }
+    from("external/NetForms/LICENSE") { into("penguinforms/licenses/NetForms") }
+    from("external/NetForms/THIRD-PARTY-NOTICES.md") { into("penguinforms/licenses/NetForms") }
+    from("LICENSE") { into("penguinforms/licenses/PenguinForms") }
     // NetForms' item templates (MIT): dialog, About box, login form, splash screen.
     for (t in listOf("netforms-dialog", "netforms-aboutbox", "netforms-login", "netforms-splash"))
-        from("external/NetForms/templates/$t") { include("*.cs"); into("formwork/templates/$t") }
+        from("external/NetForms/templates/$t") { include("*.cs"); into("penguinforms/templates/$t") }
 }
 
 tasks.withType<org.jetbrains.intellij.platform.gradle.tasks.PrepareSandboxTask>().configureEach {
@@ -136,7 +136,7 @@ tasks.named<org.jetbrains.intellij.platform.gradle.tasks.RunIdeTask>("runIde") {
     }
 }
 
-// The sandbox Rider needs a JetBrains account login for its licence, which Formwork's tests must not do.
+// The sandbox Rider needs a JetBrains account login for its licence, which Penguin Forms' tests must not do.
 // The plugin only uses the shared IntelliJ Platform for its UI, so UI screenshots run in the free
 // IntelliJ IDEA of the same platform version. See TESTING-FOR-JACOB.md for the
 // checks only Rider can do.

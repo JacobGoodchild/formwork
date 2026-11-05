@@ -9,7 +9,7 @@ namespace Formwork.Host;
 
 /// <summary>
 /// One JSON request per line on stdin, one JSON response per line on stdout - NetForms' DesignerProtocol,
-/// with two Formwork additions (docs/PROTOCOL.md):
+/// with two Penguin Forms additions (docs/PROTOCOL.md):
 /// <list type="bullet">
 /// <item>a request may carry <c>"files": {"/abs/path": "text" | null}</c>: what Rider's editor holds for the
 /// form's files (null: the file does not exist). The designer reads those instead of the disk.</item>
@@ -40,7 +40,7 @@ public static class Program
         {
             var surface = protocol.Surface;
             var allowed = new[] { surface?.FilePath, surface?.CompanionPath, surface?.ResxPath };
-            if (Array.IndexOf(allowed, path) < 0) { Console.Error.WriteLine($"Formwork: refused a write outside the form: {path}"); return; }
+            if (Array.IndexOf(allowed, path) < 0) { Console.Error.WriteLine($"Penguin Forms: refused a write outside the form: {path}"); return; }
             s_buffers[path] = text; s_writes[path] = text;
         };
         string? line;
@@ -70,7 +70,7 @@ public static class Program
                     inner = request.ToJsonString();
                 }
                 if ((string?)request["method"] == "formwork.hello")
-                    return new JsonObject { ["id"] = request["id"]?.DeepClone(), ["result"] = new JsonObject { ["name"] = "Formwork host", ["protocol"] = DesignerProtocol.Version, ["formwork"] = 1 } }.ToJsonString();
+                    return new JsonObject { ["id"] = request["id"]?.DeepClone(), ["result"] = new JsonObject { ["name"] = "Penguin Forms host", ["protocol"] = DesignerProtocol.Version, ["formwork"] = 1 } }.ToJsonString();
             }
         }
         catch (Exception)

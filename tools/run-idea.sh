@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Starts the sandbox IntelliJ IDEA (free tier) with Formwork on the Xvfb display :99, opening $1.
+# Starts the sandbox IntelliJ IDEA (free tier) with Penguin Forms on the Xvfb display :99, opening $1.
 # Test-machine helper (a throwaway cloud machine with a virtual screen). Not needed on your own computer.
 # Used for UI screenshots; see CLAUDE.md "BLOCKER" for why not Rider.
 set -euo pipefail
@@ -11,7 +11,7 @@ export DISPLAY=:99 PATH="/opt/dotnet:$PATH"
 cd "$root"
 extra=()
 [ -n "${3:-}" ] && extra=(-PopenFile="$3")
-nohup ./gradlew runIdea -PopenPath="$1" "${extra[@]}" --console=plain > "${2:-/tmp/formwork-runidea.log}" 2>&1 &
+nohup ./gradlew runIdea -PopenPath="$1" "${extra[@]}" --console=plain > "${2:-/tmp/penguinforms-runidea.log}" 2>&1 &
 # No window manager on Xvfb: once the IDE window exists, make it fill the screen (as a maximised window would).
 ( for i in $(seq 1 120); do sleep 2
     for w in $(xdotool search --onlyvisible --name "\[Design\]| – " 2>/dev/null); do

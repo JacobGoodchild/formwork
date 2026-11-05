@@ -12,7 +12,7 @@ cp -r "$root/samples/$sample" "$work"
 # Already converted (as after "Make it work on Linux too"), so its notice does not cover the screen.
 [ -d "$root/build/converted-samples/$sample" ] && rm -rf "$work" && cp -r "$root/build/converted-samples/$sample" "$work"
 proj="$(dirname "$(find "$work" -name '*.csproj' | head -1)")"
-log="$(ls $root/.intellijPlatform/sandbox/formwork/*/log_runIdea/idea.log 2>/dev/null | head -1)"
+log="$(ls $root/.intellijPlatform/sandbox/penguin-forms/*/log_runIdea/idea.log 2>/dev/null | head -1)"
 before=$( [ -f "$log" ] && wc -l < "$log" || echo 0 )
 "$root/tools/run-idea.sh" "$proj" "$out/runidea.log" "$proj/Form1.cs" >/dev/null
 export DISPLAY=:99

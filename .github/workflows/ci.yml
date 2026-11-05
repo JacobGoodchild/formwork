@@ -37,7 +37,7 @@ jobs:
         run: sha256sum build/distributions/*.zip
       - uses: actions/upload-artifact@v4
         with:
-          name: formwork-plugin
+          name: penguin-forms-plugin
           path: build/distributions/*.zip
       - uses: actions/upload-artifact@v4
         with:
@@ -88,7 +88,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: formwork-plugin
+          name: penguin-forms-plugin
           path: dist
       - name: Release notes with the SHA-256
         run: |
@@ -102,4 +102,4 @@ jobs:
       - name: Create the release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${GITHUB_REF_NAME}" dist/*.zip --repo "${GITHUB_REPOSITORY}" --title "Formwork ${GITHUB_REF_NAME}" --notes-file dist/notes.md
+        run: gh release create "${GITHUB_REF_NAME}" dist/*.zip --repo "${GITHUB_REPOSITORY}" --title "Penguin Forms ${GITHUB_REF_NAME}" --notes-file dist/notes.md

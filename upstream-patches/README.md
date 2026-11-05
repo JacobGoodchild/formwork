@@ -12,7 +12,7 @@ hooks, null by default, so NetForms behaves exactly as before unless a host sets
 **Why:** NetForms' designer reads the form's files from disk before every edit and writes them
 straight back to disk. That suits VS Code (its extension saves your open editors first), but in
 Rider it would bypass Rider's documents: no Ctrl+Z, no `*` for unsaved changes, and a risk of
-overwriting unsaved typing. With the hooks, Formwork's host reads from Rider's buffers and hands
+overwriting unsaved typing. With the hooks, Penguin Forms' host reads from Rider's buffers and hands
 every write back to Rider as text.
 
 **Behaviour change for NetForms users:** none (hooks unset = old behaviour).
@@ -49,7 +49,7 @@ Visual Studio writes for the same clicks (brief, group E: "New controls get Visu
 ## 0004-theme-windows11-buttons.patch
 
 **What:** `Theme.Windows11Buttons` (internal, off by default): push buttons get Windows 11's white face (#FDFDFD)
-and light grey border (#D0D0D0) instead of Windows 10's grey (#E1E1E1 / #ADADAD). Formwork's designer host turns
+and light grey border (#D0D0D0) instead of Windows 10's grey (#E1E1E1 / #ADADAD). Penguin Forms' designer host turns
 it on, so the designer shows buttons as Visual Studio does on Windows 11 (Jacob's screenshots).
 
 **Behaviour change for NetForms users:** none (off by default). Note: a NetForms app *running* on Linux still uses

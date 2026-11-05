@@ -1,6 +1,6 @@
 # The designer host protocol
 
-Formwork talks to a child process, **Formwork.Host** (`host/Formwork.Host`), which wraps NetForms'
+Penguin Forms talks to a child process, **Formwork.Host** (`host/Formwork.Host`), which wraps NetForms'
 `DesignerProtocol` (`external/NetForms/src/NetForms.Design/DesignerProtocol.cs`), the same protocol
 NetForms' VS Code extension uses (`external/NetForms/designer/src/hostClient.ts`).
 Learned by reading those two files and by driving the host by hand (Stage 0).
@@ -25,12 +25,12 @@ Learned by reading those two files and by driving the host by hand (Stage 0).
 - `kind: "edit"`: an edit was refused; nothing changed.
 - `kind: "internal"`: a bug; `detail` has the stack trace.
 
-### Formwork additions (not in NetForms' host)
+### Penguin Forms additions (not in NetForms' host)
 
 | Field | Direction | Meaning |
 |---|---|---|
 | `files` | request | `{path: text or null}`: what Rider's editor holds for the form's files right now (unsaved edits included). The host reads these instead of the disk. `null` = the file does not exist. |
-| `writes` | response | `{path: text}`: the full new text of every file the request changed. **The host never writes to disk.** Formwork applies each write to Rider's `Document` inside a write command, so Ctrl+Z, the `*` marker and the file watcher all stay correct. |
+| `writes` | response | `{path: text}`: the full new text of every file the request changed. **The host never writes to disk.** Penguin Forms applies each write to Rider's `Document` inside a write command, so Ctrl+Z, the `*` marker and the file watcher all stay correct. |
 | `formwork.hello` | method | `{name, protocol, formwork}` |
 
 These rest on a 16-line NetForms patch (`upstream-patches/0001-designer-file-overrides.patch`):
@@ -49,7 +49,7 @@ The host also switches on NetForms' Windows 10/11 system colour table (`SystemCo
 | `render` | – | view |
 | `menu` | `{id}` – open that menu item's drop-down on the canvas; `""` closes | view |
 | `apply` | `{ops: [op…]}` – one undoable step, all or nothing | view |
-| `undo` / `redo` | – (Formwork uses Rider's undo instead, see below) | view |
+| `undo` / `redo` | – (Penguin Forms uses Rider's undo instead, see below) | view |
 | `copy` | `{ids}` | `{text}` (clipboard text, marker `netforms/components-1`) |
 | `properties` | `{id}` | property rows |
 | `events` | `{id}` | event rows |
@@ -78,14 +78,14 @@ offsets, `container, movable, resizable, dock, anchor, margin, padding`, tab hea
 `tray[]` (non-visual components), `canUndo, canRedo`, `handler?` (`{file, method, line, created}`
 after an event was bound), `select?` (new ids after paste), `dropDowns?`, `openMenu?`.
 
-## How Formwork uses it
+## How Penguin Forms uses it
 
 1. Editor opens → start host → `formwork.hello` → `libraries` (trusted projects only) → `open`
    with `files` = the current text of `Form1.Designer.cs`, `Form1.cs`, `Form1.resx`.
 2. A canvas gesture → `apply` (with `files` again if a buffer changed) → apply `writes` to the
    documents as **one** Rider command (one Ctrl+Z step) → show the new view.
 3. Ctrl+Z / Ctrl+Y on the canvas run **Rider's** undo/redo on those documents; the documents change
-   → Formwork sends `open` with the new `files` → the canvas shows the old state. (The host's own
+   → Penguin Forms sends `open` with the new `files` → the canvas shows the old state. (The host's own
    undo stack is not used, so there is only one undo history.)
 4. `Form1.Designer.cs` edited as text, or changed by git → same reload.
 5. Editor closes → `close`, then the process is killed after 2 s if still alive. Project close and

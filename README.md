@@ -1,4 +1,6 @@
-# Formwork
+# Penguin Forms – WinForms Designer for Rider
+
+_(Formerly called "Formwork".)_
 
 **The Windows Forms designer for JetBrains Rider on Linux**, laid out and behaving like the one in
 Visual Studio 2022: a `Form1.cs [Design]` tab, a docked **Toolbox**, a **Properties** window with
@@ -11,31 +13,31 @@ Visual Studio at college, and the other way round.
 
 | Dark theme | Light theme |
 |---|---|
-| ![Formwork in the dark theme](docs/screenshots/stage2-dark-designer-native-windows.png) | ![Formwork in the light theme](docs/screenshots/stage2-light-designer-native-windows.png) |
+| ![Penguin Forms in the dark theme](docs/screenshots/stage2-dark-designer-native-windows.png) | ![Penguin Forms in the light theme](docs/screenshots/stage2-light-designer-native-windows.png) |
 
 *(Screenshots are from the sandbox IntelliJ IDEA 2026.2, the same platform Rider 2026.2 is built on;
 see "Status" below.)*
 
 ## How it works
 
-Formwork stands on **[NetForms](https://github.com/Go-Forms/.NetForms)** (MIT licence), a
+Penguin Forms stands on **[NetForms](https://github.com/Go-Forms/.NetForms)** (MIT licence), a
 reimplementation of `System.Windows.Forms` for .NET 10 that runs on Linux.
 
 - NetForms' **designer host** (a .NET process) reads `InitializeComponent()` with Roslyn, builds the live
   form, paints it, and writes `Form1.Designer.cs` back in the style the file already uses.
-- Formwork replaces NetForms' VS Code front end with Rider: the design surface runs in Rider's built-in
+- Penguin Forms replaces NetForms' VS Code front end with Rider: the design surface runs in Rider's built-in
   browser, and the Toolbox, Properties and Document Outline are real Rider tool windows that follow
   Rider's theme.
 - **Every change goes through Rider's editor**, so Ctrl+Z undoes designer edits, unsaved changes show a
   `*`, and nothing is written behind your back.
 - **"Make This Project Work on Linux Too"** rewrites a Visual Studio project file so it uses the real
-  Windows Forms on Windows and NetForms on Linux (a preview first, and a `.csproj.formwork.bak` backup).
+  Windows Forms on Windows and NetForms on Linux (a preview first, and a `.csproj.penguinforms.bak` backup).
 
 ## Install
 
 1. Install the **.NET 10 SDK** (steps for Linux Mint in [TESTING-FOR-JACOB.md](TESTING-FOR-JACOB.md)).
    Works with **Rider 2026.1 and 2026.2** (and newer).
-2. Rider → **Settings → Plugins → ⚙ → Install Plugin from Disk…** → `formwork-0.1.0.zip` → restart.
+2. Rider → **Settings → Plugins → ⚙ → Install Plugin from Disk…** → `penguin-forms-0.1.0.zip` → restart.
 
 Build it yourself: `./gradlew buildPlugin` (needs JDK 21 and the .NET 10 SDK); the zip appears in
 `build/distributions/`.
@@ -55,9 +57,9 @@ pickers; AcceptButton / CancelButton; F7 / Shift+F7; several forms at once; relo
 clear page for a broken `Designer.cs` that never overwrites it; a red box for a control that fails to draw; the
 Format menu (Align checked; the rest built); Lock Controls with a padlock; Tab Order; Document Outline (drag a
 control into a container); menu "Type Here"; TabControl pages; TableLayoutPanel cells; Add → Windows Form / User
-Control / Dialog and more; File → Windows Forms App (Formwork); "Make This Project Work on Linux Too" for .NET
+Control / Dialog and more; File → Windows Forms App (Penguin Forms); "Make This Project Work on Linux Too" for .NET
 6–10 projects (every sample builds on Linux, and on Windows with the real Windows Forms in GitHub's cloud);
-Settings → Tools → Formwork; the app runs as a window on Linux.
+Settings → Tools → Penguin Forms; the app runs as a window on Linux.
 
 **Known gaps (honest list):**
 
@@ -81,17 +83,17 @@ Settings → Tools → Formwork; the app runs as a window on Linux.
 
 ## Privacy
 
-Formwork makes **no network requests of its own**: no telemetry, no analytics, no update checks. The designer
+Penguin Forms makes **no network requests of its own**: no telemetry, no analytics, no update checks. The designer
 page can't go online. The only network use is when *you* build a converted project for the first time,
-which downloads the NetForms package from NuGet (that's .NET's own build, not Formwork).
+which downloads the NetForms package from NuGet (that's .NET's own build, not Penguin Forms).
 
 ## Credits and licence
 
 - **NetForms** © NetForms contributors, MIT licence — the Windows Forms implementation, the designer host
   and the design-surface page. Its `LICENSE` and `THIRD-PARTY-NOTICES.md` ship inside the plugin
-  (`formwork/licenses/NetForms`). Formwork's small changes to it are in `upstream-patches/`, each explained.
+  (`penguinforms/licenses/NetForms`). Penguin Forms' small changes to it are in `upstream-patches/`, each explained.
 - **Selawik** © Microsoft, SIL Open Font License 1.1 — the basis of Formwork Sans (`host/fonts/`).
-- Formwork itself: **MIT licence** (`LICENSE`). Toolbox icons are Formwork's own drawings; nothing is copied
+- Penguin Forms itself: **MIT licence** (`LICENSE`). Toolbox icons are Penguin Forms' own drawings; nothing is copied
   from Visual Studio.
 - "Rider" and "IntelliJ IDEA" are JetBrains trademarks; "Visual Studio" and "Windows Forms" are Microsoft's.
-  Formwork is an independent project.
+  Penguin Forms is an independent project.

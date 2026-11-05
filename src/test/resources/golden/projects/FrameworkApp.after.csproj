@@ -8,7 +8,7 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
-  <!-- Formwork: on Windows (college), the real Windows Forms on .NET Framework, as the project was. -->
+  <!-- Penguin Forms: on Windows (college), the real Windows Forms on .NET Framework, as the project was. -->
   <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
     <TargetFramework>net481</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
@@ -17,7 +17,7 @@
     <Reference Include="System.Net.Http" />
   </ItemGroup>
 
-  <!-- Formwork: anywhere else (Linux at home), NetForms runs the same code on .NET 10. -->
+  <!-- Penguin Forms: anywhere else (Linux at home), NetForms runs the same code on .NET 10. -->
   <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
     <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
