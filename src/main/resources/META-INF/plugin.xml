@@ -60,6 +60,10 @@
       <action id="Formwork.AddSplash" class="dev.formwork.project.AddFormAction$SplashScreen" text="Splash Screen (Windows Forms)…" description="A splash screen (NetForms template)"/>
       <add-to-group group-id="NewGroup" anchor="first"/>
     </group>
+    <action id="Formwork.NewProject" class="dev.formwork.project.NewProjectAction" text="Windows Forms App (Formwork)…"
+            description="A new Windows Forms App, as Visual Studio makes it, that also works on Linux">
+      <add-to-group group-id="FileMenu" anchor="first"/>
+    </action>
     <action id="Formwork.MakeLinux" class="dev.formwork.project.MakeLinuxAction" text="Make This Project Work on Linux Too…"
             description="Change the .csproj so it builds with NetForms on Linux and with Windows Forms on Windows (a backup is kept)">
       <add-to-group group-id="ToolsMenu" anchor="first"/>

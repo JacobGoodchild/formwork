@@ -33,3 +33,18 @@ class ProjectBuildTest {
         assertTrue(Regex("""\b0 Error""").containsMatchIn(out) || !out.contains("error"), out)
     }
 }
+
+@EnabledIfEnvironmentVariable(named = "FORMWORK_BUILD_TESTS", matches = "1")
+class NewProjectTest {
+    @org.junit.jupiter.api.Test
+    fun `a new Formwork project is Microsoft's template, converted`() {
+        val dir = java.nio.file.Files.createTempDirectory("formwork-new").toFile()
+        val p = ProcessBuilder(TestSupport.dotnet, "new", "winforms", "-f", "net8.0", "-n", "WinFormsApp1", "-o", File(dir, "WinFormsApp1").path, "--no-restore")
+            .redirectErrorStream(true).start()
+        val log = p.inputStream.bufferedReader().readText(); p.waitFor(2, TimeUnit.MINUTES)
+        assertEquals(0, p.exitValue(), log)
+        val csproj = File(dir, "WinFormsApp1/WinFormsApp1.csproj")
+        val r = ProjectConverter.convert(csproj.readText()) as ProjectConverter.Result.Converted
+        assertEquals(File(TestSupport.repo, "src/test/resources/golden/projects/VsTemplate.Net8.after.csproj").readText(), r.text)
+    }
+}
