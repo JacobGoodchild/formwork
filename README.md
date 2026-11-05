@@ -43,32 +43,40 @@ Build it yourself: `./gradlew buildPlugin` (needs JDK 21 and the .NET 10 SDK); t
 
 The full checklist, with the evidence for each item, is in [CLAUDE.md](CLAUDE.md) (progress log).
 
-**Works (tested):** opening a form in the designer; Visual Studio's toolbox groups and behaviour (click a
-tool, then click or draw on the form; back to Pointer); double-click a control or an event to create its
-handler and land in it; Properties with the selection drop-down, categories, bold non-default values,
-description and Events; Ctrl+Z through Rider's undo; F7 / Shift+F7; several forms at once; reloading
-when the file changes outside; a clear page for a broken `Designer.cs` that never overwrites it; the
-Format menu's Align commands; Add → Windows Form / User Control with Microsoft's template text; "Make
-This Project Work on Linux Too" for .NET 6–10 projects (every sample builds on Linux afterwards); the
-app runs as a window on Linux.
+**Works (tested in IntelliJ IDEA, see below):** opening a form in the designer; Visual Studio's toolbox groups
+and behaviour (click a tool, then click or draw on the form; drag from the Toolbox; double-click a tool; back to
+Pointer; search; your project's own controls after a build; non-visual components in the tray); white handles on
+the main selection, dark on the others; move, resize, snaplines for spacing and edges, Ctrl+arrow to the next
+snapline; Delete, copy and paste (also between forms); Ctrl+Z through Rider's undo; double-click a control or an
+event to create its handler and land in it; Properties with the selection drop-down, categories, bold
+non-default values, description pane, Events (with existing handlers to pick from), Color / ContentAlignment
+pickers; AcceptButton / CancelButton; F7 / Shift+F7; several forms at once; reloading when the file changes; a
+clear page for a broken `Designer.cs` that never overwrites it; a red box for a control that fails to draw; the
+Format menu (Align checked; the rest built); Lock Controls with a padlock; Tab Order; Document Outline (drag a
+control into a container); menu "Type Here"; TabControl pages; TableLayoutPanel cells; Add → Windows Form / User
+Control / Dialog and more; File → Windows Forms App (Formwork); "Make This Project Work on Linux Too" for .NET
+6–10 projects (every sample builds on Linux, and on Windows with the real Windows Forms in GitHub's cloud);
+Settings → Tools → Formwork; the app runs as a window on Linux.
 
 **Known gaps (honest list):**
 
 - **Not tested inside Rider itself.** The sandbox Rider asks for a JetBrains account login, which the
-  tests must not do; everything was tested in IntelliJ IDEA 2026.2.4 instead. Rider-only checks (Solution
-  Explorer, Run button, debugging) are listed in TESTING-FOR-JACOB.md.
+  tests must not do; everything was tested in IntelliJ IDEA 2026.2.4 instead (same platform). Rider-only
+  checks (Solution Explorer, Run button, debugging) are listed in TESTING-FOR-JACOB.md.
 - The running app's background is **beige (#ECE9D8) on Linux**, not #F0F0F0 — a deliberate NetForms
-  choice (it keeps .NET's own Linux system colours). The designer shows #F0F0F0 like VS.
+  choice. The designer shows #F0F0F0 like VS. Likewise the running app's buttons are NetForms' grey ones,
+  while the designer draws Windows 11's white ones.
 - No **WebBrowser** control (Internet Explorer, Windows-only).
 - The code sub-tab is Rider's own editor and is labelled **"Text"**, not "Code"; design and code are one
   tab with two sub-tabs rather than two separate tabs.
 - Renaming a control updates `Form1.Designer.cs` and `Form1.cs`, but not other files that use it.
 - Text sizes are measured with **Formwork Sans** (Microsoft's open Selawik font, with Segoe UI's line
-  metrics); most default sizes match Visual Studio exactly, a few widths are 1–2 px off.
-- **Old .NET Framework 4.x projects** aren't converted yet.
-- Buttons are drawn with NetForms' grey Windows 10 face, not the white Windows 11 one.
-- Not yet: Visual Studio's Ctrl+arrow "jump to snapline", handles on every control of a multi-selection,
-  dragging in Document Outline, a New Project template, the settings page, data-binding pickers.
+  metrics); most default sizes match Visual Studio exactly, a few are 1–2 px off.
+- **Old .NET Framework 4.x projects** convert, but only checked by tests here, not by a Windows build — check
+  at college before relying on it.
+- No magenta text-baseline snaplines; no snap-to-grid while dragging; no ToolStrip item-type drop-down;
+  the Properties grid shows the main control's properties for a multi-selection (edits do go to all).
+- NuGet and Maven downloads are version-pinned but not checksum-locked yet.
 
 ## Privacy
 

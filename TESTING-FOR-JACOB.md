@@ -1,6 +1,6 @@
 # Testing Formwork — a guide for Jacob
 
-Version 1 (Stage 1). Hi Jacob! This guide walks you through trying Formwork on your Linux laptop, step by
+Version 2 (end of the first night). Hi Jacob! This guide walks you through trying Formwork on your Linux laptop, step by
 step. You don't need to know anything technical: just copy each command exactly, one at a time, and
 check you see what the guide says you should see.
 
@@ -130,8 +130,9 @@ at the **first line**:
 
 - **`<Project Sdk="Microsoft.NET.Sdk">`** → the *new kind* (.NET 6/7/8/9/10). ✅ Formwork can convert this.
 - **`<?xml version="1.0" encoding="utf-8"?>`** followed by **`<Project ToolsVersion="...`** → the *old
-  kind* (.NET Framework 4.x). ⚠️ Formwork can't convert this kind safely yet. At college, ask how to
-  make a "Windows Forms App" project for **.NET 8** instead, and copy your forms into it.
+  kind* (.NET Framework 4.x). ⚠️ Formwork can convert this too, but it's riskier: the college half becomes
+  a new-style "net48" project. You'll see a warning. **Always check it at college before relying on it**
+  (see "Check it at college" below), and keep the `.formwork.bak` file.
 
 ### Convert it (new kind)
 
@@ -169,6 +170,8 @@ Please tick these off when you try Formwork in Rider:
 - [ ] `Form1.Designer.cs` is nested under `Form1.cs` in the Solution Explorer.
 - [ ] After "Make it work on Linux too", Rider reloads the project and **Build** succeeds.
 - [ ] **Run** opens your app's window; **Debug** stops at a breakpoint in `button1_Click`.
+- [ ] Only **one** designer opens. (Rider has its own Windows-only designer; if you see two Design tabs, or
+      an error about the designer needing Windows, tell me — it's the thing I couldn't check here.)
 - [ ] **F7** and **Shift+F7** work (they're also in the right-click menu as View Code / View Designer).
 - [ ] Rider's light theme: **File → Settings → Appearance → Theme → Light**. The designer's panels turn
       light too (the form itself always stays light, like Visual Studio).
