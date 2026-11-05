@@ -25,3 +25,7 @@ body.fw-native #toolbox, body.fw-native #inspector { display: none !important; }
 /* VS's design surface has no toolbar or status line of its own: zoom and undo come from the IDE, Tab Order is in
    View, Lock Controls in Format. */
 body.fw-native #toolbar, body.fw-native #status { display: none !important; }
+/* Snaplines in Visual Studio's colours: blue for edges and spacing; VS draws no centre lines. */
+.guide.x.align { border-left-color: #0078d7 !important; }
+.guide.y.align { border-top-color: #0078d7 !important; }
+.guide.center { display: none; }

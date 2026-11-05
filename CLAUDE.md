@@ -114,7 +114,7 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 - [x] Click / Ctrl/Shift+click / rubber-band select — **Partial**: click verified (S `story-dark-04…`); Ctrl/Shift/rubber band are NetForms webview features, untested.
 - [x] Primary selection white handles, others dark — **Verified**: one control: dotted outline + 8 white squares with dark borders (S `stage2-light-selection-handles-zoom.png`); multi-selection: primary (last selected) white, others dark (S `stage2-light-multi-select-primary-white-others-dark.png`). Format commands use the primary as reference. Form grips only while the form is selected.
 - [x] Move, resize, form resize handles — **Verified** for move (S `stage2-light-drag-move-with-snaplines.png`) and resize by handle (S `stage2-light-resize-by-handle.png`); form grips right/bottom/corner shown (S `stage2-dark-whole-form-maximised.png`), dragging them not screenshot-tested.
-- [ ] Snaplines — **Partial, verified for spacing lines**: blue dashed margin/spacing lines and the ghost outline while dragging (S `stage2-light-drag-move-with-snaplines.png`). Edge lines are magenta/orange in NetForms (VS: blue edges, magenta baselines) — colours not changed.
+- [ ] Snaplines — **Partial, verified for spacing lines**: blue dashed margin/spacing lines and the ghost outline while dragging (S `stage2-light-drag-move-with-snaplines.png`). Edge lines now blue like VS (were magenta), NetForms' centre lines hidden (VS has none). **No text-baseline (magenta) snaplines**: NetForms doesn't compute baselines (Known gap).
 - [ ] Keyboard nudge/resize as VS — **Partial, Ctrl+arrow verified**: arrows 1 px, Shift+arrows resize 1 px (NetForms); Ctrl+arrow now jumps to the next snapline (neighbour edges, margin spacing, container padding) — OK button 114 → 90, aligned with the text boxes (S `stage2-light-ctrl-left-jumps-to-snapline.png`, Designer.cs `Point(90, 85)`); Ctrl+Shift+arrow resizes to the next snapline (Done, unverified). Added to patch 0002.
 - [ ] Tab / Shift+Tab, Escape selects parent — **Partial**: Escape → parent exists; Tab order cycling untested.
 - [ ] Drop into containers; move glyph — **Done (unverified)**.
@@ -266,6 +266,7 @@ The session was stopped from 21:28 to 00:06 UK (usage limit / worker restart); t
    the boxed Windows 7-style buttons of one reference screenshot.
 9. **Button face** is NetForms' grey (#E1E1E1, Windows 10 style), not the white Windows 11 face in
    Jacob's screenshot: it's what the app really looks like when it runs on Linux, so the designer keeps it.
+12. **No magenta text-baseline snaplines** (NetForms has edge, margin and centre lines only).
 11. **Dependency checksums:** versions are pinned and the Gradle wrapper is checksum-verified, but NuGet
    packages and Maven artifacts aren't checksum-locked (no lock files / verification metadata yet).
 10. Toolbox icons are Formwork's own simple drawings (NetForms has none for built-in controls; VS's
