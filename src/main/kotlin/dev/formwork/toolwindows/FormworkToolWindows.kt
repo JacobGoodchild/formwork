@@ -21,7 +21,6 @@ class PropertiesToolWindowFactory : ToolWindowFactory, DumbAware {
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         val panel = PropertiesPanel(project, toolWindow.disposable)
         toolWindow.contentManager.addContent(ContentFactory.getInstance().createContent(panel, "", false))
-        narrow(toolWindow, 300)
     }
 }
 

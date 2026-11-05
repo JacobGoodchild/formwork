@@ -290,6 +290,21 @@ class PropertiesPanel(private val project: Project, parent: Disposable) : JPanel
         if (row.value.isNotBlank()) e.session.gotoExistingHandler(handler) else e.session.bindEventAndGo(primary, row.data.get("name").asString, handler)
     }
 
+    /**
+     * The methods in the form's code that can handle this event (VS's drop-down on an event): same parameter list.
+     * The current handler first, so an untouched cell keeps it.
+     */
+    private fun matchingHandlers(row: Row.Item): List<String> {
+        val e = editor ?: return listOf(row.value)
+        val params = row.data.get("parameters")?.asString ?: return listOf(row.value)
+        val code = e.session.files()[e.form.code.path] ?: return listOf(row.value)
+        val types = params.split(',').map { it.trim().substringBefore(' ').substringAfterLast('.') }
+        val found = Regex("""\bvoid\s+(\w+)\s*\(([^)]*)\)""").findAll(code).filter { m ->
+            m.groupValues[2].split(',').map { it.trim().split(Regex("\\s+")).dropLast(1).joinToString("").removeSuffix("?").substringAfterLast('.') } == types
+        }.map { it.groupValues[1] }.toList()
+        return (listOf(row.value) + found).distinct()
+    }
+
     /** "…" editors that open a dialog: collections, images, the Anchor arms, multi-line text. */
     private fun openDialog(row: Row.Item) {
         val kind = row.data.get("editor")?.asString
@@ -463,14 +478,14 @@ class PropertiesPanel(private val project: Project, parent: Disposable) : JPanel
     private inner class ValueEditor(private val row: Row.Item) : AbstractCellEditor(), TableCellEditor {
         private val kind = row.data.get("editor")?.asString
         private val options: List<String>? = when {
-            events -> null
+            events -> matchingHandlers(row)
             kind == "bool" -> listOf("True", "False")
             kind == "color" -> (listOfNotNull(row.value) + (row.data.getAsJsonArray("systemOptions")?.map { it.asString } ?: emptyList()) + (row.data.getAsJsonArray("options")?.map { it.asString } ?: emptyList())).distinct()
             kind == "enum" || kind == "component" || kind == "font" -> row.data.getAsJsonArray("options")?.map { it.asString }
             else -> null
         }
         private val field = JBTextField(row.value)
-        private val combo = options?.let { ComboBox(it.toTypedArray()).apply { isEditable = kind == "font"; selectedItem = row.value } }
+        private val combo = options?.let { ComboBox(it.toTypedArray()).apply { isEditable = kind == "font" || events; selectedItem = row.value } }
         private val panel = JPanel(BorderLayout())
 
         init {
