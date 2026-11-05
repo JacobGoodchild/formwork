@@ -1,8 +1,8 @@
 diff --git a/designer/media/designer.css b/designer/media/designer.css
-index 60a192a..bb9f9f0 100644
+index 60a192a..6a3df96 100644
 --- a/designer/media/designer.css
 +++ b/designer/media/designer.css
-@@ -320,3 +320,16 @@ button, input, select { font: inherit; color: inherit; }
+@@ -320,3 +320,18 @@ button, input, select { font: inherit; color: inherit; }
  .smart-link { border: none; background: transparent; padding: 1px 0; color: var(--vscode-textLink-foreground, #0066bf); cursor: pointer; text-align: left; }
  .smart-link:hover { text-decoration: underline; }
  
@@ -19,8 +19,10 @@ index 60a192a..bb9f9f0 100644
 +	font: 12px 'Segoe UI', sans-serif; padding: 0 4px; outline: none; }
 +.type-here::placeholder { color: #8a8a8a; }
 +.type-here:focus { border-color: #0078d4; }
++.handle.lock-glyph { width: 12px; height: 12px; margin: -6px 0 0 -6px; font-size: 9px; line-height: 11px; text-align: center;
++	background: #fff; border: 1px solid #333; pointer-events: none; }
 diff --git a/designer/media/designer.js b/designer/media/designer.js
-index 4898450..c0c4f09 100644
+index 4898450..43f62d9 100644
 --- a/designer/media/designer.js
 +++ b/designer/media/designer.js
 @@ -44,6 +44,7 @@
@@ -185,7 +187,7 @@ index 4898450..c0c4f09 100644
  		if (state.smartOpen && !(state.selection.length === 1 && state.selection[0] === state.smartOpen)) state.smartOpen = null;
  		state.props = null;
  		state.events = null;
-@@ -802,9 +899,95 @@
+@@ -802,9 +899,104 @@
  
  	// --- handles and badges -------------------------------------------------------------------------
  
@@ -278,10 +280,19 @@ index 4898450..c0c4f09 100644
 +			}
 +			return;
 +		}
++		if (state.locked && it && it.visible && it.kind === 'control') {
++			// VS: a locked control shows a padlock where its handles would be, and can't be moved or resized.
++			const lock = el('div', 'handle lock-glyph', '🔒');
++			lock.title = T('Locked (Format → Lock Controls)');
++			lock.style.left = it.x + 'px';
++			lock.style.top = it.y + 'px';
++			canvas.append(lock);
++			return;
++		}
  		if (!it || state.selection.length !== 1 || !it.visible || state.locked) return;
  		if (it.smartTag && it.kind === 'control') drawSmartTag(canvas, it);
  		if (it.container && it.movable && it.kind === 'control') {
-@@ -850,6 +1033,7 @@
+@@ -850,6 +1042,7 @@
  		if (e.button !== 0 || state.busy || state.tabOrder) return;
  		if (e.target.classList.contains('handle') || e.target.classList.contains('form-grip') || e.target.classList.contains('tl-grip')) return;
  		const p = canvasPoint(e);
@@ -289,7 +300,7 @@ index 4898450..c0c4f09 100644
  		const hit = G.hitTest(state.view.items, p.x, p.y);
  		const additive = e.ctrlKey || e.shiftKey;
  		// A SplitContainer's splitter is dragged, as in VS: SplitterDistance follows.
-@@ -1229,6 +1413,7 @@
+@@ -1229,6 +1422,7 @@
  			e.preventDefault();
  			return;
  		}
@@ -297,7 +308,7 @@ index 4898450..c0c4f09 100644
  		if (e.key === 'Escape') {
  			// Up one level, as in VS: the container of the selection, then the form.
  			const it = itemById(primaryId());
-@@ -1239,11 +1424,24 @@
+@@ -1239,11 +1433,24 @@
  		const arrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
  		if (arrows[e.key] && !state.locked) {
  			const [ax, ay] = arrows[e.key];
@@ -324,7 +335,7 @@ index 4898450..c0c4f09 100644
  			} else {
  				const only = movableSelection().length === 1 ? itemById(movableSelection()[0]) : null;
  				if (only && only.flowIndex !== undefined && only.flowIndex !== null) {
-@@ -2443,6 +2641,66 @@
+@@ -2443,6 +2650,66 @@
  		apply(ops, state.selection);
  	}
  
@@ -391,7 +402,7 @@ index 4898450..c0c4f09 100644
  	// --- status and toasts --------------------------------------------------------------------------
  
  	function renderStatus(text) {
-@@ -2467,5 +2725,27 @@
+@@ -2467,5 +2734,27 @@
  	}
  
  	renderAll();

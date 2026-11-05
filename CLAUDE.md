@@ -155,7 +155,7 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 - [ ] Horizontal / Vertical Spacing — **Done (unverified)**: Make Equal, Increase, Decrease, Remove (grid step = settings grid, 8).
 - [ ] Center in Form — **Done (unverified)**.
 - [ ] Order — **Done (unverified)** (Bring to Front / Send to Back).
-- [ ] Lock Controls — **Partial**: toggles NetForms' designer-wide lock; no padlock glyph, and VS's per-control `Locked` property isn't written.
+- [ ] Lock Controls — **Partial, padlock verified**: Format → Lock Controls locks the whole form (as VS does); the selected control then shows a small padlock instead of grab handles (S `stage4-light-lock-controls-padlock.png`, patch 0002). VS's per-control `Locked` property isn't written.
 
 ### G. Menus, strips, smart tags (Should)
 - [ ] MenuStrip / ContextMenuStrip "Type Here" — **Partial, verified for the core**: click a menu on the canvas → its drop-down opens with a Type Here box (S `stage4-dark-menu-open-type-here.png`); type `&Save` + Enter → `saveToolStripMenuItem` added at the end, box ready for the next (S `stage4-dark-menu-type-here-added-save.png`; added to NetForms patch 0002 — NetForms had no Type Here). `-` makes a separator (host behaviour, tested via MenuDemo sample). Not done: Type Here for a new sub-menu to the right, drag to reorder.
