@@ -54,6 +54,10 @@
     <group id="Formwork.AddGroup">
       <action id="Formwork.AddForm" class="dev.formwork.project.AddFormAction$Form" text="Windows Form…" description="Add a Windows Form (Form2.cs and Form2.Designer.cs), as Visual Studio does"/>
       <action id="Formwork.AddUserControl" class="dev.formwork.project.AddFormAction$UserControl" text="User Control (Windows Forms)…" description="Add a Windows Forms UserControl"/>
+      <action id="Formwork.AddDialog" class="dev.formwork.project.AddFormAction$Dialog" text="Dialog (Windows Forms)…" description="A dialog box with OK and Cancel (NetForms template)"/>
+      <action id="Formwork.AddAboutBox" class="dev.formwork.project.AddFormAction$AboutBox" text="About Box (Windows Forms)…" description="An About box (NetForms template)"/>
+      <action id="Formwork.AddLoginForm" class="dev.formwork.project.AddFormAction$LoginForm" text="Login Form (Windows Forms)…" description="A login form (NetForms template)"/>
+      <action id="Formwork.AddSplash" class="dev.formwork.project.AddFormAction$SplashScreen" text="Splash Screen (Windows Forms)…" description="A splash screen (NetForms template)"/>
       <add-to-group group-id="NewGroup" anchor="first"/>
     </group>
     <action id="Formwork.MakeLinux" class="dev.formwork.project.MakeLinuxAction" text="Make This Project Work on Linux Too…"

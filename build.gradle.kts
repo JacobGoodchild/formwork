@@ -101,6 +101,9 @@ tasks.processResources {
     from("external/NetForms/LICENSE") { into("formwork/licenses/NetForms") }
     from("external/NetForms/THIRD-PARTY-NOTICES.md") { into("formwork/licenses/NetForms") }
     from("LICENSE") { into("formwork/licenses/Formwork") }
+    // NetForms' item templates (MIT): dialog, About box, login form, splash screen.
+    for (t in listOf("netforms-dialog", "netforms-aboutbox", "netforms-login", "netforms-splash"))
+        from("external/NetForms/templates/$t") { include("*.cs"); into("formwork/templates/$t") }
 }
 
 tasks.withType<org.jetbrains.intellij.platform.gradle.tasks.PrepareSandboxTask>().configureEach {

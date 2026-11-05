@@ -17,9 +17,19 @@ import java.io.File
  * with the text of Microsoft's own templates (`dotnet new winforms` / `winformscontrollib`), in the namespace of the
  * project and folder, in the style the project's code already uses. Then the designer opens.
  */
-open class AddFormAction(private val userControl: Boolean) : DumbAwareAction() {
+open class AddFormAction(private val userControl: Boolean, private val template: Template? = null) : DumbAwareAction() {
     class Form : AddFormAction(false)
     class UserControl : AddFormAction(true)
+    class Dialog : AddFormAction(false, Template("netforms-dialog", "Dialog1", "Dialog"))
+    class AboutBox : AddFormAction(false, Template("netforms-aboutbox", "AboutBox1", "AboutBox"))
+    class LoginForm : AddFormAction(false, Template("netforms-login", "LoginForm1", "LoginForm"))
+    class SplashScreen : AddFormAction(false, Template("netforms-splash", "SplashScreen1", "SplashScreen"))
+
+    /** One of NetForms' item templates, shipped in the plugin (no download): its files use [source] as the class name. */
+    data class Template(val dir: String, val source: String, val base: String) {
+        fun file(ext: String): String = AddFormAction::class.java.getResourceAsStream("/formwork/templates/$dir/$source$ext")!!
+            .use { String(it.readAllBytes(), Charsets.UTF_8) }.removePrefix("\uFEFF").replace("\r\n", "\n")
+    }
 
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
     override fun update(e: AnActionEvent) {
@@ -35,7 +45,7 @@ open class AddFormAction(private val userControl: Boolean) : DumbAwareAction() {
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.project ?: return
         val dir = folder(e) ?: return
-        val base = if (userControl) "UserControl" else "Form"
+        val base = template?.base ?: if (userControl) "UserControl" else "Form"
         val suggested = generateSequence(1) { it + 1 }.map { "$base$it" }.first { dir.findChild("$it.cs") == null }
         val name = Messages.showInputDialog(project, "Name:", if (userControl) "Add User Control" else "Add Windows Form", null, suggested, null)?.trim()?.removeSuffix(".cs") ?: return
         if (!Regex("^[A-Za-z_][A-Za-z0-9_]*$").matches(name)) { Messages.showErrorDialog(project, "'$name' isn't a valid C# class name.", "Add"); return }
@@ -49,7 +59,10 @@ open class AddFormAction(private val userControl: Boolean) : DumbAwareAction() {
         // The style of the project's own code: file-scoped `namespace X;` (the .NET 6+ templates) or a block.
         val fileScoped = csproj.parentFile.walkTopDown().maxDepth(2).filter { it.extension == "cs" }.take(20)
             .any { f -> Regex("^namespace\\s+[\\w.]+\\s*;", RegexOption.MULTILINE).containsMatchIn(f.readText()) }
-        val (code, designer) = Templates.files(name, namespace, userControl, fileScoped)
+        val (code, designer) = if (template != null) {
+            val fill = { t: String -> t.replace("NetFormsNamespace", namespace).replace(Regex("\\b${template.source}\\b"), name) }
+            fill(template.file(".cs")) to fill(template.file(".Designer.cs"))
+        } else Templates.files(name, namespace, userControl, fileScoped)
 
         var created: VirtualFile? = null
         WriteCommandAction.writeCommandAction(project).withName(if (userControl) "Add User Control" else "Add Windows Form").withGlobalUndo().run<RuntimeException> {

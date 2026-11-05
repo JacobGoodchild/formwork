@@ -78,3 +78,15 @@ class AddFormTemplateTest {
         org.junit.jupiter.api.Assertions.assertEquals(java.io.File(dir, "Form1.Designer.cs").readText().removePrefix("﻿").replace("\r\n", "\n"), designer)
     }
 }
+
+class NetFormsTemplatesTest {
+    @org.junit.jupiter.api.Test
+    fun `NetForms templates ship in the plugin and fill in`() {
+        for ((dir, src) in listOf("netforms-dialog" to "Dialog1", "netforms-aboutbox" to "AboutBox1", "netforms-login" to "LoginForm1", "netforms-splash" to "SplashScreen1")) {
+            val t = dev.formwork.project.AddFormAction.Template(dir, src, "X")
+            val code = t.file(".cs"); val designer = t.file(".Designer.cs")
+            org.junit.jupiter.api.Assertions.assertTrue(code.contains("NetFormsNamespace") && designer.contains("InitializeComponent()"), dir)
+            org.junit.jupiter.api.Assertions.assertTrue(designer.contains("partial class $src"), dir)
+        }
+    }
+}
