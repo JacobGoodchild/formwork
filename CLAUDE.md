@@ -102,13 +102,13 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 
 ### B. Toolbox (Must)
 - [x] Groups, order, contents; Pointer first — **Verified** for order and Common Controls contents: T `ToolboxModelTest`; S `story-dark-03-button-tool-selected.png`. Gap: no **WebBrowser** (Windows-only IE control), Components has only ErrorProvider/HelpProvider/ImageList/Timer (VS has more).
-- [ ] Search filters as you type — **Done (unverified)** (NetForms webview feature, not yet screenshot-tested).
+- [x] Search filters as you type — **Verified** (native Toolbox): "text" → ContextMenuStrip, MaskedTextBox, RichTextBox, TextBox in their groups (S `stage2-dark-toolbox-search-and-tray.png`).
 - [x] Click a tool then click/drag on canvas — **Verified (click)**: S `story-dark-03…`, `-04…`. Drawing a rectangle: Done (unverified).
-- [ ] Drag a tool onto canvas / into container — **Done (unverified)** (mouse-based drag, patch 0002).
-- [ ] Double-click a tool adds to selected container — **Done (unverified)**.
+- [x] Drag a tool onto canvas / into container — **Verified** onto the form from the native Toolbox (S `stage2-dark-toolbox-drag-onto-form.png`); drop target picks the container under the pointer (table cell drop verified via click-place, S `stage4-dark-drop-into-table-cell.png`).
+- [x] Double-click a tool adds to selected container — **Verified**: TextBox double-clicked with the form selected → textBox1 at the container's top-left (S `stage2-dark-toolbox-double-click-adds.png`).
 - [x] After placing, the toolbox returns to Pointer — **Verified**: S `story-dark-04-button-placed.png`.
 - [x] Project's own controls group after build — **Verified**: CustomControls sample; "CustomControls Components" group with BrokenControl and ScoreBox at the top of the Toolbox, placed and drawn (S `stage2-dark-project-controls-and-red-cross.png`, T `ProjectControlsTest`). Loaded only for trusted projects (code review: PASS).
-- [ ] Non-visual components go to the tray — **Done (unverified)**: NetForms behaviour; TimerPicture/MenuDemo samples have tray items (render shows "1 in tray"/"2 in tray"), not screenshot-checked in the IDE.
+- [x] Non-visual components go to the tray — **Verified**: "timer1 : Timer" in the tray under the form (S `stage2-dark-toolbox-search-and-tray.png`).
 
 ### C. Canvas (Must)
 - [x] Click / Ctrl/Shift+click / rubber-band select — **Partial**: click verified (S `story-dark-04…`); Ctrl/Shift/rubber band are NetForms webview features, untested.
