@@ -70,6 +70,8 @@ class PropertiesPanel(private val project: Project, parent: Disposable) : JPanel
     private sealed class Row {
         data class Category(val name: String) : Row()
         data class Item(val name: String, val category: String, val value: String, val data: JsonObject) : Row()
+        /** One part of an expanded Point / Size / Padding property (VS's ⊞ Size → Width, Height). */
+        data class Part(val parent: Item, val index: Int, val label: String, val value: String) : Row()
     }
 
     private var categorized = true
@@ -223,6 +225,36 @@ class PropertiesPanel(private val project: Project, parent: Disposable) : JPanel
         } finally { updatingSelector = false }
     }
 
+    private val expanded = HashSet<String>()
+
+    private fun partsOf(item: Row.Item): List<String>? = when (item.data.get("type")?.asString) {
+        "Point" -> listOf("X", "Y")
+        "Size" -> listOf("Width", "Height")
+        "Padding" -> listOf("All", "Left", "Top", "Right", "Bottom")
+        else -> null
+    }
+
+    private fun withParts(list: List<Row.Item>): List<Row> = list.flatMap { item ->
+        val labels = if (events) null else partsOf(item)
+        if (labels == null || item.data.get("name").asString !in expanded) listOf(item)
+        else {
+            val nums = item.value.split(',').map { it.trim() }
+            // Padding shows All when the four sides are equal (as WinForms' PaddingConverter does).
+            val values = if (labels.size == 5) listOf(if (nums.size == 4 && nums.distinct().size == 1) nums[0] else "-1") + nums else nums
+            listOf(item) + labels.mapIndexed { i, l -> Row.Part(item, i, l, values.getOrElse(i) { "" }) }
+        }
+    }
+
+    private fun setPart(part: Row.Part, value: String) {
+        val n = value.trim().toIntOrNull() ?: return
+        val labels = partsOf(part.parent) ?: return
+        val now = part.parent.value.split(',').map { it.trim() }.toMutableList()
+        val text = if (labels.size == 5) {
+            if (part.index == 0) List(4) { n.toString() }.joinToString(", ") else { now[part.index - 1] = n.toString(); now.joinToString(", ") }
+        } else { now[part.index] = n.toString(); now.joinToString(", ") }
+        setValue(part.parent, text)
+    }
+
     private fun rebuild() {
         if (table.isEditing) table.cellEditor?.cancelCellEditing()
         val items = rows.map { it.asJsonObject }.map { o ->
@@ -233,9 +265,9 @@ class PropertiesPanel(private val project: Project, parent: Disposable) : JPanel
         if (categorized) {
             for ((cat, list) in items.groupBy { it.category }.toSortedMap()) {
                 shown.add(Row.Category(cat))
-                if (cat !in collapsed) shown.addAll(list.sortedBy { it.name.lowercase().removePrefix("(") })
+                if (cat !in collapsed) shown.addAll(withParts(list.sortedBy { it.name.lowercase().removePrefix("(") }))
             }
-        } else shown.addAll(items.sortedBy { it.name.lowercase().removePrefix("(") })
+        } else shown.addAll(withParts(items.sortedBy { it.name.lowercase().removePrefix("(") }))
         tableModel.fireTableDataChanged()
         // As VS, a property is always selected so the description pane says something: Text if there is one.
         val pick = shown.indexOfFirst { it is Row.Item && it.name == (if (events) "Click" else "Text") }.takeIf { it >= 0 }
@@ -357,6 +389,7 @@ class PropertiesPanel(private val project: Project, parent: Disposable) : JPanel
         override fun getColumnName(c: Int) = if (c == 0) "Property" else "Value"
         override fun getValueAt(r: Int, c: Int): Any = shown[r]
         override fun isCellEditable(r: Int, c: Int): Boolean {
+            (shown[r] as? Row.Part)?.let { return c == 1 && it.parent.data.get("readOnly")?.asBoolean != true }
             val row = shown[r] as? Row.Item ?: return false
             if (c != 1) return false
             if (events) return true
@@ -375,13 +408,19 @@ class PropertiesPanel(private val project: Project, parent: Disposable) : JPanel
             rowHeight = JBUI.scale(20)
             setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
             putClientProperty("terminateEditOnFocusLost", true)
-            selectionModel.addListSelectionListener { showDescription(shown.getOrNull(selectedRow) as? Row.Item) }
+            selectionModel.addListSelectionListener { showDescription(shown.getOrNull(selectedRow).let { it as? Row.Item ?: (it as? Row.Part)?.parent }) }
             addMouseListener(object : MouseAdapter() {
                 override fun mouseClicked(e: MouseEvent) {
                     val r = rowAtPoint(e.point).takeIf { it >= 0 } ?: return
                     when (val row = shown[r]) {
                         is Row.Category -> if (e.clickCount == 1) { if (!collapsed.add(row.name)) collapsed.remove(row.name); rebuild() }
-                        is Row.Item -> if (e.clickCount == 2 && columnAtPoint(e.point) == 0 && events) activateEvent(row)
+                        is Row.Part -> {}
+                        is Row.Item -> if (e.clickCount == 1 && columnAtPoint(e.point) == 0 && !events && partsOf(row) != null && e.x < JBUI.scale(if (categorized) 16 else 14)) {
+                                // The ⊞ / ⊟ in front of Location, Size, Padding…
+                                val n = row.data.get("name").asString
+                                if (!expanded.add(n)) expanded.remove(n)
+                                rebuild()
+                            } else if (e.clickCount == 2 && columnAtPoint(e.point) == 0 && events) activateEvent(row)
                             else if (e.clickCount == 2 && columnAtPoint(e.point) == 0) {
                                 // VS: double-clicking a bool or enum name moves to the next value.
                                 val options = row.data.getAsJsonArray("options")?.map { it.asString }
@@ -411,7 +450,10 @@ class PropertiesPanel(private val project: Project, parent: Disposable) : JPanel
         }
 
         override fun getCellRenderer(row: Int, column: Int) = renderer
-        override fun getCellEditor(row: Int, column: Int): TableCellEditor = ValueEditor(shown[row] as Row.Item)
+        override fun getCellEditor(row: Int, column: Int): TableCellEditor = when (val r = shown[row]) {
+            is Row.Part -> PartEditor(r)
+            else -> ValueEditor(r as Row.Item)
+        }
     }
 
     private val renderer = object : DefaultTableCellRenderer() {
@@ -427,11 +469,17 @@ class PropertiesPanel(private val project: Project, parent: Disposable) : JPanel
                     comp.font = t.font.deriveFont(Font.BOLD)
                     if (!selected) comp.background = categoryBand
                 }
+                is Row.Part -> {
+                    comp.font = t.font
+                    comp.text = if (c == 0) row.label else row.value
+                    if (c == 0) comp.border = JBUI.Borders.emptyLeft(JBUI.scale(if (categorized) 30 else 18))
+                }
                 is Row.Item -> {
                     comp.font = t.font
                     if (c == 0) {
-                        comp.text = row.name
-                        comp.border = JBUI.Borders.emptyLeft(if (categorized) JBUI.scale(16) else JBUI.scale(4))
+                        val toggle = if (!events && partsOf(row) != null) (if (row.data.get("name").asString in expanded) "⊟ " else "⊞ ") else ""
+                        comp.text = toggle + row.name
+                        comp.border = JBUI.Borders.emptyLeft(if (toggle.isNotEmpty()) JBUI.scale(if (categorized) 2 else 0) else if (categorized) JBUI.scale(16) else JBUI.scale(4))
                     } else {
                         comp.text = row.value
                         // Visual Studio shows values that differ from the default in bold.
@@ -472,6 +520,14 @@ class PropertiesPanel(private val project: Project, parent: Disposable) : JPanel
     private fun colorByName(name: String): String? = when {
         name.matches(Regex("""\d+,\s*\d+,\s*\d+""")) -> name.split(',').map { it.trim().toInt() }.let { (r, g, b) -> String.format("#%02x%02x%02x", r, g, b) }
         else -> try { (java.awt.Color::class.java.getField(name.lowercase()).get(null) as? Color)?.let { String.format("#%02x%02x%02x", it.red, it.green, it.blue) } } catch (_: Exception) { null }
+    }
+
+    /** A part of an expanded value (X, Width, Left…): a number. */
+    private inner class PartEditor(private val part: Row.Part) : AbstractCellEditor(), TableCellEditor {
+        private val field = JBTextField(part.value).apply { addActionListener { stopCellEditing() } }
+        override fun getCellEditorValue(): Any = field.text
+        override fun stopCellEditing(): Boolean { val v = field.text; val ok = super.stopCellEditing(); if (ok) setPart(part, v); return ok }
+        override fun getTableCellEditorComponent(t: JTable, value: Any?, selected: Boolean, r: Int, c: Int): Component = field
     }
 
     /** The value cell's editor: a text box, or a drop-down for True/False, enums, colours and components, with "…" where VS has one. */
