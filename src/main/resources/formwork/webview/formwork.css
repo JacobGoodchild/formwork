@@ -32,5 +32,5 @@ body.fw-native #toolbar, body.fw-native #status { display: none !important; }
 
 /* Grid mode (Settings → Tools → Formwork): VS's dots over the form. */
 body.fw-grid .canvas::after { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 1;
-	background-image: radial-gradient(circle, #00000055 0.6px, transparent 0.7px);
+	background-image: radial-gradient(circle at 0.5px 0.5px, #303030 0.75px, transparent 1px);
 	background-size: var(--fw-grid-w, 8px) var(--fw-grid-h, 8px); }
