@@ -151,7 +151,7 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 
 ### G. Menus, strips, smart tags (Should)
 - [ ] MenuStrip / ContextMenuStrip "Type Here" — **Partial, verified for the core**: click a menu on the canvas → its drop-down opens with a Type Here box (S `stage4-dark-menu-open-type-here.png`); type `&Save` + Enter → `saveToolStripMenuItem` added at the end, box ready for the next (S `stage4-dark-menu-type-here-added-save.png`; added to NetForms patch 0002 — NetForms had no Type Here). `-` makes a separator (host behaviour, tested via MenuDemo sample). Not done: Type Here for a new sub-menu to the right, drag to reorder.
-- [ ] Smart-tag Tasks panel — Not started (NetForms has it; untested)
+- [ ] Smart-tag Tasks panel — **Partial, verified for TextBox**: the ◂ glyph on the selected control opens "TextBox Tasks — MultiLine" (S `stage4-light-smart-tag-textbox-tasks.png`; NetForms feature). The MultiLine checkbox is hard to see in the light page style; other controls' tasks (Insert Standard Items, Edit Columns, Add/Remove Tab…) are NetForms features, not checked one by one.
 - [ ] ToolStrip / StatusStrip item-type drop-down — Not started
 
 ### H. Special containers (Should)
