@@ -318,8 +318,18 @@ class PropertiesPanel(private val project: Project, parent: Disposable) : JPanel
                 setValue(row, if (picked.isEmpty()) "None" else picked.joinToString(", "))
             }
             else -> {
-                val text = TextDialog(project, name, "$name:", row.value, multiLine = name == "Text" || name == "Lines").ask() ?: return
-                setValue(row, text)
+                val type = row.data.get("type")?.asString
+                val picked = when {
+                    name == "Dock" -> PopupEditors.DockDialog(project, row.value).ask()
+                    type == "ContentAlignment" -> PopupEditors.AlignmentDialog(project, row.value).ask()
+                    kind == "color" -> PopupEditors.ColorDialog(project, row.value,
+                        row.data.getAsJsonArray("options")?.map { it.asString } ?: emptyList(),
+                        row.data.getAsJsonArray("systemOptions")?.map { it.asString } ?: emptyList(),
+                    ) { v -> (windowsSystemColors[v] ?: colorByName(v))?.let { h -> try { Color.decode(h) } catch (_: Exception) { null } } }.ask()
+                    kind == "font" -> PopupEditors.FontDialog(project, row.value, row.data.getAsJsonArray("options")?.map { it.asString } ?: emptyList()).ask()
+                    else -> TextDialog(project, name, "$name:", row.value, multiLine = name == "Text" || name == "Lines").ask()
+                } ?: return
+                setValue(row, picked)
             }
         }
     }
@@ -471,6 +481,8 @@ class PropertiesPanel(private val project: Project, parent: Disposable) : JPanel
                 field.addActionListener { stopCellEditing() }
                 panel.add(field, BorderLayout.CENTER)
             }
+            val popup = !events && (row.data.get("name").asString == "Dock" || row.data.get("type")?.asString == "ContentAlignment" || kind == "color" || kind == "font")
+            if (popup) panel.add(PopupEditors.cellButton("▾") { cancelCellEditing(); openDialog(row) }, BorderLayout.EAST)
             if (!events && (kind == "flags" || kind == "text" && (row.data.get("name").asString == "Text" || row.data.get("name").asString == "Lines"))) {
                 panel.add(JButton("…").apply {
                     margin = JBUI.emptyInsets(); preferredSize = Dimension(JBUI.scale(22), JBUI.scale(18))
