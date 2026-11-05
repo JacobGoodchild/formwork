@@ -10,6 +10,16 @@ chain at 21:05, 22:35, 00:05, 01:35, 03:05, 04:35, 06:05 UK). Deadline: 07:00 UK
 
 # Part 1 — Progress log
 
+## Where I got to (06:15 UK, 5 Nov — end of the first night)
+
+All six stages were worked through. Stages 0–4 are done to the level in the checklist below; Stage 5 has the
+settings page, performance numbers, the security review and packaging (CI builds the plugin zip). The session
+also stalled twice (21:28–00:06 and about 01:20–06:08, when the wake-ups only arrived late), so the last
+stretch went on tidying up: Lock Controls' padlock, and bringing README / TESTING-FOR-JACOB.md up to date.
+**Jacob: start with `TESTING-FOR-JACOB.md`.** The final honest summary is at the very end of this file.
+Not done on purpose: no GitHub Release was made (that needs a version tag pushed, which I left for Jacob to
+decide; pushing a tag like `v0.1.0` runs CI's release job, which attaches the zip and its SHA-256).
+
 ## Status
 
 **Current stage:** Stage 5 (finish) and Known gaps. Stages 0–4 done to the level recorded in the checklist below
@@ -298,7 +308,7 @@ The session was stopped from 21:28 to 00:06 UK (usage limit / worker restart); t
 
 ## Next step
 
-Known gaps in order of how often a student would hit them; then the final summary before 07:00.
+See "Final honest summary" at the end of this file (three next steps).
 
 ---
 
@@ -615,3 +625,43 @@ Do the stages in order. Don't start a stage until the one before is Verified, or
 - `CLAUDE.md` ends with a final honest summary: what's Verified, what's Partial, the known gaps, and the three most useful next steps.
 
 When everything is done before the deadline, spend the remaining time on Known gaps, in order of how often a student would hit them.
+
+---
+
+# Final honest summary (06:20 UK, 5 Nov 2026)
+
+**The big caveat first:** nothing was run inside Rider itself, because the sandbox Rider needs a JetBrains
+login. Everything visible was tested in IntelliJ IDEA 2026.2.4, which is the same platform underneath. The
+Rider-only checks are listed in `TESTING-FOR-JACOB.md`.
+
+**Verified (test and/or screenshot, in IDEA):** the whole definition-of-done story (open → Toolbox → place a
+Button → double-click → `button1_Click` with the cursor inside → Ctrl+Z back to the original files), in both
+themes; native Toolbox (VS groups and order, search, click/drag/double-click to place, back to Pointer, project
+controls, tray); `Form1.cs [Design]*` tab title; F7 / Shift+F7; several forms; reload on outside change; white /
+dark selection handles; move, resize, spacing snaplines, Ctrl+arrow to the next snapline; Delete, copy/paste
+(also between forms); native Properties (selection drop-down, 5-button toolbar, categories, bold, description
+pane, Events with existing handlers, typed names, clearing, expandable Location, Color and ContentAlignment
+pickers, AcceptButton); VS-style code generation and names (host tests); broken Designer.cs never overwritten;
+red error box; Align Lefts; Lock Controls padlock; menu Type Here; TabControl pages; TableLayoutPanel cells;
+Tab Order; Document Outline drag into a container; Add → Windows Form / User Control / Dialog; "Make This Project
+Work on Linux Too" (golden files, every sample builds on Linux, and on Windows with the real WinForms in CI);
+settings page; performance (form opens in 0.31 s host-side, property edit 29 ms).
+
+**Partial or built-but-unchecked:** Ctrl/Shift-click and rubber-band select, Tab-key cycling; most Format
+commands other than Align Lefts; Dock / Font / Anchor dialogs, collection editors, image pickers, Reset; multi-
+selection shows only the main control's properties; smart tags beyond TextBox; FlowLayoutPanel and
+SplitContainer dragging; the New Project command; old .NET Framework projects (tests only, no Windows build);
+data-binding pickers; Rider's own Run / Debug (only `dotnet run` checked).
+
+**Known gaps:** listed above (1–12): no Rider test; beige background and grey buttons in the *running* app on
+Linux; no WebBrowser; the code sub-tab is called "Text" and design/code are sub-tabs, not two tabs; rename
+doesn't reach other files; text sizes off by 1–2 px for a few controls; no magenta baseline snaplines; no
+ToolStrip item-type drop-down; NuGet/Maven not checksum-locked; own simple icons.
+
+**The three most useful next steps:**
+1. **Jacob tries it in real Rider** (TESTING-FOR-JACOB.md), especially: only one designer opens (Rider has its
+   own Windows-only one), Solution Explorer nesting, and Run/Debug. Anything that fails there matters most.
+2. **Check a converted project at college** in Visual Studio (and an old .NET Framework one, if he has any).
+3. Close the most visible look-and-feel gaps: name the code tab "Code" / split into two tabs, and add magenta
+   baseline snaplines; then lock NuGet/Gradle dependencies with checksums.
+
