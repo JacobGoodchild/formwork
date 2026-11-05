@@ -177,7 +177,7 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 
 ### L. Settings (Later)
 - [ ] Settings page — **Done (unverified)**: Settings → Tools → Formwork: layout mode, grid size, snap while dragging, dotnet path, host path. "Show grid" not wired to the canvas yet.
-- [ ] Data binding pickers — Not started
+- [ ] Data binding pickers — **Partial**: DataSource is a drop-down of the form's data components (bindingSource1), DataBindings.* rows exist; DisplayMember/ValueMember are plain text (VS lists the source's members). Host-level check only.
 
 ## Fresh-eyes review, end of Stage 1 (21:02, sub-agent that saw only the references, screenshots and checklist)
 

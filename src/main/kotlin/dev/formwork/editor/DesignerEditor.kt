@@ -66,6 +66,11 @@ class DesignerEditor(private val project: Project, private val file: VirtualFile
                     if (frame?.isMain != true) return
                     com.intellij.openapi.diagnostic.logger<DesignerEditor>().info("Designer page loaded (HTTP $httpStatusCode) for ${form.code}")
                     cefBrowser?.executeJavaScript("document.body.classList.add('fw-native');", cefBrowser.url, 0)
+                    // Settings → Tools → Formwork: in SnapToGrid mode with "Show grid", the form shows VS's grid of dots.
+                    val st = dev.formwork.settings.FormworkSettings.getInstance().state
+                    if (st.layoutMode == "SnapToGrid" && st.showGrid) cefBrowser?.executeJavaScript(
+                        "document.body.classList.add('fw-grid'); document.body.style.setProperty('--fw-grid-w','${st.gridWidth}px'); document.body.style.setProperty('--fw-grid-h','${st.gridHeight}px');",
+                        cefBrowser.url, 0)
                     val pending = synchronized(queue) { loaded = true; queue.toList().also { queue.clear() } }
                     pending.forEach(::run)
                 }

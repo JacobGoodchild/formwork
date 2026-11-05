@@ -29,3 +29,8 @@ body.fw-native #toolbar, body.fw-native #status { display: none !important; }
 .guide.x.align { border-left-color: #0078d7 !important; }
 .guide.y.align { border-top-color: #0078d7 !important; }
 .guide.center { display: none; }
+
+/* Grid mode (Settings → Tools → Formwork): VS's dots over the form. */
+body.fw-grid .canvas::after { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+	background-image: radial-gradient(circle, #00000055 0.6px, transparent 0.7px);
+	background-size: var(--fw-grid-w, 8px) var(--fw-grid-h, 8px); }
