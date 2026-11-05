@@ -85,6 +85,10 @@ Explorer nesting, Rider's Run button, the C# editor) are listed for Jacob in `TE
 
 ## Feature checklist (statuses: Not started / Partial / Done (unverified) / Verified)
 
+Story evidence (01:00, maximised IDE, native tool windows, both themes): `docs/screenshots/story-dark-0*.png` and
+`story-light-0*.png` — open → pick Button → place → double-click → `button1_Click` with the cursor inside → Shift+F7 → Ctrl+Z
+(handler gone) → Ctrl+Z (button gone). Script: `tools/story.sh`.
+
 Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWORK_BUILD_TESTS=1`),
 **S** = screenshot in `docs/screenshots/`. All UI screenshots are from the sandbox **IntelliJ IDEA**
 2026.2.4 (same platform as Rider 2026.2), dark theme, because the sandbox Rider needs a login (see BLOCKER).
@@ -119,7 +123,7 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 - [ ] Docked controls: free-edge resize only — **Done (unverified)** (NetForms README says so).
 
 ### D. Properties and Events (Must)
-- [x] Selection drop-down; Categorized/Alphabetical; bold non-defaults; description pane — **Verified (native Properties tool window)**: S `stage2-dark-native-toolbox-properties.png`, `stage2-light-designer-native-windows.png` ("btnOK System.Windows.Forms.Button", 5-button toolbar, ⊟ categories, bold FixedDialog/Log In/OK). Description pane exists (below the grid); its text shows when a row is selected — not yet in a screenshot.
+- [x] Selection drop-down; Categorized/Alphabetical; bold non-defaults; description pane — **Verified (native Properties tool window)**: S `stage2-dark-native-toolbox-properties.png`, `stage2-light-designer-native-windows.png` ("btnOK System.Windows.Forms.Button", 5-button toolbar, ⊟ categories, bold FixedDialog/Log In/OK). Description pane verified: "Text / The text associated with the control." with Text selected by default, as in VS (S `stage2-dark-whole-form-maximised.png`).
 - [ ] Editors: text, numbers, bool/enum, flags, Size/Point/Padding/Font — **Done (unverified)** (NetForms webview).
 - [ ] Pop-up editors (Anchor, Dock, Color, Font, ContentAlignment, multi-line, Cursor) — **Partial** (NetForms has Anchor/Dock/Color; Font dialog etc. not checked).
 - [ ] Collection editors — **Done (unverified)**: setItems works (samples use TabPages, menu DropDownItems, StatusStrip Items).
@@ -200,6 +204,21 @@ My response: agreed on all points. On Ctrl+Z: screenshot 07 shows the undo of th
 so the button correctly stays; the file-level proof is in the log (byte-identical after 2× Ctrl+Z) but the
 screenshot doesn't show it — I'll re-take it showing the button disappearing. The error toast was IDEA's own
 OS-integration daemon (not Formwork; now disabled in the test IDE). These are the Stage 2 to-do list.
+
+## Fresh-eyes review 2, after Stages 2–4 (00:40, sub-agent, references + current screenshots only)
+
+> **Verdict: much closer to Visual Studio. A VS user would now find their way around and mostly feel at home, but
+> parts still look unfinished.** Layout now right (docked Toolbox with Search Toolbox, VS group order, Pointer, icons;
+> Properties with selection drop-down, 5-icon toolbar, categories, bold; `Form1.cs [Design]*`; light form on dark canvas;
+> light and dark both work). Still different: Form1 cut off by the canvas (caption buttons never show); Toolbox about
+> twice VS's width; no description pane in any shot; BackColor "Control" swatch beige; form handles stay on when a child is
+> selected; no dark handles on secondary selections; grey buttons; Design/Text sub-tabs instead of two tabs; an extra canvas
+> toolbar and status line; environment toasts in shots; preview dialog without a frame.
+> Claims: Toolbox/Properties/Events both themes, project-controls group, Align Lefts, TabControl, table cells, Type Here,
+> Linux preview = **Verified**; story, red error box, handles, Ctrl+Left, Add Dialog = **Partly**.
+
+My response: fixing the form fit (narrower default Toolbox), description pane, swatch colours, form handles and
+the extra canvas toolbar now (00:45). The frameless dialog is the test screen having no window manager (not Formwork).
 
 ## Security review (00:25, sub-agent, code only) — verdict and what I changed
 

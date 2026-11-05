@@ -222,7 +222,13 @@ class DesignerSession(
     fun requestRows(kind: String, id: String) {
         worker.execute {
             // Before the form has opened there is nothing to ask (the rows follow the first view).
-            if (lastView == null) return@execute
+            val view = lastView ?: return@execute
+            // A control that is gone (undo, a text edit) is no longer asked about: the form is shown instead.
+            if (id.isNotEmpty() && !exists(view, id)) {
+                selection = listOf("")
+                publish { l -> l.selectionChanged(editorRef(), selection) }
+                return@execute
+            }
             try {
                 val rows = ensureHost().call(kind, JsonObject().apply { addProperty("id", id) }, files()).result?.asJsonArray ?: return@execute
                 publish { l -> if (kind == "events") l.eventsChanged(editorRef(), id, rows) else l.propertiesChanged(editorRef(), id, rows) }
@@ -247,6 +253,9 @@ class DesignerSession(
             } catch (e: Throwable) { report(e) }
         }
     }
+
+    private fun exists(view: JsonObject, id: String): Boolean =
+        listOf("items", "tray").any { k -> view.getAsJsonArray(k)?.any { it.asJsonObject.get("id")?.asString == id } == true }
 
     fun gotoExistingHandler(handler: String) { worker.execute { gotoHandler(handler, null) } }
 

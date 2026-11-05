@@ -86,7 +86,7 @@ class PropertiesPanel(private val project: Project, parent: Disposable) : JPanel
     private val selector = ComboBox<String>()
     private var updatingSelector = false
     private val descriptionName = JBLabel().apply { font = font.deriveFont(Font.BOLD) }
-    private val descriptionText = JBTextArea().apply { isEditable = false; lineWrap = true; wrapStyleWord = true; isOpaque = false; border = null }
+    private val descriptionText = JBTextArea().apply { isEditable = false; lineWrap = true; wrapStyleWord = true; isOpaque = false; border = null; font = com.intellij.util.ui.UIUtil.getLabelFont() }
 
     private val editor: DesignerEditor? get() = ActiveDesigner.get(project).editor
 
@@ -237,7 +237,10 @@ class PropertiesPanel(private val project: Project, parent: Disposable) : JPanel
             }
         } else shown.addAll(items.sortedBy { it.name.lowercase().removePrefix("(") })
         tableModel.fireTableDataChanged()
-        showDescription(null)
+        // As VS, a property is always selected so the description pane says something: Text if there is one.
+        val pick = shown.indexOfFirst { it is Row.Item && it.name == (if (events) "Click" else "Text") }.takeIf { it >= 0 }
+            ?: shown.indexOfFirst { it is Row.Item }
+        if (pick >= 0) { table.setRowSelectionInterval(pick, pick); showDescription(shown[pick] as Row.Item) } else showDescription(null)
     }
 
     /** VS writes (Name) for the design-time Name property, and lists data bindings under (DataBindings). */
@@ -417,8 +420,19 @@ class PropertiesPanel(private val project: Project, parent: Disposable) : JPanel
         }
     }
 
+    /** System colours as Windows 10/11 paints them (the designer's form uses the same table), not .NET-on-Linux's XP one. */
+    private val windowsSystemColors = mapOf(
+        "Control" to "#f0f0f0", "ControlDark" to "#a0a0a0", "ControlDarkDark" to "#696969", "ControlLight" to "#e3e3e3",
+        "ControlLightLight" to "#ffffff", "ControlText" to "#000000", "Window" to "#ffffff", "WindowText" to "#000000",
+        "ButtonFace" to "#f0f0f0", "ButtonHighlight" to "#ffffff", "ButtonShadow" to "#a0a0a0", "Highlight" to "#0078d7",
+        "HighlightText" to "#ffffff", "GrayText" to "#6d6d6d", "Info" to "#ffffe1", "InfoText" to "#000000", "Menu" to "#f0f0f0",
+        "MenuText" to "#000000", "MenuBar" to "#f0f0f0", "ActiveBorder" to "#b4b4b4", "ActiveCaption" to "#99b4d1",
+        "InactiveCaption" to "#bfcddb", "AppWorkspace" to "#ababab", "HotTrack" to "#0066cc", "ScrollBar" to "#c8c8c8",
+        "WindowFrame" to "#646464", "Desktop" to "#000000", "InactiveBorder" to "#f4f7fc",
+    )
+
     private fun swatch(row: Row.Item): Icon? {
-        val hex = row.data.getAsJsonObject("swatches")?.get(row.value)?.asString ?: colorByName(row.value) ?: return null
+        val hex = windowsSystemColors[row.value] ?: row.data.getAsJsonObject("swatches")?.get(row.value)?.asString ?: colorByName(row.value) ?: return null
         val color = try { Color.decode(hex) } catch (_: Exception) { return null }
         return object : Icon {
             override fun getIconWidth() = JBUI.scale(16)

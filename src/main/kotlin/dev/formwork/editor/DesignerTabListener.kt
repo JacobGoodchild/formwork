@@ -37,7 +37,10 @@ class DesignerTabListener(private val project: Project) : FileEditorManagerListe
             if (!shownToolWindows) {
                 shownToolWindows = true
                 val manager = com.intellij.openapi.wm.ToolWindowManager.getInstance(project)
-                for (id in listOf("Toolbox", "Properties")) manager.getToolWindow(id)?.show()
+                // After the IDE has restored its own layout (else the Project view takes the left side back).
+                manager.invokeLater {
+                    for (id in listOf("Toolbox", "Properties")) manager.getToolWindow(id)?.show()
+                }
             }
         }
         val file = event.newFile ?: event.oldFile ?: return

@@ -11,4 +11,10 @@ cd "$root"
 extra=()
 [ -n "${3:-}" ] && extra=(-PopenFile="$3")
 nohup ./gradlew runIdea -PopenPath="$1" "${extra[@]}" --console=plain > "${2:-/tmp/formwork-runidea.log}" 2>&1 &
+# No window manager on Xvfb: once the IDE window exists, make it fill the screen (as a maximised window would).
+( for i in $(seq 1 120); do sleep 2
+    for w in $(xdotool search --onlyvisible --name "\[Design\]| – " 2>/dev/null); do
+      g=$(xdotool getwindowgeometry "$w" | grep -o '[0-9]*x[0-9]*'); [ "$g" = "1920x1080" ] && exit 0
+      [ "${g%x*}" -gt 800 ] 2>/dev/null && xdotool windowmove "$w" 0 0 windowsize "$w" 1920 1080
+    done; done ) >/dev/null 2>&1 &
 echo "started"
