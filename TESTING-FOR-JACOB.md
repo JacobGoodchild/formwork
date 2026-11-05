@@ -143,7 +143,8 @@ check it before you rely on it:
 1. Take the project back to college and open it in Visual Studio.
 2. ✅ It should open with no errors. Double-click `Form1.cs`: the designer should show your form.
 3. Press **Start** (F5): your app should run as usual.
-4. If anything is wrong: your original project file is saved next to it as `<name>.csproj.formwork.bak`.
+4. (This is also checked automatically on a Windows computer in the cloud every time Formwork changes, with all the samples — but your own projects are worth checking once.)
+5. If anything is wrong: your original project file is saved next to it as `<name>.csproj.formwork.bak`.
    Delete the `.csproj`, rename the `.bak` file back to `.csproj`, and tell me what happened (part 5).
 
 ## 5. If something goes wrong
