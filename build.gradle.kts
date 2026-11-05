@@ -75,6 +75,8 @@ val publishHost by tasks.registering(Exec::class) {
         dotnet, "publish", file("host/Formwork.Host/Formwork.Host.csproj").absolutePath,
         "-c", "Release", "-r", "linux-x64", "--self-contained", "false",
         "-p:DebugType=none", "-p:GenerateDocumentationFile=false",
+        // Precompiled (ReadyToRun): the designer opens much faster than with everything compiled at start.
+        "-p:PublishReadyToRun=true",
         "-o", hostOut.get().asFile.absolutePath,
     )
 }

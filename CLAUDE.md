@@ -201,6 +201,14 @@ so the button correctly stays; the file-level proof is in the log (byte-identica
 screenshot doesn't show it — I'll re-take it showing the button disappearing. The error toast was IDEA's own
 OS-integration daemon (not Formwork; now disabled in the test IDE). These are the Stage 2 to-do list.
 
+## Performance (measured 00:15, `PerformanceTest`, TabsDemo sample, 18 controls; build/perf.txt)
+
+| Target | Measured | Result |
+|---|---|---|
+| Form opens < 3 s | host cold start + read + paint: **0.31 s** (was 5.5 s before publishing the host ReadyToRun) | met (host side; JCEF page load adds ~1 s in the IDE, not measured precisely) |
+| Drag redraws ≥ 30/s | the page moves the drag outline itself every frame (no host call per frame) — not measured in a browser; the commit on release is **36 ms** median (28/s) | met by design, **not measured** |
+| Property edit → canvas < 200 ms | **29 ms** median, 36 ms worst (host side) | met |
+
 ## Interruption
 
 The session was stopped from 21:28 to 00:06 UK (usage limit / worker restart); the wake-up chain brought it back. Nothing was lost (all committed).
