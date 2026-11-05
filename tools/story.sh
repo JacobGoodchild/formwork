@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # The definition-of-done story in the sandbox IDE, with a screenshot of each step (Xvfb :99, 1920x1080).
+# Test-machine helper (a throwaway cloud machine with a virtual screen). Not needed on your own computer.
 # Usage: tools/story.sh <sample folder under samples/> <output dir>
 # Coordinates fit the default IDE layout (Project view open on the left); see docs/screenshots.
 set -euo pipefail

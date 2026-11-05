@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Stage 1 checks in the sandbox IDE (Xvfb :99): F7, two forms, outside edits reload the canvas, broken file.
+# Test-machine helper (a throwaway cloud machine with a virtual screen). Not needed on your own computer.
 set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
 out="${1:-$root/build/checks}"; mkdir -p "$out"

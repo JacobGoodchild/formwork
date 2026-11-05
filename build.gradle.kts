@@ -150,11 +150,13 @@ intellijPlatformTesting {
             task {
                 args(listOfNotNull(providers.gradleProperty("openPath").orNull, providers.gradleProperty("openFile").orNull))
                 jvmArgumentProviders += CommandLineArgumentProvider {
-                    listOf("-Dide.show.tips.on.startup.default.value=false", "-Djb.consents.confirmation.enabled=false", "-Djb.privacy.policy.text=<!--999.999-->", "-Didea.trust.all.projects=true",
-                        // This test machine runs as root, where JCEF's sandbox can't start. Test runs only.
+                    listOf("-Dide.show.tips.on.startup.default.value=false", "-Djb.consents.confirmation.enabled=false", "-Djb.privacy.policy.text=<!--999.999-->") +
+                    // Only on the throwaway test machine (-PformworkTestMachine): trust every project, run the browser
+                    // without its sandbox (that machine runs as root) and hide error pop-ups in screenshots. Never on a
+                    // normal computer, where these would weaken Rider's own safety checks.
+                    if (providers.gradleProperty("formworkTestMachine").isPresent) listOf("-Didea.trust.all.projects=true",
                         "-Dide.browser.jcef.sandbox.enable=false", "-Dide.browser.jcef.run-under-superuser.allowed=true",
-                        // IDEA's own OS-integration daemon cannot start here; its error balloons get in the way of screenshots.
-                        "-Didea.fatal.error.notification=disabled")
+                        "-Didea.fatal.error.notification=disabled") else emptyList()
                 }
             }
         }

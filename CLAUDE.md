@@ -266,6 +266,15 @@ entries ignored when looking for `dotnet`; saved page state escaped inside `<scr
 the page; the old-project converter always writes NetForms 0.1.5.
 Not fixed (Known gaps): no NuGet lock files / Gradle dependency verification; CI actions pinned by tag, not SHA.
 
+Second safety check (5 Nov, afternoon, at Jacob's request: "is it safe to run on my machine?"): plugin, host, NetForms'
+designer code, patches, build script, test scripts and samples read again. Nothing writes outside the form's files and
+the `.csproj` (always after a never-overwritten backup); NetForms only deletes temp folders it made; the page can't go
+online (CSP `default-src 'none'`); processes only by argument list; project code only in trusted projects; no secrets;
+Gradle's wrapper jar matches Gradle's official 8.14.5 checksum and the Gradle download is checksum-pinned. Fixed: the
+`runIdea` dev task trusted every project and turned off the browser sandbox for everyone - now only with
+`-PformworkTestMachine`; `tools/run-idea.sh` no longer kills any IntelliJ IDEA 2026.2.4 on the machine, only this
+repo's test IDE; test scripts say they're for the test machine; a stray `.pyc` file removed.
+
 ## Performance (measured 00:15, `PerformanceTest`, TabsDemo sample, 18 controls; build/perf.txt)
 
 | Target | Measured | Result |

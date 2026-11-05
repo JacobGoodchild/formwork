@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # Starts the sandbox IntelliJ IDEA (free tier) with Formwork on the Xvfb display :99, opening $1.
+# Test-machine helper (a throwaway cloud machine with a virtual screen). Not needed on your own computer.
 # Used for UI screenshots; see CLAUDE.md "BLOCKER" for why not Rider.
 set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
 pgrep -x Xvfb >/dev/null || (Xvfb :99 -screen 0 1920x1080x24 -nolisten tcp >/dev/null 2>&1 &)
-pkill -f "idea-2026.2.4" || true
+pkill -f "formwork/.intellijPlatform/sandbox" || true  # only the test IDE started from this repo
 sleep 2
 export DISPLAY=:99 PATH="/opt/dotnet:$PATH"
 cd "$root"

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Picks the sandbox IDE's theme before it starts: tools/theme.sh light|dark (the 2026.2 defaults, Islands Light/Dark).
+# Test-machine helper (a throwaway cloud machine with a virtual screen). Not needed on your own computer.
 set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
 for opts in "$root"/.intellijPlatform/sandbox/formwork/*/config_runIdea/options; do

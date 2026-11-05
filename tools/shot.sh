@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Screenshot of the Xvfb display used for UI checks: tools/shot.sh out.png [scale%] [crop WxH+X+Y]
+# Test-machine helper (a throwaway cloud machine with a virtual screen). Not needed on your own computer.
 set -euo pipefail
 out="$1"; scale="${2:-100}"; crop="${3:-}"
 tmp="$(mktemp --suffix=.png)"
