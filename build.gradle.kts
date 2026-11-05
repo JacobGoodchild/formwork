@@ -113,6 +113,7 @@ val publishConverter by tasks.registering(Exec::class) {
 }
 
 tasks.processResources {
+    dependsOn(applyNetFormsPatches)
     // NetForms' designer webview (MIT), served to JCEF from the plugin's resources.
     from("external/NetForms/designer/media") { into("penguinforms/webview/netforms") }
     from("external/NetForms/LICENSE") { into("penguinforms/licenses/NetForms") }
