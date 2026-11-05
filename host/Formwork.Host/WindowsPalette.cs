@@ -40,6 +40,17 @@ internal static class WindowsPalette
         }
     }
 
+    /// <summary>Buttons as Visual Studio's designer shows them on Windows 11: white face, light border (patch 0004).</summary>
+    public static void InstallWindows11Buttons()
+    {
+        try
+        {
+            var theme = typeof(System.Windows.Forms.Control).Assembly.GetType("System.Windows.Forms.Theme", throwOnError: false);
+            theme?.GetProperty("Windows11Buttons", BindingFlags.NonPublic | BindingFlags.Static)?.SetValue(null, true);
+        }
+        catch (Exception ex) { Console.Error.WriteLine($"Formwork: could not switch on Windows 11 buttons: {ex.Message}"); }
+    }
+
     public static void Install()
     {
         try

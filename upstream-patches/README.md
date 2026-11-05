@@ -45,3 +45,12 @@ immediately (it arms the tool, as VS does).
 
 **Why:** NetForms named typed menu items `toolStripMenuItem1, 2, …`, which differs from the code
 Visual Studio writes for the same clicks (brief, group E: "New controls get Visual Studio's names").
+
+## 0004-theme-windows11-buttons.patch
+
+**What:** `Theme.Windows11Buttons` (internal, off by default): push buttons get Windows 11's white face (#FDFDFD)
+and light grey border (#D0D0D0) instead of Windows 10's grey (#E1E1E1 / #ADADAD). Formwork's designer host turns
+it on, so the designer shows buttons as Visual Studio does on Windows 11 (Jacob's screenshots).
+
+**Behaviour change for NetForms users:** none (off by default). Note: a NetForms app *running* on Linux still uses
+the Windows 10 look — the designer shows the college (Windows 11) look.

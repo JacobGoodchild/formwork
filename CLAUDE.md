@@ -272,8 +272,9 @@ The session was stopped from 21:28 to 00:06 UK (usage limit / worker restart); t
    the golden file, not by a Windows build yet.
 8. The form's title bar now has an icon and caption glyphs, but they're flat (Windows 10 style), not
    the boxed Windows 7-style buttons of one reference screenshot.
-9. **Button face** is NetForms' grey (#E1E1E1, Windows 10 style), not the white Windows 11 face in
-   Jacob's screenshot: it's what the app really looks like when it runs on Linux, so the designer keeps it.
+9. **Buttons**: the designer now draws Windows 11's white face and light border (patch 0004, S
+   `stage2-render-windows11-buttons.png`), as VS on Windows 11. The app *running on Linux* still has NetForms'
+   Windows 10 grey buttons, so designer and Linux run differ slightly here (at college they match).
 12. **No magenta text-baseline snaplines** (NetForms has edge, margin and centre lines only).
 11. **Dependency checksums:** versions are pinned and the Gradle wrapper is checksum-verified, but NuGet
    packages and Maven artifacts aren't checksum-locked (no lock files / verification metadata yet).

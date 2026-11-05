@@ -1,0 +1,24 @@
+diff --git a/src/NetForms/Theme.cs b/src/NetForms/Theme.cs
+index 83a913d..9e6c608 100644
+--- a/src/NetForms/Theme.cs
++++ b/src/NetForms/Theme.cs
+@@ -9,11 +9,17 @@ namespace System.Windows.Forms;
+ /// </summary>
+ internal static class Theme
+ {
+-    public static Color ButtonFace => Color.FromArgb(0xE1, 0xE1, 0xE1);
++    /// <summary>
++    /// Push buttons as Windows 11 draws them (a white face, a light grey border), instead of Windows 10's grey face.
++    /// Off by default; a designer host that shows forms the way Visual Studio does on Windows 11 turns it on.
++    /// </summary>
++    internal static bool Windows11Buttons { get; set; }
++
++    public static Color ButtonFace => Windows11Buttons ? Color.FromArgb(0xFD, 0xFD, 0xFD) : Color.FromArgb(0xE1, 0xE1, 0xE1);
+     public static Color ButtonFaceHot => Color.FromArgb(0xE5, 0xF1, 0xFB);
+     public static Color ButtonFacePressed => Color.FromArgb(0xCC, 0xE4, 0xF7);
+     public static Color ButtonFaceDisabled => Color.FromArgb(0xCC, 0xCC, 0xCC);
+-    public static Color ButtonBorder => Color.FromArgb(0xAD, 0xAD, 0xAD);
++    public static Color ButtonBorder => Windows11Buttons ? Color.FromArgb(0xD0, 0xD0, 0xD0) : Color.FromArgb(0xAD, 0xAD, 0xAD);
+     public static Color ButtonBorderHot => Color.FromArgb(0x00, 0x78, 0xD7);
+     public static Color ButtonBorderPressed => Color.FromArgb(0x00, 0x54, 0x99);
+     public static Color ButtonBorderDefault => Color.FromArgb(0x00, 0x78, 0xD7);

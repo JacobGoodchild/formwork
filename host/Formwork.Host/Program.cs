@@ -32,6 +32,7 @@ public static class Program
 
         WindowsPalette.Install();
         WindowsPalette.InstallFonts();
+        WindowsPalette.InstallWindows11Buttons();
         DesignSurface.ReadFileOverride = Read;
         using var protocol = new DesignerProtocol();
         // Only the open form's own files may be written (the plugin checks this too).
