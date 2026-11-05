@@ -20,6 +20,20 @@ stretch went on tidying up: Lock Controls' padlock, and bringing README / TESTIN
 Not done on purpose: no GitHub Release was made (that needs a version tag pushed, which I left for Jacob to
 decide; pushing a tag like `v0.1.0` runs CI's release job, which attaches the zip and its SHA-256).
 
+## Rider 2026.1 support (added 5 Nov, after the first night, at Jacob's request)
+
+The plugin now installs on **2026.1 and newer** (`since-build` 261, was 262). The only real difference: JCEF (the
+browser the design surface runs in) is part of the core platform in 2026.1 and a separate bundled plugin from 2026.2.
+`plugin.xml`'s `<depends>com.intellij.modules.jcef</depends>` matches both, so only the Gradle script changed (it
+asks for the separate JCEF plugin only when compiling against 2026.2+). The zip is now compiled against **IntelliJ
+IDEA 2026.1.5.1** (the oldest supported, so no 2026.2-only calls can slip in); CI also compiles against 2026.2.4.
+Evidence: compiles against 2026.1 with no errors; all tests pass against 2026.1; the definition-of-done story in IDEA
+2026.1.5.1 (S `rider261-check-dark-designer-open-in-idea-2026.1.png`, `…-button-placed-…`, `…-handler-…`); the same
+2026.1-built zip in IDEA 2026.2.4 (S `rider261-check-light-2026.1-zip-button-placed-in-idea-2026.2.png`,
+`…-handler-in-idea-2026.2.png`). Not checked: real Rider 2026.1 (same login wall as before). In the 2026.2 run an
+"IDE error occurred" toast showed and closed before I could open it; idea.log has no ERROR lines for that run and IDEA
+blamed a UI freeze on its own remote-development plugin, so I believe it isn't Formwork, but I couldn't prove it.
+
 ## Status
 
 **Current stage:** Stage 5 (finish) and Known gaps. Stages 0–4 done to the level recorded in the checklist below
@@ -76,7 +90,7 @@ Explorer nesting, Rider's Run button, the C# editor) are listed for Jacob in `TE
 
 1. NetForms pinned to tag `v0.1.5` (newest stable release; same as newest NuGet `0.1.5`).
 2. Plugin built with IntelliJ Platform Gradle Plugin 2.19.0, Kotlin 2.4.21, Gradle 9.2.1 (wrapper
-   checksum pinned), target Rider 2026.2.4.1 (sinceBuild 262).
+   checksum pinned), target Rider 2026.2.4.1 (sinceBuild 261 since 5 Nov, so Rider 2026.1 works too).
 3. Canvas route: reuse NetForms' webview (`designer/media/designer.js`) in JCEF. Reason: it only
    touches VS Code through `acquireVsCodeApi()` and `window` messages, so a small shim is enough
    (`src/main/resources/formwork/webview/bridge.js`).

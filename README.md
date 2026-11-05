@@ -34,6 +34,7 @@ reimplementation of `System.Windows.Forms` for .NET 10 that runs on Linux.
 ## Install
 
 1. Install the **.NET 10 SDK** (steps for Linux Mint in [TESTING-FOR-JACOB.md](TESTING-FOR-JACOB.md)).
+   Works with **Rider 2026.1 and 2026.2** (and newer).
 2. Rider → **Settings → Plugins → ⚙ → Install Plugin from Disk…** → `formwork-0.1.0.zip` → restart.
 
 Build it yourself: `./gradlew buildPlugin` (needs JDK 21 and the .NET 10 SDK); the zip appears in

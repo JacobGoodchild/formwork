@@ -31,6 +31,8 @@ jobs:
           FORMWORK_BUILD_TESTS: '1'
           FORMWORK_EXPORT_CONVERTED: '1'
         run: ./gradlew test buildPlugin --console=plain
+      - name: Also compiles against the newer 2026.2 platform (the zip above is built against 2026.1, the oldest supported)
+        run: ./gradlew compileKotlin -PideaVersion=2026.2.4 --console=plain
       - name: Plugin SHA-256
         run: sha256sum build/distributions/*.zip
       - uses: actions/upload-artifact@v4

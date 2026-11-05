@@ -67,6 +67,9 @@ for it to finish before the next one.
 
 ## 2. Install the Formwork plugin in Rider
 
+Formwork works with **Rider 2026.1 or newer** (2026.2 too). To see your version: **Help → About**.
+
+
 1. Get `formwork-0.1.0.zip`. **Don't unzip it.** Two ways:
    - **Easiest:** on GitHub, open the `formwork` repository → **Actions** → the newest green **CI** run → scroll
      to **Artifacts** → click **formwork-plugin**. That downloads a small zip *containing* `formwork-0.1.0.zip`:

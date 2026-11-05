@@ -15,10 +15,22 @@ repositories {
     intellijPlatform { defaultRepositories() }
 }
 
+/** The platform branch the build compiles against (261 = 2026.1, 262 = 2026.2), from the IDE chosen above. */
+fun platformBranch(): Int {
+    providers.gradleProperty("localIde").orNull?.let { dir ->
+        val build = file("$dir/build.txt").takeIf { it.exists() }?.readText()?.trim() ?: return 262
+        return build.substringAfter('-').substringBefore('.').toIntOrNull() ?: 262
+    }
+    val version = if (providers.gradleProperty("buildAgainst").orNull == "rider") providers.gradleProperty("riderVersion").get()
+                  else providers.gradleProperty("ideaVersion").get()
+    val (year, minor) = version.split('.').let { it[0].toInt() to it[1].toInt() }
+    return (year - 2000) * 10 + minor
+}
+
 dependencies {
     intellijPlatform {
-        // Formwork uses only the shared IntelliJ Platform (plus JCEF), so it compiles the same against any 2026.2
-        // IDE. By default it builds against IntelliJ IDEA 2026.2.4 - the IDE the UI tests run in (the sandbox Rider
+        // Formwork uses only the shared IntelliJ Platform (plus JCEF), so it compiles the same against any 2026.1 or
+        // 2026.2 IDE. By default it builds against IntelliJ IDEA 2026.2.4 - the IDE the UI tests run in (the sandbox Rider
         // needs a JetBrains account login; see CLAUDE.md) - which also keeps one 10 GB IDE off the disk.
         // ./gradlew buildPlugin -PbuildAgainst=rider builds against Rider 2026.2.4.1 instead.
         // -PlocalIde=/path/to/an/installed/IDE uses an IDE already on disk instead (set in ~/.gradle/gradle.properties).
@@ -28,9 +40,14 @@ dependencies {
             providers.gradleProperty("buildAgainst").orNull == "rider" -> rider(providers.gradleProperty("riderVersion")) { useInstaller = false }
             else -> intellijIdea(providers.gradleProperty("ideaVersion"))
         }
-        bundledPlugin("com.intellij.modules.jcef")
-        bundledModule("intellij.platform.ui.jcef")
-        bundledModule("intellij.libraries.jcef")
+        // JCEF (the built-in browser the design surface runs in) is part of the core platform up to 2026.1, and its
+        // own bundled plugin from 2026.2. plugin.xml's <depends>com.intellij.modules.jcef</depends> covers both; the
+        // build only has to ask for the separate plugin when compiling against 2026.2 or newer.
+        if (platformBranch() >= 262) {
+            bundledPlugin("com.intellij.modules.jcef")
+            bundledModule("intellij.platform.ui.jcef")
+            bundledModule("intellij.libraries.jcef")
+        }
         jetbrainsRuntime()
     }
     testImplementation("org.junit.jupiter:junit-jupiter:5.13.4")
@@ -41,7 +58,7 @@ dependencies {
 
 intellijPlatform {
     pluginConfiguration {
-        ideaVersion { sinceBuild = "262" }
+        ideaVersion { sinceBuild = "261" }
     }
     buildSearchableOptions = false
 }
@@ -121,13 +138,13 @@ tasks.named<org.jetbrains.intellij.platform.gradle.tasks.RunIdeTask>("runIde") {
 
 // The sandbox Rider needs a JetBrains account login for its licence, which Formwork's tests must not do.
 // The plugin only uses the shared IntelliJ Platform for its UI, so UI screenshots run in the free
-// IntelliJ IDEA Community of the same platform version (2026.2). See TESTING-FOR-JACOB.md for the
+// IntelliJ IDEA of the same platform version. See TESTING-FOR-JACOB.md for the
 // checks only Rider can do.
 //   ./gradlew runIdea -PopenPath=/path/to/project
 intellijPlatformTesting {
     runIde {
         register("runIdea") {
-            // The same IDE the plugin is built against (IntelliJ IDEA 2026.2.4 by default).
+            // The same IDE the plugin is built against (IntelliJ IDEA 2026.1.5.1 by default; -PlocalIde=... for another).
             // IDEA's OS-integration daemon can't start in this container and pops up error reports over the UI.
             plugins { disablePlugin("com.intellij.platform.daemon") }
             task {
