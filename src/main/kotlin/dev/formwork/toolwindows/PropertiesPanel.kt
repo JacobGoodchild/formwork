@@ -75,6 +75,8 @@ class PropertiesPanel(private val project: Project, parent: Disposable) : JPanel
     private var categorized = true
     private var events = false
     private var primary = ""
+    /** Everything selected; an edit applies to all of them, as in VS's multi-selection grid. */
+    private var selected: List<String> = listOf("")
     private var rows = JsonArray()
     private var view: JsonObject? = null
     private val collapsed = HashSet<String>()
@@ -190,6 +192,7 @@ class PropertiesPanel(private val project: Project, parent: Disposable) : JPanel
 
     override fun selectionChanged(editor: DesignerEditor, ids: List<String>) {
         primary = ids.lastOrNull() ?: ""
+        selected = ids.ifEmpty { listOf("") }
         refreshSelector()
         request()
     }
@@ -216,6 +219,7 @@ class PropertiesPanel(private val project: Project, parent: Disposable) : JPanel
             v?.getAsJsonArray("tray")?.forEach { ids.add(it.asJsonObject.get("id").asString) }
             selector.model = DefaultComboBoxModel(ids.distinct().sortedWith(compareBy({ it != "" }, { it.lowercase() })).toTypedArray())
             selector.selectedItem = primary
+            selector.toolTipText = if (selected.size > 1) "${selected.size} controls selected: changes apply to all of them" else null
         } finally { updatingSelector = false }
     }
 
@@ -264,9 +268,12 @@ class PropertiesPanel(private val project: Project, parent: Disposable) : JPanel
             else e.session.bindEventAndGo(primary, name, value.trim())
             return
         }
-        if (value == row.value) return
-        val o = if (name == "Name") op("rename", "value" to value) else op("setProp", "prop" to name, "value" to value)
-        e.session.applyOps(JsonArray().apply { add(o) }, if (name == "Name") "Rename" else "Property Change")
+        if (value == row.value && selected.size == 1) return
+        if (name == "Name") { e.session.applyOps(JsonArray().apply { add(op("rename", "value" to value)) }, "Rename"); return }
+        // With several controls selected, the same value goes to each of them: one Ctrl+Z step.
+        val ops = JsonArray()
+        for (id in selected) ops.add(op("setProp", "prop" to name, "value" to value).apply { addProperty("id", id) })
+        e.session.applyOps(ops, "Property Change")
     }
 
     private fun reset(row: Row.Item) {

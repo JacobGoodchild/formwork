@@ -126,7 +126,7 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 - [ ] Image pickers into .resx — **Done (unverified)**: NetForms writes .resx; file chooser goes through Rider.
 - [ ] AcceptButton / CancelButton — **Verified (code)**: LoginForm sample sets both through the designer; builds (T `ProjectBuildTest`).
 - [ ] Reset — **Done (unverified)**.
-- [ ] Multi-selection shared properties — Not checked.
+- [ ] Multi-selection shared properties — **Partial**: an edit applies to every selected control in one undo step (verified: OK + Cancel selected, Cursor changed → `btnOK.Cursor = Cursors.Arrow;` and `btnCancel.Cursor = Cursors.Arrow;`). The grid still lists the primary control's properties, not only the shared ones.
 - [x] (Name) rename incl. code — **Verified (host level)**: T `CodeGenerationTest.renaming…` (field, `+=` line, handler, a use in Form1.cs). Goes through the document, so Ctrl+Z works; Rider's rename refactoring for *other* files is not used (Known gap).
 - [x] Events tab — **Verified**: S `stage2-light-events-tab.png` (events by category, Click → btnOK_Click), `stage2-light-event-double-click-creates-handler.png` (double-click Enter → btnOK_Enter created, cursor inside). Typing a name + Enter, clearing to unbind: Done (unverified).
 
