@@ -103,7 +103,7 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 - [ ] Drag a tool onto canvas / into container — **Done (unverified)** (mouse-based drag, patch 0002).
 - [ ] Double-click a tool adds to selected container — **Done (unverified)**.
 - [x] After placing, the toolbox returns to Pointer — **Verified**: S `story-dark-04-button-placed.png`.
-- [ ] Project's own controls group after build — **Done (unverified)**: loads the newest bin/**/<Assembly>.dll only when the project is trusted, group "<Project> Components", reload on build. No UserControl sample yet.
+- [x] Project's own controls group after build — **Verified**: CustomControls sample; "CustomControls Components" group with BrokenControl and ScoreBox at the top of the Toolbox, placed and drawn (S `stage2-dark-project-controls-and-red-cross.png`, T `ProjectControlsTest`). Loaded only for trusted projects (code review: PASS).
 - [ ] Non-visual components go to the tray — **Done (unverified)**: NetForms behaviour; TimerPicture/MenuDemo samples have tray items (render shows "1 in tray"/"2 in tray"), not screenshot-checked in the IDE.
 
 ### C. Canvas (Must)
@@ -162,7 +162,7 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 
 ### J. Errors and safety (Must)
 - [x] Broken Designer.cs: error page with line, never overwrites — **Verified**: S `stage1-dark-broken-designer-file.png`; the broken file is byte-identical afterwards (`tools/checks.sh` prints BROKEN FILE LEFT UNTOUCHED); T `HostClientTest`. "Open as text" opens the file at the error's line and column (not screenshot-tested).
-- [ ] Failing control: red cross — Not started.
+- [x] Failing control: red cross — **Verified**: a control whose OnPaint throws is drawn as a red error box with the exception text, the rest of the form keeps working (same S; T `ProjectControlsTest` checks the red pixels and that other controls are still there). NetForms behaviour.
 - [ ] Missing .NET 10 SDK notification — **Done (unverified)**: `DotnetNotifier` with a "Show me how" link.
 
 ### K. Projects and running (Must)

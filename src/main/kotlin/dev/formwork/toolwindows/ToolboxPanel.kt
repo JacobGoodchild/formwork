@@ -80,7 +80,8 @@ class ToolboxPanel(private val project: Project, parent: Disposable) : JPanel(Bo
                 val node = nodeAt(e) ?: return
                 val editor = ActiveDesigner.get(project).editor ?: return
                 when (node) {
-                    is Node.Group -> if (e.clickCount == 1 && e.x > JBUI.scale(18)) toggle(e)
+                    // A click on the group's name opens or closes it, as in VS (the ▷ arrow is the tree's own).
+                    is Node.Group -> if (e.clickCount == 1 && tree.getClosestPathForLocation(e.x, e.y)?.let { p -> tree.getPathBounds(p)?.let { b -> e.x >= b.x } } == true) toggle(e)
                     is Node.Pointer -> { armed = null; editor.armTool(null) }
                     is Node.Tool -> if (node.unavailable == null) {
                         if (e.clickCount >= 2) { armed = null; editor.addToSelection(node.type); selectPointer() }
