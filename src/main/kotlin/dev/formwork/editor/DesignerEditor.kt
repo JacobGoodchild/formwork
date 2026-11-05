@@ -40,6 +40,7 @@ import javax.swing.SwingConstants
 class DesignerEditor(private val project: Project, private val file: VirtualFile, val form: FormFiles) :
     UserDataHolderBase(), FileEditor, DocumentReferenceProvider {
 
+    private val log = com.intellij.openapi.diagnostic.logger<DesignerEditor>()
     private val panel = JPanel(BorderLayout())
     private val browser: JBCefBrowser?
     private val query: JBCefJSQuery?
@@ -60,7 +61,11 @@ class DesignerEditor(private val project: Project, private val file: VirtualFile
             val q = JBCefJSQuery.create(b as JBCefBrowserBase)
             query = q
             Disposer.register(this, q)
-            q.addHandler { text -> session.onMessage(text); null }
+            // The answer tells the page its message arrived, so it sends the next one (bridge.js sends one at a time).
+            q.addHandler { text ->
+                try { session.onMessage(text) } catch (e: Throwable) { log.warn("Formwork add: a page message failed: ${e.message}", e) }
+                JBCefJSQuery.Response("ok")
+            }
             b.jbCefClient.addLoadHandler(object : org.cef.handler.CefLoadHandlerAdapter() {
                 override fun onLoadEnd(cefBrowser: org.cef.browser.CefBrowser?, frame: org.cef.browser.CefFrame?, httpStatusCode: Int) {
                     if (frame?.isMain != true) return
@@ -80,7 +85,7 @@ class DesignerEditor(private val project: Project, private val file: VirtualFile
                     com.intellij.openapi.diagnostic.logger<DesignerEditor>().warn("Designer page failed to load: $errorCode $errorText $failedUrl")
                 }
             }, b.cefBrowser)
-            b.loadHTML(WebviewPage.html("function(text){${q.inject("text")}}", ThemeCss.css(), initialWebviewState()))
+            b.loadHTML(WebviewPage.html("function(text, ok, fail){${q.inject("text", "function(r){ if (ok) ok(r); }", "function(c, m){ if (fail) fail(c, m); }")}}", ThemeCss.css(), initialWebviewState()))
             panel.add(b.component, BorderLayout.CENTER)
             // Tools dragged from the native Toolbox are placed where they are dropped (as in VS).
             b.component.dropTarget = java.awt.dnd.DropTarget(b.component, java.awt.dnd.DnDConstants.ACTION_COPY, object : java.awt.dnd.DropTargetAdapter() {
@@ -89,7 +94,10 @@ class DesignerEditor(private val project: Project, private val file: VirtualFile
                 }
                 override fun drop(e: java.awt.dnd.DropTargetDropEvent) {
                     e.acceptDrop(java.awt.dnd.DnDConstants.ACTION_COPY)
-                    val type = dev.formwork.toolwindows.ToolboxPanel.draggedTool(e.transferable)
+                    val type = try { dev.formwork.toolwindows.ToolboxPanel.draggedTool(e.transferable) } catch (ex: Exception) {
+                        log.warn("Formwork add: could not read the dragged tool: ${ex.message}", ex); null
+                    }
+                    log.info("Formwork add: drop of ${type ?: "(not a Toolbox tool)"} at ${e.location.x}, ${e.location.y} on ${form.displayName}")
                     if (type != null) dropTool(type, e.location.x, e.location.y)
                     e.dropComplete(type != null)
                 }
@@ -148,11 +156,21 @@ class DesignerEditor(private val project: Project, private val file: VirtualFile
     // ---- driven by the native tool windows ------------------------------------------------------------------
 
     private fun jsString(s: String?) = if (s == null) "null" else com.google.gson.JsonPrimitive(s).toString()
-    fun armTool(type: String?) = run("window.NetFormsDesigner && NetFormsDesigner.arm(${jsString(type)});")
-    fun addToSelection(type: String) = run("window.NetFormsDesigner && NetFormsDesigner.addToSelection(${jsString(type)});")
+    fun armTool(type: String?) {
+        log.info("Formwork add: Toolbox picked ${type ?: "Pointer"} for ${form.displayName}")
+        session.toolPickedInIde(type)
+        run("window.NetFormsDesigner ? NetFormsDesigner.arm(${jsString(type)}) : window.__formworkSend({type:'__fwLog', level:'warn', message:'Formwork add: the designer page is not ready to take a tool'});")
+    }
+    fun addToSelection(type: String) {
+        log.info("Formwork add: Toolbox double-click on $type for ${form.displayName}")
+        run("window.NetFormsDesigner && NetFormsDesigner.addToSelection(${jsString(type)});")
+    }
     fun select(ids: List<String>) = run("window.NetFormsDesigner && NetFormsDesigner.select(${com.google.gson.Gson().toJson(ids)});")
     /** A tool dropped from the native Toolbox at a point of this editor's component. */
-    fun dropTool(type: String, x: Int, y: Int) = run("window.NetFormsDesigner && NetFormsDesigner.dropAt(${jsString(type)}, $x, $y);")
+    fun dropTool(type: String, x: Int, y: Int) = run(
+        "(function(){ var r = window.NetFormsDesigner ? NetFormsDesigner.dropAt(${jsString(type)}, $x, $y) : 'no page';" +
+        " if (r !== true) window.__formworkSend({type:'__fwLog', level:'warn', message:'Formwork add: drop of ' + ${jsString(type)} + ' at $x, $y was not placed: ' +" +
+        " (r === false ? 'the point is outside the form area (page size ' + window.innerWidth + 'x' + window.innerHeight + ', scale ' + window.devicePixelRatio + ')' : r)}); })();")
 
     /** A command of the Format menu (see FormatAction). */
     fun format(how: String, grid: Int) = run("window.NetFormsDesigner && NetFormsDesigner.format(${jsString(how)}, $grid);")

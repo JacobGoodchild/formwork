@@ -78,7 +78,10 @@ class ToolboxPanel(private val project: Project, parent: Disposable) : JPanel(Bo
         tree.addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {
                 val node = nodeAt(e) ?: return
-                val editor = ActiveDesigner.get(project).editor ?: return
+                val editor = ActiveDesigner.get(project).editor ?: run {
+                    if (node !is Node.Group) com.intellij.openapi.diagnostic.logger<ToolboxPanel>().warn("Formwork add: Toolbox click, but no form designer is active")
+                    return
+                }
                 when (node) {
                     // A click on the group's name opens or closes it, as in VS (the ▷ arrow is the tree's own).
                     is Node.Group -> if (e.clickCount == 1 && tree.getClosestPathForLocation(e.x, e.y)?.let { p -> tree.getPathBounds(p)?.let { b -> e.x >= b.x } } == true) toggle(e)

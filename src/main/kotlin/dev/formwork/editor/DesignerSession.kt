@@ -89,16 +89,38 @@ class DesignerSession(
     // ---- messages from the webview ------------------------------------------------------------------------
 
     fun onMessage(json: String) {
-        val m = try { JsonParser.parseString(json).asJsonObject } catch (_: Exception) { return }
+        val m = try { JsonParser.parseString(json).asJsonObject } catch (e: Exception) { log.warn("Formwork add: unreadable page message (${json.take(200)}): ${e.message}"); return }
+        // bridge.js numbers its messages: a gap means one was lost on the way.
+        m.get("__seq")?.takeIf { it.isJsonPrimitive }?.asLong?.let { n ->
+            val expected = lastSeq + 1
+            if (lastSeq != 0L && n != expected) log.warn("Formwork add: page messages ${expected}..${n - 1} never arrived (got $n after $lastSeq)")
+            lastSeq = n
+        }
+        val adds = addsIn(m)
+        if (adds != null) log.info("Formwork add: page asked to add $adds to ${form.displayName}")
         when (m.str("type")) {
             "__fwState" -> { webviewState = m.get("state"); DesignerStateStore.put(form.code.path, m.get("state").toString()); return }
-            "__fwLog" -> { log.warn("Designer page: ${m.str("message")}"); return }
+            "__fwLog" -> {
+                val text = m.str("message") ?: ""
+                if (m.str("level") == "info") log.info(text) else log.warn(if (text.startsWith("Formwork")) text else "Formwork page: $text")
+                if (text.startsWith("Formwork add:") && m.str("level") != "info") notifyAddFailed(text.removePrefix("Formwork add:").trim())
+                return
+            }
             "__fwSelection" -> {
                 selection = m.getAsJsonArray("ids")?.map { it.asString } ?: listOf("")
                 publish { l -> l.selectionChanged(editorRef(), selection) }
                 return
             }
-            "__fwTool" -> { val t = m.get("tool")?.takeIf { it.isJsonPrimitive }?.asString; publish { l -> l.toolChanged(editorRef(), t) }; return }
+            "__fwTool" -> {
+                val t = m.get("tool")?.takeIf { it.isJsonPrimitive }?.asString
+                log.info("Formwork add: page tool is now ${t ?: "Pointer"}")
+                // Back on the Pointer by the page itself (a control was placed): its add should follow at once.
+                val picked = pickedTool
+                if (t == null && picked != null && !releasedByIde) watchForAdd(picked)
+                if (t == null) { pickedTool = null; releasedByIde = false }
+                publish { l -> l.toolChanged(editorRef(), t) }
+                return
+            }
             else -> log.debug("Designer message: ${m.str("type")}")
         }
         worker.execute { if (!disposed) handle(m) }
@@ -130,8 +152,24 @@ class DesignerSession(
                 }
                 "apply" -> {
                     val ops = m.get("ops")?.asJsonArray ?: JsonArray()
-                    checkOps(ops)
-                    show(write(ops, nameFor(ops)), m.get("select"))
+                    val adds = addsIn(m)
+                    if (adds == null) {
+                        checkOps(ops)
+                        show(write(ops, nameFor(ops)), m.get("select"))
+                    } else {
+                        addArrived = true
+                        try {
+                            checkOps(ops)
+                            val view = write(ops, nameFor(ops))
+                            val count = listOf("items", "tray").sumOf { view.getAsJsonArray(it)?.size() ?: 0 }
+                            log.info("Formwork add: done ($adds); the form now has $count components")
+                            show(view, m.get("select"))
+                        } catch (e: Throwable) {
+                            log.warn("Formwork add: adding $adds failed: ${e.message}", e)
+                            notifyAddFailed("${e.message ?: e.javaClass.simpleName}")
+                            throw e
+                        }
+                    }
                 }
                 "undo" -> undoRedo(undo = true)
                 "redo" -> undoRedo(undo = false)
@@ -191,6 +229,45 @@ class DesignerSession(
         } catch (e: Throwable) {
             report(e)
         }
+    }
+
+    // ---- diagnosing adds (see "How to check the add-a-control fix" in TESTING-FOR-JACOB.md) ------------------
+
+    @Volatile private var lastSeq = 0L
+    @Volatile private var pickedTool: String? = null
+    @Volatile private var releasedByIde = false
+    @Volatile private var addArrived = false
+
+    /** The controls an "apply" message adds, e.g. "System.Windows.Forms.Button", or null if it adds none. */
+    private fun addsIn(m: JsonObject): String? {
+        if (m.str("type") != "apply") return null
+        val types = m.get("ops")?.takeIf { it.isJsonArray }?.asJsonArray
+            ?.mapNotNull { o -> o.takeIf { it.isJsonObject }?.asJsonObject?.takeIf { it.str("op") == "add" }?.let { it.str("type") ?: "(no type)" } }
+        return types?.takeIf { it.isNotEmpty() }?.joinToString(", ")
+    }
+
+    /** The native Toolbox picked a tool (null: the Pointer). */
+    fun toolPickedInIde(type: String?) {
+        if (type == null) { releasedByIde = true } else { pickedTool = type; releasedByIde = false }
+    }
+
+    /** The page went back to the Pointer after placing [type]: its add must arrive within a few seconds. */
+    private fun watchForAdd(type: String) {
+        addArrived = false
+        worker.schedule({
+            if (!disposed && !addArrived) {
+                log.warn("Formwork add: the page put the Toolbox back on the Pointer after placing $type, but no add arrived")
+            }
+        }, 3, TimeUnit.SECONDS)
+    }
+
+    private fun notifyAddFailed(why: String) {
+        if (disposed) return
+        NotificationGroupManager.getInstance().getNotificationGroup("Formwork").createNotification(
+            "Formwork couldn't add the control",
+            "$why<br>Details are in Help → Show Log in Files (lines with \"Formwork add:\").",
+            NotificationType.ERROR,
+        ).notify(project)
     }
 
     fun nameFor(ops: JsonArray?): String {
@@ -341,8 +418,12 @@ class DesignerSession(
 
     /** Applies ops in the host, then its writes to Rider's documents as one undoable command. */
     private fun write(ops: JsonArray, name: String): JsonObject {
+        val adding = ops.any { it.isJsonObject && it.asJsonObject.str("op") == "add" }
+        if (adding) log.info("Formwork add: asking the designer host")
         val response = ensureHost().call("apply", JsonObject().apply { add("ops", ops) }, files())
-        val view = response.result!!.asJsonObject
+        val view = response.result?.takeIf { it.isJsonObject }?.asJsonObject
+            ?: throw HostException("internal", "The designer host gave no answer to the edit.")
+        if (adding) log.info("Formwork add: host answered; it changed ${response.writes.keys.map { File(it).name }.ifEmpty { listOf("no files") }}")
         applyWrites(response.writes, name, view.handlerIfCreated())
         return view
     }
@@ -357,6 +438,8 @@ class DesignerSession(
      */
     private fun applyWrites(writes: Map<String, String>, name: String, createdHandler: JsonObject?) {
         if (writes.isEmpty()) return
+        val written = ArrayList<String>()
+        val skipped = ArrayList<String>()
         onEdt {
             applyingOwnWrites = true
             try {
@@ -371,14 +454,18 @@ class DesignerSession(
                             val file = File(path)
                             // Only the form's own three files: the host runs project code in trusted projects, so a
                             // write to any other path is refused, whatever the host says.
-                            if (file.canonicalPath !in allowed) { log.warn("Refused a designer write outside the form: $path"); continue }
+                            if (file.canonicalPath !in allowed) { log.warn("Formwork add: refused a designer write outside the form: $path"); continue }
                             var v = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file)
                             if (v == null) {
-                                val dir = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file.parentFile) ?: continue
+                                val dir = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file.parentFile)
+                                if (dir == null) { skipped += "${file.name} (its folder isn't visible to Rider)"; continue }
                                 v = dir.createChildData(this, file.name)
                             }
-                            val doc = FileDocumentManager.getInstance().getDocument(v) ?: continue
+                            val doc = FileDocumentManager.getInstance().getDocument(v)
+                            if (doc == null) { skipped += "${file.name} (Rider has no editable document for it)"; continue }
+                            if (!doc.isWritable) { skipped += "${file.name} (read-only)"; continue }
                             DocumentDiff.replace(doc, text)
+                            written += file.name
                             // A fresh handler stub: indent its empty line now, in this same command, so the
                             // cursor can sit there as in VS and one Ctrl+Z takes the whole handler away.
                             if (createdHandler != null && file == form.code) {
@@ -394,6 +481,8 @@ class DesignerSession(
             listenToDocuments()
             onFilesChanged()
         }
+        log.info("Formwork add: wrote ${written.ifEmpty { listOf("nothing") }} ($name)")
+        if (skipped.isNotEmpty()) throw HostException("edit", "Formwork couldn't change ${skipped.joinToString(", ")}.")
     }
 
     // ---- undo / reload ------------------------------------------------------------------------------------
@@ -465,16 +554,17 @@ class DesignerSession(
                 e.line?.let { addProperty("line", it) }; e.column?.let { addProperty("column", it) }
             })
             e is HostException -> {
-                if (e.detail != null) log.warn("Designer host: ${e.message}\n${e.detail}")
+                log.warn("Formwork designer: ${e.message}" + (e.detail?.let { "\n$it" } ?: ""))
                 post(JsonObject().apply { addProperty("type", "error"); addProperty("message", e.message) })
             }
             e is HostNotAvailable -> {
+                log.warn("Formwork designer: the designer host isn't available: ${e.message}")
                 post(JsonObject().apply { addProperty("type", "error"); addProperty("message", e.message) })
                 post(JsonObject().apply { addProperty("type", "fwFatal"); addProperty("message", e.message); addProperty("needsDotnet", e.needsDotnet) })
                 if (e.needsDotnet) DotnetNotifier.notifyMissing(project, e.message ?: "")
             }
             else -> {
-                log.warn("Formwork designer", e)
+                log.warn("Formwork designer: ${e.message}", e)
                 post(JsonObject().apply { addProperty("type", "error"); addProperty("message", e.message ?: e.toString()) })
             }
         }

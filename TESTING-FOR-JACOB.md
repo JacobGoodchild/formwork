@@ -156,6 +156,27 @@ check it before you rely on it:
 5. If anything is wrong: your original project file is saved next to it as `<name>.csproj.formwork.bak`.
    Delete the `.csproj`, rename the `.bak` file back to `.csproj`, and tell me what happened (part 5).
 
+## How to check the add-a-control fix
+
+You found that adding a control (drag, click-then-click, or drawing a rectangle) did nothing in Rider 2026.1.
+The new plugin sends the designer's messages to Rider one at a time and writes every step of an add into Rider's
+log, and if an add fails you now get a red note in the bottom-right corner saying why.
+
+1. Get the newest plugin zip (newest green **CI** run → **Artifacts** → **formwork-plugin**, as in part 2) and
+   install it the same way (Rider asks to restart: say yes).
+2. Open `samples/VsTemplate.Net8` again, double-click `Form1.cs`, and try all three ways: drag **Button** onto the
+   form; click **Button** then click the form; click **Button** then draw a rectangle on the form.
+3. ✅ Each time a new button (`button1`, `button2`, …) should appear.
+4. Whatever happens, copy the log lines about adding: open the **Terminal** and paste this:
+
+   ```bash
+   grep -i "formwork add" ~/.cache/JetBrains/Rider*/log/idea.log | tail -40
+   ```
+
+   *It prints the last 40 lines that mention "Formwork add". If it works, you'll see lines ending in "done
+   (System.Windows.Forms.Button)". If not, the lines say where it stopped.* Paste them into an issue (part 5),
+   together with any red note Rider showed.
+
 ## 5. If something goes wrong
 
 1. In Rider: **Help → Show Log in Files**. A folder opens with a file called `idea.log`.

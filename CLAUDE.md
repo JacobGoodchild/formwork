@@ -20,6 +20,27 @@ stretch went on tidying up: Lock Controls' padlock, and bringing README / TESTIN
 Not done on purpose: no GitHub Release was made (that needs a version tag pushed, which I left for Jacob to
 decide; pushing a tag like `v0.1.0` runs CI's release job, which attaches the zip and its SHA-256).
 
+## Add-a-control fix (5 Nov, 14:35 UK, short fix session)
+
+**Jacob's report (real Rider 2026.1):** the designer opens, Properties edits and form resizing work, but adding any
+control (drag, click-click, draw a rectangle) did nothing, with nothing from Formwork in idea.log.
+**What I found:** (1) every failing way sends two page messages in the same instant (the tool is back on the
+Pointer, then the add); the working page edit (form resize) sends one. The page sent them through JCEF's query
+channel without waiting, with no answer requested, so a lost one left no trace. Most likely cause, but **not
+reproduced**: in IDEA 2026.1 and 2026.2 adds worked before and after the fix, even with the project built and its own
+controls loaded. (2) Failures were silent: a designer-host error only went to the page; two "skip" branches in
+applyWrites just `continue`d; and the log lines that did exist were filed under `#d.f.e.DesignerSession` with no
+"formwork" in the text, so grepping for "formwork" missed them.
+**What I changed:** bridge.js now sends messages one at a time, each waiting for Rider's confirmation (the handler
+answers "ok"), retries an unconfirmed one once after 4 s, then reports it; messages carry numbers and Rider logs any
+gap. Every step of an add is logged at INFO with "Formwork add:" (Toolbox pick, drop, page tool change, add request,
+host answer, files written, done); every failure is logged at WARN and shows a Rider notification ("Formwork couldn't
+add the control" + why); a page that goes back to the Pointer without sending an add within 3 s is logged; the old
+silent skips in applyWrites now report what they couldn't change. Proof in IDEA 2026.1 (built VsTemplate.Net8, all
+three ways, button1-3, the "Formwork add:" lines as expected, no warnings): S `addfix-dark-three-ways-in-idea-2026.1.png`.
+The failure notification itself was not seen (I couldn't make an add fail here). **Jacob:** see "How to check the
+add-a-control fix" in TESTING-FOR-JACOB.md.
+
 ## Rider 2026.1 support (added 5 Nov, after the first night, at Jacob's request)
 
 The plugin now installs on **2026.1 and newer** (`since-build` 261, was 262). The only real difference: JCEF (the
