@@ -20,7 +20,7 @@ index 60a192a..bb9f9f0 100644
 +.type-here::placeholder { color: #8a8a8a; }
 +.type-here:focus { border-color: #0078d4; }
 diff --git a/designer/media/designer.js b/designer/media/designer.js
-index 4898450..148921a 100644
+index 4898450..c0c4f09 100644
 --- a/designer/media/designer.js
 +++ b/designer/media/designer.js
 @@ -44,6 +44,7 @@
@@ -185,7 +185,7 @@ index 4898450..148921a 100644
  		if (state.smartOpen && !(state.selection.length === 1 && state.selection[0] === state.smartOpen)) state.smartOpen = null;
  		state.props = null;
  		state.events = null;
-@@ -802,7 +899,77 @@
+@@ -802,9 +899,95 @@
  
  	// --- handles and badges -------------------------------------------------------------------------
  
@@ -262,8 +262,26 @@ index 4898450..148921a 100644
 +		drawTypeHere(canvas);
  		const id = primaryId();
  		const it = itemById(id);
++		if (state.selection.length > 1 && !state.locked) {
++			// A multiple selection, as VS draws it: the primary control (the reference for Format commands) has
++			// white handles, the others dark ones.
++			for (const sid of state.selection) {
++				const s2 = itemById(sid);
++				if (!s2 || !s2.visible || !s2.resizable || s2.kind !== 'control') continue;
++				for (const edge of G.resizeEdges(s2.dock)) {
++					const h = el('div', sid === id ? 'handle primary' : 'handle');
++					h.style.left = (edge.includes('w') ? s2.x : edge.includes('e') ? s2.x + s2.w : s2.x + s2.w / 2) + 'px';
++					h.style.top = (edge.includes('n') ? s2.y : edge.includes('s') ? s2.y + s2.h : s2.y + s2.h / 2) + 'px';
++					h.style.pointerEvents = 'none';
++					canvas.append(h);
++				}
++			}
++			return;
++		}
  		if (!it || state.selection.length !== 1 || !it.visible || state.locked) return;
-@@ -850,6 +1017,7 @@
+ 		if (it.smartTag && it.kind === 'control') drawSmartTag(canvas, it);
+ 		if (it.container && it.movable && it.kind === 'control') {
+@@ -850,6 +1033,7 @@
  		if (e.button !== 0 || state.busy || state.tabOrder) return;
  		if (e.target.classList.contains('handle') || e.target.classList.contains('form-grip') || e.target.classList.contains('tl-grip')) return;
  		const p = canvasPoint(e);
@@ -271,7 +289,7 @@ index 4898450..148921a 100644
  		const hit = G.hitTest(state.view.items, p.x, p.y);
  		const additive = e.ctrlKey || e.shiftKey;
  		// A SplitContainer's splitter is dragged, as in VS: SplitterDistance follows.
-@@ -1229,6 +1397,7 @@
+@@ -1229,6 +1413,7 @@
  			e.preventDefault();
  			return;
  		}
@@ -279,7 +297,7 @@ index 4898450..148921a 100644
  		if (e.key === 'Escape') {
  			// Up one level, as in VS: the container of the selection, then the form.
  			const it = itemById(primaryId());
-@@ -1239,11 +1408,24 @@
+@@ -1239,11 +1424,24 @@
  		const arrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
  		if (arrows[e.key] && !state.locked) {
  			const [ax, ay] = arrows[e.key];
@@ -306,7 +324,7 @@ index 4898450..148921a 100644
  			} else {
  				const only = movableSelection().length === 1 ? itemById(movableSelection()[0]) : null;
  				if (only && only.flowIndex !== undefined && only.flowIndex !== null) {
-@@ -2443,6 +2625,66 @@
+@@ -2443,6 +2641,66 @@
  		apply(ops, state.selection);
  	}
  
@@ -373,7 +391,7 @@ index 4898450..148921a 100644
  	// --- status and toasts --------------------------------------------------------------------------
  
  	function renderStatus(text) {
-@@ -2467,5 +2709,27 @@
+@@ -2467,5 +2725,27 @@
  	}
  
  	renderAll();
