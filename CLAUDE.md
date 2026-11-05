@@ -113,12 +113,12 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 ### C. Canvas (Must)
 - [x] Click / Ctrl/Shift+click / rubber-band select — **Partial**: click verified (S `story-dark-04…`); Ctrl/Shift/rubber band are NetForms webview features, untested.
 - [x] Primary selection white handles, others dark — **Verified**: one control: dotted outline + 8 white squares with dark borders (S `stage2-light-selection-handles-zoom.png`); multi-selection: primary (last selected) white, others dark (S `stage2-light-multi-select-primary-white-others-dark.png`). Format commands use the primary as reference. Form grips only while the form is selected.
-- [ ] Move, resize, form resize handles — **Done (unverified)** (NetForms webview).
-- [ ] Snaplines — **Done (unverified)** (NetForms has edge/baseline/margin snaplines; colours not compared with VS yet).
+- [x] Move, resize, form resize handles — **Verified** for move (S `stage2-light-drag-move-with-snaplines.png`) and resize by handle (S `stage2-light-resize-by-handle.png`); form grips right/bottom/corner shown (S `stage2-dark-whole-form-maximised.png`), dragging them not screenshot-tested.
+- [ ] Snaplines — **Partial, verified for spacing lines**: blue dashed margin/spacing lines and the ghost outline while dragging (S `stage2-light-drag-move-with-snaplines.png`). Edge lines are magenta/orange in NetForms (VS: blue edges, magenta baselines) — colours not changed.
 - [ ] Keyboard nudge/resize as VS — **Partial, Ctrl+arrow verified**: arrows 1 px, Shift+arrows resize 1 px (NetForms); Ctrl+arrow now jumps to the next snapline (neighbour edges, margin spacing, container padding) — OK button 114 → 90, aligned with the text boxes (S `stage2-light-ctrl-left-jumps-to-snapline.png`, Designer.cs `Point(90, 85)`); Ctrl+Shift+arrow resizes to the next snapline (Done, unverified). Added to patch 0002.
 - [ ] Tab / Shift+Tab, Escape selects parent — **Partial**: Escape → parent exists; Tab order cycling untested.
 - [ ] Drop into containers; move glyph — **Done (unverified)**.
-- [ ] Delete, Ctrl+X/C/V, Ctrl+A — **Done (unverified)** (copy/cut/paste go through Rider's clipboard).
+- [x] Delete, Ctrl+X/C/V, Ctrl+A — **Verified** for Delete, Ctrl+Z after it, Ctrl+C/Ctrl+V (copy named `button1` as VS names it when the name is taken) (S `stage2-light-delete-undo-copy-paste.png`). Cut, Ctrl+A and paste into another form: Done (unverified).
 - [x] Undo/redo joined with Rider's undo — **Verified**: Ctrl+Z in the designer runs Rider's undo; after 2× Ctrl+Z + save, both files are byte-identical to the template (story run 5, 20:24). S `story-dark-07-after-ctrl-z-handler-gone.png` then `story-dark-08-after-second-ctrl-z-button-gone.png` (re-taken 00:35 with the native tool windows: the button visibly disappears).
 - [ ] Docked controls: free-edge resize only — **Done (unverified)** (NetForms README says so).
 
