@@ -56,9 +56,34 @@ class ProjectConverterTest {
     @Test
     fun `projects that can't or needn't be changed say why`() {
         assertTrue(ProjectConverter.convert("""<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net8.0</TargetFramework></PropertyGroup></Project>""") is ProjectConverter.Result.NotPossible)
-        assertTrue(ProjectConverter.convert("""<Project Sdk="Microsoft.NET.Sdk"><ItemGroup><PackageReference Include="NetForms" Version="0.1.5" /></ItemGroup></Project>""") is ProjectConverter.Result.AlreadyDone)
+        val netformsOnly = ProjectConverter.convert("""<Project Sdk="Microsoft.NET.Sdk"><ItemGroup><PackageReference Include="NetForms" Version="0.1.5" /></ItemGroup></Project>""")
+        assertTrue(netformsOnly is ProjectConverter.Result.Converted, "a NetForms project without the colour step is offered just that")
+        assertTrue(ProjectConverter.convert((netformsOnly as ProjectConverter.Result.Converted).text) is ProjectConverter.Result.AlreadyDone)
         val old = File(TestSupport.repo, "external/NetForms/tests/Fixtures/NetFrameworkApp/FrameworkApp.csproj").readText()
         assertTrue(ProjectConverter.convert(old) is ProjectConverter.Result.OldFormat)
+    }
+}
+
+class WindowsColoursTest {
+    private val sample = File(TestSupport.repo, "samples/VsTemplate.Net8/WinFormsApp1/WinFormsApp1.csproj")
+
+    @Test
+    fun `converting twice changes nothing the second time`() {
+        val once = (ProjectConverter.convert(sample.readText()) as ProjectConverter.Result.Converted).text
+        assertTrue(ProjectConverter.hasWindowsColours(once))
+        assertTrue(ProjectConverter.convert(once) is ProjectConverter.Result.AlreadyDone)
+    }
+
+    @Test
+    fun `a project converted before the colour step gets only that added, every other line kept`() {
+        val now = (ProjectConverter.convert(sample.readText()) as ProjectConverter.Result.Converted).text
+        val start = now.indexOf("  <!-- Penguin Forms: on Linux, paint")
+        val end = now.indexOf("</Target>", start) + "</Target>\r\n\r\n".length
+        val older = now.removeRange(start, end) // what version 0.1.0 wrote
+        assertTrue(!ProjectConverter.hasWindowsColours(older))
+        val upgraded = ProjectConverter.convert(older)
+        assertTrue(upgraded is ProjectConverter.Result.Converted)
+        assertEquals(now, (upgraded as ProjectConverter.Result.Converted).text)
     }
 }
 

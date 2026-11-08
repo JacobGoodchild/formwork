@@ -34,8 +34,65 @@ object ProjectConverter {
     fun alreadyWorksOnLinux(text: String): Boolean =
         Regex("""<PackageReference\s+Include\s*=\s*"NetForms"""", RegexOption.IGNORE_CASE).containsMatchIn(text)
 
+    /** The Linux-only build step that makes the running app paint Windows 10/11's system colours ([windowsColoursBlock]). */
+    const val COLOURS_TARGET = "PenguinFormsWindowsColours"
+
+    fun hasWindowsColours(text: String): Boolean = text.contains("Name=\"$COLOURS_TARGET\"")
+
+    /**
+     * On Linux, .NET's built-in system colours are Windows XP's (forms beige, #ECE9D8). NetForms carries Windows
+     * 10/11's table (forms #F0F0F0, what Visual Studio's designer and a Windows PC show) but keeps the switch internal.
+     * This build step, for the Linux build only, generates one file under obj/ that turns it on when the app starts.
+     * It only changes how colours are *painted*: `SystemColors.Control` still reports the same value, so code that
+     * compares colours behaves the same. The user's own files are not touched, and Visual Studio never runs it.
+     */
+    fun windowsColoursBlock(i1: String, i2: String, nl: String): String {
+        val i3 = i2 + i1
+        val file = "\$(IntermediateOutputPath)PenguinForms.WindowsColours.g.cs"
+        val code = "// &lt;auto-generated /&gt; by Penguin Forms (see the project file);#pragma warning disable;" +
+            "internal static class PenguinFormsWindowsColours { [System.Runtime.CompilerServices.ModuleInitializer] internal static void Install() { " +
+            "try { var t = typeof(System.Drawing.Graphics).Assembly.GetType(&quot;System.Drawing.HermeticRendering&quot;)%3B " +
+            "var p = t?.GetField(&quot;WindowsDefaultPalette&quot;)?.GetValue(null)%3B " +
+            "if (p != null) t!.GetProperty(&quot;Palette&quot;)?.SetValue(null, p)%3B } catch (System.Exception) { } } }"
+        return buildString {
+            append("$i1<!-- Penguin Forms: on Linux, paint Windows 10/11's system colours (light grey #F0F0F0 forms, not .NET's beige),$nl")
+            append("$i1     so the running app looks like the designer. Only adds a generated file under obj/; your code files are unchanged.$nl")
+            append("$i1     To turn it off, add <$COLOURS_TARGET>false</$COLOURS_TARGET> to a PropertyGroup. -->$nl")
+            append("$i1<Target Name=\"$COLOURS_TARGET\" BeforeTargets=\"CoreCompile\" Condition=\"'\$(OS)' != 'Windows_NT' and '\$($COLOURS_TARGET)' != 'false' and '\$(Language)' == 'C#'\">$nl")
+            append("$i2<WriteLinesToFile File=\"$file\" Overwrite=\"true\" WriteOnlyWhenDifferent=\"true\" Lines=\"$code\" />$nl")
+            append("$i2<ItemGroup>$nl")
+            append("$i3<Compile Include=\"$file\" />$nl")
+            append("$i3<FileWrites Include=\"$file\" />$nl")
+            append("$i2</ItemGroup>$nl")
+            append("$i1</Target>$nl")
+        }
+    }
+
+    /** [text] with [windowsColoursBlock] added just before `</Project>`, indented and with line endings like the file. */
+    fun addWindowsColours(text: String): String {
+        if (hasWindowsColours(text)) return text
+        val end = text.lastIndexOf("</Project>").takeIf { it >= 0 } ?: return text
+        val nl = if (text.contains("\r\n")) "\r\n" else "\n"
+        val indent = Regex("""^([ \t]+)<""", RegexOption.MULTILINE).find(text)?.groupValues?.get(1) ?: "  "
+        val unit = if (indent.startsWith("\t")) "\t" else indent
+        val before = text.substring(0, end).trimEnd(' ', '\t')
+        val sep = if (before.endsWith("$nl$nl")) "" else nl
+        return before + sep + windowsColoursBlock(unit, unit + unit, nl) + nl + text.substring(end)
+    }
+
     fun convert(text: String): Result {
-        if (alreadyWorksOnLinux(text)) return Result.AlreadyDone("This project already references NetForms, so it already works on Linux.")
+        if (alreadyWorksOnLinux(text)) {
+            if (!hasWindowsColours(text) && text.lastIndexOf("</Project>") >= 0) return Result.Converted(
+                addWindowsColours(text),
+                listOf(
+                    "This project already works on Linux. This adds one thing: when it runs on Linux, forms are light grey like on Windows and in the designer, instead of beige.",
+                    "On Windows (Visual Studio at college) nothing changes.",
+                    "Your code files are not touched.",
+                ),
+                emptyList(),
+            )
+            return Result.AlreadyDone("This project already references NetForms, so it already works on Linux.")
+        }
         if (isOldFormat(text)) return if (usesWindowsForms(text)) Result.OldFormat else Result.NotPossible("This project doesn't use Windows Forms, so there's nothing to change.")
         if (!useWinFormsLine.containsMatchIn(text)) return Result.NotPossible("This project doesn't use Windows Forms (it has no <UseWindowsForms>true</UseWindowsForms>), so there's nothing to change.")
         if (tfmsLine.containsMatchIn(text)) return Result.NotPossible("This project builds for several frameworks at once (<TargetFrameworks>). Penguin Forms can only change projects with one <TargetFramework>; please ask for help with this one.")
@@ -80,11 +137,12 @@ object ProjectConverter {
             append("$i2<Using Include=\"System.Windows.Forms\" />$nl")
             append("$i1</ItemGroup>$nl")
         }
-        out = out.substring(0, lineEnd) + block + out.substring(lineEnd)
+        out = addWindowsColours(out.substring(0, lineEnd) + block + out.substring(lineEnd))
 
         val notes = listOf(
             "On Windows (Visual Studio at college) nothing changes: the project still uses the real Windows Forms with $tfm.",
             "On Linux the same code builds with .NET 10 and NetForms $NETFORMS_VERSION (downloaded from NuGet the first time you build).",
+            "On Linux the running app also gets Windows 10/11's colours (light grey forms, not beige), like the designer.",
             "Your code files (Program.cs, Form1.cs, Form1.Designer.cs) are not touched.",
         )
         return Result.Converted(out, notes, warnings)

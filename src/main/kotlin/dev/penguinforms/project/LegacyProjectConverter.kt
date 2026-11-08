@@ -60,7 +60,7 @@ object LegacyProjectConverter {
             append("    <PackageReference Include=\"NetForms\" Version=\"$version\" />$nl")
             append("  </ItemGroup>$nl")
         }
-        return out.substring(0, groupEnd) + block + out.substring(groupEnd)
+        return ProjectConverter.addWindowsColours(out.substring(0, groupEnd) + block + out.substring(groupEnd))
     }
 
     /** Converts a copy of the project's folder with NetForms' converter, then makes it two-world. */

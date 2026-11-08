@@ -19,6 +19,10 @@ class ProjectBuildTest {
     @ValueSource(strings = ["VsTemplate.Net8", "VsTemplate.Net9", "VsTemplate.Net10", "Calculator", "LoginForm", "MenuDemo", "TabsDemo", "TimerPicture"])
     fun `converted sample builds on Linux`(sample: String) {
         val dir = TestSupport.copySample(sample)
+        try { buildConverted(dir) } finally { dir.deleteRecursively() } // each build is ~0.5 GB (Skia/Avalonia natives)
+    }
+
+    private fun buildConverted(dir: File) {
         val csproj = dir.walkTopDown().first { it.name.endsWith(".csproj") }
         val result = ProjectConverter.convert(csproj.readText())
         assertTrue(result is ProjectConverter.Result.Converted, result.toString())
@@ -30,6 +34,7 @@ class ProjectBuildTest {
         assertEquals(0, p.exitValue(), out)
         val name = csproj.name.removeSuffix(".csproj")
         assertTrue(File(csproj.parentFile, "bin/Debug/net10.0/$name.dll").isFile, "built for net10.0 with NetForms")
+        assertTrue(File(csproj.parentFile, "obj/Debug/net10.0/PenguinForms.WindowsColours.g.cs").isFile, "the Windows-colours step ran")
         assertTrue(Regex("""\b0 Error""").containsMatchIn(out) || !out.contains("error"), out)
     }
 }

@@ -20,6 +20,23 @@ stretch went on tidying up: Lock Controls' padlock, and bringing README / TESTIN
 Not done on purpose: no GitHub Release was made (that needs a version tag pushed, which I left for Jacob to
 decide; pushing a tag like `v0.1.0` runs CI's release job, which attaches the zip and its SHA-256).
 
+## 8 Nov session (3 hours, Jacob's go-ahead: "refer to the plan you just wrote")
+
+Plan, in order: (1) running app looks like the designer, (2) Design and Code as two tabs, (3) Marketplace prep
+(icon, change notes, plugin verifier), then checking unverified features.
+
+**(1) Running app colours — done.** "Make This Project Work on Linux Too" now also adds a Linux-only build step
+(`PenguinFormsWindowsColours` target) that generates `obj/.../PenguinForms.WindowsColours.g.cs`: a module
+initializer that switches on NetForms' built-in Windows 10/11 colour table (an internal switch, set by reflection, as
+the designer host does). Forms are #F0F0F0 instead of beige; `SystemColors.Control` still *reports* the same value
+(only painting changes), so code comparing colours is unaffected. Code files untouched; Visual Studio never runs it
+(OS condition); opt-out with `<PenguinFormsWindowsColours>false</...>`. Projects converted earlier: running the command
+again offers just this addition. Evidence: T `WindowsColoursTest` (twice = no change; old conversion gets only the
+block), golden files updated, `ProjectBuildTest` 8/8 build on Linux and the generated file is checked;
+S `runapp-linux-windows-colours-before-after.png`. **Not fixed: buttons stay Windows 10 grey in the running app** —
+the white Windows 11 face is our NetForms patch 0004, which only the designer host has; the NuGet NetForms 0.1.5 has
+no switch for it (would need NetForms upstream to add one).
+
 ## Renamed: Formwork → Penguin Forms (5 Nov, 17:45 UK, at Jacob's request)
 
 Name: just **"Penguin Forms"** (Jacob's decision after checking the Marketplace rules: names are at most 30 characters
@@ -332,9 +349,8 @@ The session was stopped from 21:28 to 00:06 UK (usage limit / worker restart); t
 
 1. **Sandbox Rider can't be tested here** (login needed). UI tested in IntelliJ IDEA 2026.2.4; Rider-only
    checks are listed in `TESTING-FOR-JACOB.md`.
-2. **The running app's background is beige (#ECE9D8) on Linux**, not Windows' #F0F0F0. This is NetForms'
-   deliberate choice (its PLAN.md decision 10: keep .NET's own Linux system colours so code comparing
-   `SystemColors.Control` keeps working). The designer shows #F0F0F0 like VS. Not changed.
+2. ~~The running app's background is beige on Linux~~ **Fixed 8 Nov**: converted projects get a Linux-only build step
+   that paints Windows 10/11 colours (#F0F0F0). Buttons in the running app are still Windows 10 grey (see 9).
 3. **No WebBrowser control** in the toolbox (Internet Explorer ActiveX, Windows-only; NetForms has none).
 4. **Sub-tab is called "Text", not "Code"** (it's Rider's own C# editor; renaming means wrapping it).
 5. **Renaming a control** updates `Form1.Designer.cs` and `Form1.cs` (Roslyn-accurate), but not other

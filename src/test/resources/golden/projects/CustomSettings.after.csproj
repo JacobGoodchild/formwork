@@ -27,4 +27,15 @@
     <Content Include="app.ico" />
   </ItemGroup>
 
+  <!-- Penguin Forms: on Linux, paint Windows 10/11's system colours (light grey #F0F0F0 forms, not .NET's beige),
+       so the running app looks like the designer. Only adds a generated file under obj/; your code files are unchanged.
+       To turn it off, add <PenguinFormsWindowsColours>false</PenguinFormsWindowsColours> to a PropertyGroup. -->
+  <Target Name="PenguinFormsWindowsColours" BeforeTargets="CoreCompile" Condition="'$(OS)' != 'Windows_NT' and '$(PenguinFormsWindowsColours)' != 'false' and '$(Language)' == 'C#'">
+    <WriteLinesToFile File="$(IntermediateOutputPath)PenguinForms.WindowsColours.g.cs" Overwrite="true" WriteOnlyWhenDifferent="true" Lines="// &lt;auto-generated /&gt; by Penguin Forms (see the project file);#pragma warning disable;internal static class PenguinFormsWindowsColours { [System.Runtime.CompilerServices.ModuleInitializer] internal static void Install() { try { var t = typeof(System.Drawing.Graphics).Assembly.GetType(&quot;System.Drawing.HermeticRendering&quot;)%3B var p = t?.GetField(&quot;WindowsDefaultPalette&quot;)?.GetValue(null)%3B if (p != null) t!.GetProperty(&quot;Palette&quot;)?.SetValue(null, p)%3B } catch (System.Exception) { } } }" />
+    <ItemGroup>
+      <Compile Include="$(IntermediateOutputPath)PenguinForms.WindowsColours.g.cs" />
+      <FileWrites Include="$(IntermediateOutputPath)PenguinForms.WindowsColours.g.cs" />
+    </ItemGroup>
+  </Target>
+
 </Project>
