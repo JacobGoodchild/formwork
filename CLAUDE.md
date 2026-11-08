@@ -69,7 +69,7 @@ contact email, signing key, first upload by hand, updates). Not decided by me: t
 Horizontal Spacing → Increase (fixed: primary stays put, as VS), Center in Form → Horizontally, and Escape: verified.
 **Tab / Shift+Tab didn't work at all** (no handler in the page) — added and verified. See the checklist (C, F).
 Also verified: Font dialog, Dock picker (+ docked free-edge handle), Anchor dialog, Reset, ComboBox Items editor (D).
-Multi-selection now shows only shared properties (D). Plugin checker: the one internal-API call (PluginManagerCore.getPlugin)
+Multi-selection now shows only shared properties (D). NuGet packages of the host are checksum-locked (Known gap 11). Plugin checker: the one internal-API call (PluginManagerCore.getPlugin)
 replaced by public PluginManager.getPluginByClass. Deprecated/experimental warnings remain (not failures); one of them,
 TrustedProjects.isTrusted, is kept on purpose: its replacement `trustedProjects.TrustedProjects.isProjectTrusted(Project)`
 is marked @ApiStatus.Internal in 2026.1, which the Marketplace would reject. Then Rider 2026.2 flagged PluginManager.getPluginByClass as internal too,
@@ -410,8 +410,11 @@ The session was stopped from 21:28 to 00:06 UK (usage limit / worker restart); t
    `stage2-render-windows11-buttons.png`), as VS on Windows 11. The app *running on Linux* still has NetForms'
    Windows 10 grey buttons, so designer and Linux run differ slightly here (at college they match).
 12. **No magenta text-baseline snaplines** (NetForms has edge, margin and centre lines only).
-11. **Dependency checksums:** versions are pinned and the Gradle wrapper is checksum-verified, but NuGet
-   packages and Maven artifacts aren't checksum-locked (no lock files / verification metadata yet).
+11. **Dependency checksums:** versions are pinned and the Gradle wrapper is checksum-verified. **NuGet: locked
+   since 8 Nov** — `host/Formwork.Host/packages.lock.json` holds the SHA-512 of all 42 packages the designer host uses
+   (NetForms' included); CI restores in locked mode (checked: an altered lock entry stops the restore). Still not locked:
+   Maven/Gradle artifacts (no verification metadata: the IDE downloads differ per IDE and would make it brittle) and
+   NetForms' own converter tool (it lives in the submodule).
 10. Toolbox icons are Formwork's own simple drawings (NetForms has none for built-in controls; VS's
    can't be copied).
 

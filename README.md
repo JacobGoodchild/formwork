@@ -80,7 +80,7 @@ checker runs against Rider 2026.1 and 2026.2 (see docs/MARKETPLACE.md).
   at college before relying on it.
 - No magenta text-baseline snaplines; no snap-to-grid while dragging; menu items can be reordered by dragging
   within their menu, but not dragged into a different menu.
-- NuGet and Maven downloads are version-pinned but not checksum-locked yet.
+- Maven/Gradle downloads are version-pinned but not checksum-locked (the designer host's NuGet packages are).
 
 ## Privacy
 

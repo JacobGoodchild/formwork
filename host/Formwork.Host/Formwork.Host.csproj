@@ -14,6 +14,10 @@
     <RootNamespace>Formwork.Host</RootNamespace>
     <InvariantGlobalization>false</InvariantGlobalization>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <!-- Every NuGet package (also those NetForms brings) is recorded with its SHA-512 in packages.lock.json; on GitHub's
+         CI (CI=true) a package that differs from the lock file stops the build instead of being used. -->
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <RestoreLockedMode Condition="'$(CI)' == 'true'">true</RestoreLockedMode>
   </PropertyGroup>
   <ItemGroup>
     <None Include="../fonts/*.ttf;../fonts/Selawik-OFL.txt" Link="fonts/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
