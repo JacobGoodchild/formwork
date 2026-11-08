@@ -22,7 +22,7 @@ index 60a192a..6a3df96 100644
 +.handle.lock-glyph { width: 12px; height: 12px; margin: -6px 0 0 -6px; font-size: 9px; line-height: 11px; text-align: center;
 +	background: #fff; border: 1px solid #333; pointer-events: none; }
 diff --git a/designer/media/designer.js b/designer/media/designer.js
-index 4898450..d2d142f 100644
+index 4898450..32f5e76 100644
 --- a/designer/media/designer.js
 +++ b/designer/media/designer.js
 @@ -44,6 +44,7 @@
@@ -207,7 +207,7 @@ index 4898450..d2d142f 100644
  		if (state.smartOpen && !(state.selection.length === 1 && state.selection[0] === state.smartOpen)) state.smartOpen = null;
  		state.props = null;
  		state.events = null;
-@@ -802,9 +912,104 @@
+@@ -802,9 +912,135 @@
  
  	// --- handles and badges -------------------------------------------------------------------------
  
@@ -225,6 +225,11 @@ index 4898450..d2d142f 100644
 +		if (t === 'MenuStrip') { vertical = false; prop = 'Items'; }
 +		else if (t === 'ContextMenuStrip' && v.openMenu === owner.id) { vertical = true; prop = 'Items'; }
 +		else if (t === 'ToolStripMenuItem' && v.openMenu === owner.id) { vertical = true; prop = 'DropDownItems'; }
++		else if (t === 'ToolStripMenuItem' && !owner.hasDropDown && isInDropDown(owner)) {
++			// A menu item inside a drop-down: VS's "Type Here" to its right starts a sub-menu.
++			drawSubMenuTypeHere(canvas, owner);
++			return;
++		}
 +		else return;
 +		const kids = v.items.filter((i) => i.parent === owner.id && i.kind === 'item').sort((a, b) => (vertical ? a.y - b.y : a.x - b.x));
 +		const last = kids[kids.length - 1];
@@ -250,6 +255,32 @@ index 4898450..d2d142f 100644
 +		});
 +		canvas.append(box);
 +		if (state.typeHereAgain === owner.id) { state.typeHereAgain = null; setTimeout(() => box.focus(), 0); }
++	}
++
++	/** An item of an open drop-down (a menu's or a ContextMenuStrip's), not one on the menu bar itself. */
++	function isInDropDown(item) {
++		const parent = itemById(item.parent) || trayById(item.parent);
++		return !!parent && !/(^|\.)MenuStrip$/.test(parent.type) && !/(^|\.)StatusStrip$|(^|\.)ToolStrip$/.test(parent.type);
++	}
++
++	/** The sub-menu "Type Here" box beside [owner]: Enter adds its first DropDownItem and opens the new sub-menu. */
++	function drawSubMenuTypeHere(canvas, owner) {
++		const r = { x: owner.x + owner.w + 2, y: owner.y, w: 90, h: owner.h };
++		const box = el('input', 'type-here');
++		box.placeholder = T('Type Here');
++		Object.assign(box.style, { left: r.x * state.zoom + 'px', top: r.y * state.zoom + 'px', width: r.w * state.zoom + 'px', height: r.h * state.zoom + 'px' });
++		box.addEventListener('mousedown', (e) => e.stopPropagation());
++		box.addEventListener('keydown', (e) => {
++			e.stopPropagation();
++			if (e.key === 'Escape') { box.value = ''; box.blur(); return; }
++			if (e.key !== 'Enter' || !box.value.trim()) return;
++			const row = state.props && state.props.id === owner.id ? state.props.rows.find((x) => x.name === 'DropDownItems') : null;
++			if (!row) { toast(T('One moment: the menu is still loading.'), 'info'); return; }
++			state.typeHereAgain = owner.id; // the sub-menu's own Type Here gets the focus next
++			apply([{ op: 'setItems', id: owner.id, prop: 'DropDownItems', values: (row.items || []).concat([box.value]), ids: (row.itemIds || []).concat(['']) }], state.selection);
++			post({ type: 'menu', id: owner.id });
++		});
++		canvas.append(box);
 +	}
 +
 +	/**
@@ -312,7 +343,7 @@ index 4898450..d2d142f 100644
  		if (!it || state.selection.length !== 1 || !it.visible || state.locked) return;
  		if (it.smartTag && it.kind === 'control') drawSmartTag(canvas, it);
  		if (it.container && it.movable && it.kind === 'control') {
-@@ -850,6 +1055,7 @@
+@@ -850,6 +1086,7 @@
  		if (e.button !== 0 || state.busy || state.tabOrder) return;
  		if (e.target.classList.contains('handle') || e.target.classList.contains('form-grip') || e.target.classList.contains('tl-grip')) return;
  		const p = canvasPoint(e);
@@ -320,7 +351,7 @@ index 4898450..d2d142f 100644
  		const hit = G.hitTest(state.view.items, p.x, p.y);
  		const additive = e.ctrlKey || e.shiftKey;
  		// A SplitContainer's splitter is dragged, as in VS: SplitterDistance follows.
-@@ -1229,6 +1435,17 @@
+@@ -1229,6 +1466,17 @@
  			e.preventDefault();
  			return;
  		}
@@ -338,7 +369,7 @@ index 4898450..d2d142f 100644
  		if (e.key === 'Escape') {
  			// Up one level, as in VS: the container of the selection, then the form.
  			const it = itemById(primaryId());
-@@ -1239,11 +1456,24 @@
+@@ -1239,11 +1487,24 @@
  		const arrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
  		if (arrows[e.key] && !state.locked) {
  			const [ax, ay] = arrows[e.key];
@@ -365,7 +396,7 @@ index 4898450..d2d142f 100644
  			} else {
  				const only = movableSelection().length === 1 ? itemById(movableSelection()[0]) : null;
  				if (only && only.flowIndex !== undefined && only.flowIndex !== null) {
-@@ -2443,6 +2673,69 @@
+@@ -2443,6 +2704,69 @@
  		apply(ops, state.selection);
  	}
  
@@ -435,7 +466,7 @@ index 4898450..d2d142f 100644
  	// --- status and toasts --------------------------------------------------------------------------
  
  	function renderStatus(text) {
-@@ -2467,5 +2760,27 @@
+@@ -2467,5 +2791,27 @@
  	}
  
  	renderAll();

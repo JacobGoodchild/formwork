@@ -68,6 +68,8 @@ Multi-selection now shows only shared properties (D). Plugin checker: the one in
 replaced by public PluginManager.getPluginByClass. Deprecated/experimental warnings remain (not failures); one of them,
 TrustedProjects.isTrusted, is kept on purpose: its replacement `trustedProjects.TrustedProjects.isProjectTrusted(Project)`
 is marked @ApiStatus.Internal in 2026.1, which the Marketplace would reject.
+Also verified: Shift+click adds to the selection, rubber-band selects (C); the two tabs in the light theme
+(S `tabs-light-design-and-code-tabs-handler-in-idea-2026.1.png`); menu sub-menus via Type Here (G, new).
 
 ## Renamed: Formwork → Penguin Forms (5 Nov, 17:45 UK, at Jacob's request)
 
@@ -233,7 +235,7 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 - [x] Non-visual components go to the tray — **Verified**: "timer1 : Timer" in the tray under the form (S `stage2-dark-toolbox-search-and-tray.png`).
 
 ### C. Canvas (Must)
-- [x] Click / Ctrl/Shift+click / rubber-band select — **Partial**: click verified (S `story-dark-04…`); **Ctrl+click verified 8 Nov** (OK + Cancel, Cancel primary with white handles; S `check-dark-ctrl-click-multi-select-in-idea-2026.1.png`); Shift+click / rubber band untested.
+- [x] Click / Ctrl/Shift+click / rubber-band select — **Verified 8 Nov**: click (S `story-dark-04…`); Ctrl+click (S `check-dark-ctrl-click-multi-select-in-idea-2026.1.png`); Shift+click adds and becomes primary (S `check-dark-shift-click-adds-to-selection-…`); rubber band from empty form space selects OK + Cancel (S `check-dark-rubber-band-selects-two-buttons-…`).
 - [x] Primary selection white handles, others dark — **Verified**: one control: dotted outline + 8 white squares with dark borders (S `stage2-light-selection-handles-zoom.png`); multi-selection: primary (last selected) white, others dark (S `stage2-light-multi-select-primary-white-others-dark.png`). Format commands use the primary as reference. Form grips only while the form is selected.
 - [x] Move, resize, form resize handles — **Verified** for move (S `stage2-light-drag-move-with-snaplines.png`) and resize by handle (S `stage2-light-resize-by-handle.png`); form grips right/bottom/corner shown (S `stage2-dark-whole-form-maximised.png`), dragging them not screenshot-tested.
 - [ ] Snaplines — **Partial, verified for spacing lines**: blue dashed margin/spacing lines and the ghost outline while dragging (S `stage2-light-drag-move-with-snaplines.png`). Edge lines now blue like VS (were magenta), NetForms' centre lines hidden (VS has none). **No text-baseline (magenta) snaplines**: NetForms doesn't compute baselines (Known gap).
@@ -272,7 +274,7 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 - [ ] Lock Controls — **Partial, padlock verified**: Format → Lock Controls locks the whole form (as VS does); the selected control then shows a small padlock instead of grab handles (S `stage4-light-lock-controls-padlock.png`, patch 0002). VS's per-control `Locked` property isn't written.
 
 ### G. Menus, strips, smart tags (Should)
-- [ ] MenuStrip / ContextMenuStrip "Type Here" — **Partial, verified for the core**: click a menu on the canvas → its drop-down opens with a Type Here box (S `stage4-dark-menu-open-type-here.png`); type `&Save` + Enter → `saveToolStripMenuItem` added at the end, box ready for the next (S `stage4-dark-menu-type-here-added-save.png`; added to NetForms patch 0002 — NetForms had no Type Here). `-` makes a separator (host behaviour, tested via MenuDemo sample). Not done: Type Here for a new sub-menu to the right, drag to reorder.
+- [ ] MenuStrip / ContextMenuStrip "Type Here" — **Partial, verified for the core**: click a menu on the canvas → its drop-down opens with a Type Here box (S `stage4-dark-menu-open-type-here.png`); type `&Save` + Enter → `saveToolStripMenuItem` added at the end, box ready for the next (S `stage4-dark-menu-type-here-added-save.png`; added to NetForms patch 0002 — NetForms had no Type Here). `-` makes a separator (host behaviour, tested via MenuDemo sample). **Sub-menus verified 8 Nov** (added to patch 0002): a selected item inside a drop-down shows VS's Type Here box to its right; Enter adds its first DropDownItem and opens the new sub-menu, whose own Type Here takes the next ones (File → Open… → &Recent, Clear List → `openToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { recentToolStripMenuItem, clearListToolStripMenuItem });`; S `check-dark-submenu-type-here-beside-item-…`, `check-dark-submenu-added-recent-clear-list-…`). Not done: drag to reorder.
 - [ ] Smart-tag Tasks panel — **Partial, verified for TextBox**: the ◂ glyph on the selected control opens "TextBox Tasks — MultiLine" (S `stage4-light-smart-tag-textbox-tasks.png`; NetForms feature). The MultiLine checkbox is hard to see in the light page style; other controls' tasks (Insert Standard Items, Edit Columns, Add/Remove Tab…) are NetForms features, not checked one by one.
 - [ ] ToolStrip / StatusStrip item-type drop-down — Not started
 
