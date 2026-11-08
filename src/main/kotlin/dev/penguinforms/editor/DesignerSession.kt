@@ -425,7 +425,7 @@ class DesignerSession(
     }
 
     /** What Rider holds for the form's files right now: open documents (unsaved edits included), else the disk. */
-    fun files(): Map<String, String?> = ReadAction.compute<Map<String, String?>, RuntimeException> {
+    fun files(): Map<String, String?> = ReadAction.computeBlocking<Map<String, String?>, RuntimeException> {
         val fdm = FileDocumentManager.getInstance()
         form.all.associate { f ->
             val v = LocalFileSystem.getInstance().findFileByIoFile(f)

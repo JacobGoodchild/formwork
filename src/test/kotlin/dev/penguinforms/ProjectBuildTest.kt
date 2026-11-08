@@ -43,7 +43,7 @@ class ProjectBuildTest {
 class NewProjectTest {
     @org.junit.jupiter.api.Test
     fun `a new Penguin Forms project is Microsoft's template, converted`() {
-        val dir = java.nio.file.Files.createTempDirectory("penguinforms-new").toFile()
+        val dir = TestSupport.tempDir("penguinforms-new")
         val p = ProcessBuilder(TestSupport.dotnet, "new", "winforms", "-f", "net8.0", "-n", "WinFormsApp1", "-o", File(dir, "WinFormsApp1").path, "--no-restore")
             .redirectErrorStream(true).start()
         val log = p.inputStream.bufferedReader().readText(); p.waitFor(2, TimeUnit.MINUTES)

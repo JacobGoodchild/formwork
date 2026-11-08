@@ -72,7 +72,12 @@ Also verified: Font dialog, Dock picker (+ docked free-edge handle), Anchor dial
 Multi-selection now shows only shared properties (D). Plugin checker: the one internal-API call (PluginManagerCore.getPlugin)
 replaced by public PluginManager.getPluginByClass. Deprecated/experimental warnings remain (not failures); one of them,
 TrustedProjects.isTrusted, is kept on purpose: its replacement `trustedProjects.TrustedProjects.isProjectTrusted(Project)`
-is marked @ApiStatus.Internal in 2026.1, which the Marketplace would reject.
+is marked @ApiStatus.Internal in 2026.1, which the Marketplace would reject. Then Rider 2026.2 flagged PluginManager.getPluginByClass as internal too,
+so the plugin folder is now found from the jar this class was loaded from (plain Java, no IDE API; checked in the IDE:
+designer opens, no host-path setting). Fewer warnings: Kotlin `jvmDefault = NO_COMPATIBILITY` stops the compiler copying
+the IntelliJ interfaces' deprecated/experimental default methods into our classes (tool windows checked to still load);
+ReadAction.compute / runReadAction → ReadAction.computeBlocking. Tests now keep scratch copies in build/test-scratch
+(cleared each run) instead of /tmp, where 71 old copies (~0.5 GB each for built samples) had filled the disk.
 Also verified: Shift+click adds to the selection, rubber-band selects (C); the two tabs in the light theme
 (S `tabs-light-design-and-code-tabs-handler-in-idea-2026.1.png`); menu sub-menus via Type Here (G, new); StatusStrip/ToolStrip item-type drop-down (G, new).
 

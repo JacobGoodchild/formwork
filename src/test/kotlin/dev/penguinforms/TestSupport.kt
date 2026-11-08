@@ -18,9 +18,17 @@ object TestSupport {
         return HostClient(process)
     }
 
+    /**
+     * Scratch folders for tests live in the project's own build/ folder (not the shared /tmp), so `./gradlew clean`
+     * or deleting build/ removes them, and each test run starts by clearing the last run's.
+     */
+    val scratch: File by lazy { File(repo, "build/test-scratch").also { it.deleteRecursively(); it.mkdirs() } }
+
+    fun tempDir(prefix: String): File = Files.createTempDirectory(scratch.toPath(), prefix).toFile()
+
     /** A fresh copy of a sample, so tests never touch the originals. */
     fun copySample(name: String): File {
-        val target = Files.createTempDirectory("penguinforms-test").toFile()
+        val target = tempDir("penguinforms-test")
         File(repo, "samples/$name").copyRecursively(target, overwrite = true)
         return target
     }

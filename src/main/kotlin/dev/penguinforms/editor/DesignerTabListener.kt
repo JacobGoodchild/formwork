@@ -33,7 +33,7 @@ class DesignerTabListener(private val project: Project) : FileEditorManagerListe
             val app = com.intellij.openapi.application.ApplicationManager.getApplication()
             // Is it a form? That reads Form1.Designer.cs, which isn't allowed on the UI thread.
             app.executeOnPooledThread {
-                val isForm = com.intellij.openapi.application.runReadAction { FormFiles.of(file) != null }
+                val isForm = com.intellij.openapi.application.ReadAction.computeBlocking<Boolean, RuntimeException> { FormFiles.of(file) != null }
                 if (isForm) app.invokeLater({
                     source.openFile(FormDesignFile.of(file), true)
                     source.closeFile(file)

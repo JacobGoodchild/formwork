@@ -8,7 +8,12 @@ plugins {
 group = providers.gradleProperty("pluginGroup").get()
 version = providers.gradleProperty("pluginVersion").get()
 
-kotlin { jvmToolchain(21) }
+kotlin {
+    jvmToolchain(21)
+    // Use the IntelliJ interfaces' own default methods instead of copying forwarding stubs into our classes (the plugin
+    // checker counted those stubs as our own uses of deprecated and experimental API).
+    compilerOptions { jvmDefault.set(org.jetbrains.kotlin.gradle.dsl.JvmDefaultMode.NO_COMPATIBILITY) }
+}
 
 repositories {
     mavenCentral()
