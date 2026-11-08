@@ -1,9 +1,8 @@
 package dev.penguinforms.host
 
 import com.intellij.execution.configurations.GeneralCommandLine
-import com.intellij.ide.plugins.PluginManagerCore
+import com.intellij.ide.plugins.PluginManager
 import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.extensions.PluginId
 import dev.penguinforms.settings.PenguinFormsSettings
 import java.io.File
 
@@ -18,7 +17,8 @@ object HostLauncher {
     /** The bundled host (`<plugin>/host/Formwork.Host.dll`), unless the settings name another. */
     fun hostDll(): File? {
         PenguinFormsSettings.getInstance().state.hostPath.takeIf { it.isNotBlank() }?.let { File(it) }?.takeIf { it.isFile }?.let { return it }
-        val plugin = PluginManagerCore.getPlugin(PluginId.getId(PLUGIN_ID)) ?: return null
+        // Public API (the plugin checker flags PluginManagerCore.getPlugin as internal): the plugin that holds this class.
+        val plugin = PluginManager.getPluginByClass(HostLauncher::class.java) ?: return null
         return plugin.pluginPath.resolve("host").resolve("Formwork.Host.dll").toFile().takeIf { it.isFile }
     }
 
