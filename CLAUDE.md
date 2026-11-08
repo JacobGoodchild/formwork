@@ -64,6 +64,10 @@ contact email, signing key, first upload by hand, updates). Not decided by me: t
 Horizontal Spacing → Increase (fixed: primary stays put, as VS), Center in Form → Horizontally, and Escape: verified.
 **Tab / Shift+Tab didn't work at all** (no handler in the page) — added and verified. See the checklist (C, F).
 Also verified: Font dialog, Dock picker (+ docked free-edge handle), Anchor dialog, Reset, ComboBox Items editor (D).
+Multi-selection now shows only shared properties (D). Plugin checker: the one internal-API call (PluginManagerCore.getPlugin)
+replaced by public PluginManager.getPluginByClass. Deprecated/experimental warnings remain (not failures); one of them,
+TrustedProjects.isTrusted, is kept on purpose: its replacement `trustedProjects.TrustedProjects.isProjectTrusted(Project)`
+is marked @ApiStatus.Internal in 2026.1, which the Marketplace would reject.
 
 ## Renamed: Formwork → Penguin Forms (5 Nov, 17:45 UK, at Jacob's request)
 
@@ -248,7 +252,7 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 - [ ] Image pickers into .resx — **Done (unverified)**: NetForms writes .resx; file chooser goes through Rider.
 - [x] AcceptButton / CancelButton — **Verified**: the drop-down lists the form's buttons (S `stage2-light-acceptbutton-dropdown.png`); LoginForm sets both through the designer and builds (T `ProjectBuildTest`).
 - [x] Reset — **Verified 8 Nov**: right-click Font → Reset / Description menu; Reset removed the `btnOK.Font` line (S `check-dark-property-reset-menu-in-idea-2026.1.png`).
-- [ ] Multi-selection shared properties — **Partial**: an edit applies to every selected control in one undo step (verified: OK + Cancel selected, Cursor changed → `btnOK.Cursor = Cursors.Arrow;` and `btnCancel.Cursor = Cursors.Arrow;`). The grid still lists the primary control's properties, not only the shared ones.
+- [x] Multi-selection shared properties — **Verified 8 Nov**: an edit applies to every selected control in one undo step (verified earlier: `btnOK.Cursor = …; btnCancel.Cursor = …;`); now the grid lists only the properties all selected controls share, blank where values differ, (Name) left out, selection drop-down blank — as VS (txtUser + btnOK: Text, BackColor, Cursor, TabIndex, Location, Size blank; Font, Anchor, Dock shown; Multiline / ImageAlign gone). T `SharedRowsTest`; S `check-dark-multi-select-shared-properties-in-idea-2026.1.png`.
 - [x] (Name) rename incl. code — **Verified (host level)**: T `CodeGenerationTest.renaming…` (field, `+=` line, handler, a use in Form1.cs). Goes through the document, so Ctrl+Z works; Rider's rename refactoring for *other* files is not used (Known gap).
 - [x] Events tab — **Verified**: S `stage2-light-events-tab.png` (events by category, Click → btnOK_Click), `stage2-light-event-double-click-creates-handler.png` (double-click Enter → btnOK_Enter created, cursor inside). Typing a name + Enter **verified** (`CloseWindow` created and wired, S `stage2-light-event-typed-name.png`); clearing it **verified** (the `+=` line goes, the method stays). Drop-down of existing matching handlers **verified** (btnOK_Click, CloseWindow offered for Cancel.Click; S `stage2-light-event-existing-handlers-dropdown.png`).
 

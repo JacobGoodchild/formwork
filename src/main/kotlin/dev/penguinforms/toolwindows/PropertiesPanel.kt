@@ -173,7 +173,8 @@ class PropertiesPanel(private val project: Project, parent: Disposable) : JPanel
 
     private fun request() {
         val e = editor ?: return
-        e.session.requestRows(if (events) "events" else "properties", primary)
+        val kind = if (events) "events" else "properties"
+        if (selected.size > 1) e.session.requestSharedRows(kind, selected) else e.session.requestRows(kind, primary)
     }
 
     override fun activeChanged(editor: DesignerEditor?) {
@@ -220,7 +221,8 @@ class PropertiesPanel(private val project: Project, parent: Disposable) : JPanel
             v?.getAsJsonArray("items")?.forEach { val o = it.asJsonObject; if (o.get("kind")?.asString != "dropdown") ids.add(o.get("id").asString) }
             v?.getAsJsonArray("tray")?.forEach { ids.add(it.asJsonObject.get("id").asString) }
             selector.model = DefaultComboBoxModel(ids.distinct().sortedWith(compareBy({ it != "" }, { it.lowercase() })).toTypedArray())
-            selector.selectedItem = primary
+            // Several controls: blank, as Visual Studio's drop-down (the grid shows what they share).
+            selector.selectedItem = if (selected.size > 1) null else primary
             selector.toolTipText = if (selected.size > 1) "${selected.size} controls selected: changes apply to all of them" else null
         } finally { updatingSelector = false }
     }
@@ -249,6 +251,7 @@ class PropertiesPanel(private val project: Project, parent: Disposable) : JPanel
         val n = value.trim().toIntOrNull() ?: return
         val labels = partsOf(part.parent) ?: return
         val now = part.parent.value.split(',').map { it.trim() }.toMutableList()
+        if (now.size < (if (labels.size == 5) 4 else labels.size)) return // blank: the selected controls differ
         val text = if (labels.size == 5) {
             if (part.index == 0) List(4) { n.toString() }.joinToString(", ") else { now[part.index - 1] = n.toString(); now.joinToString(", ") }
         } else { now[part.index] = n.toString(); now.joinToString(", ") }

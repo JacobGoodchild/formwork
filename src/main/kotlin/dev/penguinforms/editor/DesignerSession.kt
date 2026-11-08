@@ -313,6 +313,26 @@ class DesignerSession(
         }
     }
 
+    /**
+     * Several controls selected: as Visual Studio, Properties lists only what they all have, with a value left blank
+     * where they differ. (An edit already goes to every selected control, in one undo step.)
+     */
+    fun requestSharedRows(kind: String, ids: List<String>) {
+        worker.execute {
+            val view = lastView ?: return@execute
+            val live = ids.filter { it.isNotEmpty() && exists(view, it) }.distinct()
+            if (live.size < 2) { requestRows(kind, live.lastOrNull() ?: ""); return@execute }
+            try {
+                val host = ensureHost()
+                val f = files()
+                val all = live.map { id -> host.call(kind, JsonObject().apply { addProperty("id", id) }, f).result?.asJsonArray ?: return@execute }
+                val rows = sharedRows(all, if (kind == "events") "handler" else "value")
+                val primary = live.last()
+                publish { l -> if (kind == "events") l.eventsChanged(editorRef(), primary, rows) else l.propertiesChanged(editorRef(), primary, rows) }
+            } catch (e: Throwable) { report(e) }
+        }
+    }
+
     private fun refreshInspector() {
         val id = selection.lastOrNull() ?: ""
         requestRows("properties", id)
@@ -675,4 +695,25 @@ class DesignerSession(
     }
 
     private fun JsonObject.str(key: String): String? = get(key)?.takeIf { it.isJsonPrimitive }?.asString
+}
+
+/** The rows every component in [all] has (by name and type), in the primary's (last) order; differing values blank. */
+internal fun sharedRows(all: List<JsonArray>, valueKey: String): JsonArray {
+    val out = JsonArray()
+    if (all.isEmpty()) return out
+    val others = all.dropLast(1).map { rows -> rows.associateBy { it.asJsonObject.get("name")?.asString } }
+    for (el in all.last()) {
+        val row = el.asJsonObject
+        val name = row.get("name")?.asString ?: continue
+        if (name == "Name") continue // each control has its own name; VS leaves (Name) out too
+        val matches = others.map { it[name]?.asJsonObject }
+        if (matches.any { it == null || it.get("type") != row.get("type") }) continue
+        val copy = row.deepCopy()
+        if (matches.any { it!!.get(valueKey) != row.get(valueKey) }) {
+            copy.addProperty(valueKey, "")
+            copy.addProperty("modified", false)
+        }
+        out.add(copy)
+    }
+    return out
 }
