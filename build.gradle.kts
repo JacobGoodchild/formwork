@@ -49,6 +49,8 @@ dependencies {
             bundledModule("intellij.libraries.jcef")
         }
         jetbrainsRuntime()
+        // JetBrains' plugin checker (./gradlew verifyPlugin), the same check the Marketplace runs on upload.
+        pluginVerifier("1.411")
     }
     testImplementation("org.junit.jupiter:junit-jupiter:5.13.4")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.13.4")
@@ -59,8 +61,45 @@ dependencies {
 intellijPlatform {
     pluginConfiguration {
         ideaVersion { sinceBuild = "261" }
+        // Shown on the Marketplace page and in Rider's plugin manager ("What's New"). Newest version first.
+        changeNotes = providers.fileContents(layout.projectDirectory.file("docs/CHANGE-NOTES.html")).asText
     }
     buildSearchableOptions = false
+
+    // ---- JetBrains Marketplace (only when Jacob decides to publish; see docs/MARKETPLACE.md) ----
+    // Nothing secret is stored here: the key, its certificate and the upload token are read from environment
+    // variables, which on GitHub come from the repository's Settings → Secrets. Without them these tasks just stop.
+    signing {
+        certificateChain = providers.environmentVariable("CERTIFICATE_CHAIN")
+        privateKey = providers.environmentVariable("PRIVATE_KEY")
+        password = providers.environmentVariable("PRIVATE_KEY_PASSWORD")
+    }
+    publishing {
+        token = providers.environmentVariable("PUBLISH_TOKEN")
+    }
+
+    // ./gradlew verifyPlugin: checks the plugin against real Rider releases (each is a ~3 GB download, so CI runs it
+    // on request, not on every push). The oldest and newest supported versions.
+    pluginVerification {
+        ides {
+            create(org.jetbrains.intellij.platform.gradle.IntelliJPlatformType.Rider, "2026.1.5.3") { useInstaller = false }
+            create(org.jetbrains.intellij.platform.gradle.IntelliJPlatformType.Rider, providers.gradleProperty("riderVersion").get()) { useInstaller = false }
+        }
+    }
+}
+
+// The Marketplace lists a plugin for the IDEs whose modules it depends on. plugin.xml only needs the shared platform
+// (so the tests can run it in the free IntelliJ IDEA), which would list Penguin Forms for every JetBrains IDE.
+// A Marketplace build (-PriderOnly=true) adds Rider as a requirement, so it is offered to Rider users only.
+tasks.patchPluginXml {
+    val riderOnly = providers.gradleProperty("riderOnly").map { it == "true" }.orElse(false)
+    inputs.property("riderOnly", riderOnly)
+    doLast {
+        if (!riderOnly.get()) return@doLast
+        val out = outputFile.get().asFile
+        out.writeText(out.readText().replaceFirst("<depends>com.intellij.modules.platform</depends>",
+            "<depends>com.intellij.modules.platform</depends>\n  <depends>com.intellij.modules.rider</depends>"))
+    }
 }
 
 tasks.test { useJUnitPlatform() }

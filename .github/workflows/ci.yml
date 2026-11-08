@@ -44,6 +44,32 @@ jobs:
           name: converted-samples
           path: build/converted-samples
 
+  verify-plugin:
+    # JetBrains' plugin checker (the check the Marketplace runs on upload) against Rider 2026.1 and 2026.2.
+    # Each Rider is a ~3 GB download, so this runs only when started by hand: Actions tab → CI → Run workflow.
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Make room (each Rider unpacks to ~9 GB)
+        run: sudo rm -rf /usr/local/lib/android /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL && df -h /
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Plugin checker (Marketplace build, Rider only)
+        run: ./gradlew verifyPlugin -PriderOnly=true --console=plain
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: plugin-verifier-report
+          path: build/reports/pluginVerifier
+
   windows:
     needs: linux
     runs-on: windows-latest

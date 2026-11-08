@@ -50,6 +50,16 @@ designer still undoes through Rider. Fallback: Settings → Tools → Penguin Fo
 tab isn't restored after an IDE restart (the stand-in file isn't saved), a code tab restored at startup is swapped to
 the designer; double-clicking Form1.cs while its code tab is already open just shows the code tab.
 
+**(3) Marketplace preparation — done on our side; publishing stays Jacob's decision.** Own penguin icon (light + dark
+40×40 SVG, a slate-blue penguin in front of a form window; not Tux, no other company's logo; preview checked at 40 and
+160 px); change notes (`docs/CHANGE-NOTES.html`, built into the plugin); vendor link to the GitHub repo; signing and
+publishing settings that read only from environment variables / GitHub secrets (nothing secret in the repo); a
+"Rider only" Marketplace build (`-PriderOnly=true` adds `<depends>com.intellij.modules.rider</depends>`, checked in
+the patched plugin.xml), because plugin.xml alone would list Penguin Forms for every JetBrains IDE; JetBrains' plugin
+checker 1.411 (pinned) against Rider 2026.1.5.3 and 2026.2.4.1 as a CI job started by hand (`verify-plugin`,
+workflow_dispatch only: two ~3 GB downloads). Jacob's steps in plain English: `docs/MARKETPLACE.md` (account,
+contact email, signing key, first upload by hand, updates). Not decided by me: the contact email (his to choose).
+
 ## Renamed: Formwork → Penguin Forms (5 Nov, 17:45 UK, at Jacob's request)
 
 Name: just **"Penguin Forms"** (Jacob's decision after checking the Marketplace rules: names are at most 30 characters
