@@ -54,3 +54,13 @@ it on, so the designer shows buttons as Visual Studio does on Windows 11 (Jacob'
 
 **Behaviour change for NetForms users:** none (off by default). Note: a NetForms app *running* on Linux still uses
 the Windows 10 look — the designer shows the college (Windows 11) look.
+
+## 0005-designer-strip-item-captions.patch
+
+**What:** each tool strip item in the designer view (`kind: "item"`: menu bar items, drop-down items, ToolStrip and
+StatusStrip items) carries its caption in a new `text` field ("-" for a separator), as the collection editor shows it.
+
+**Why:** the designer page reorders menu items by dragging (patch 0002) by sending the parent's whole `Items` /
+`DropDownItems` list back in the new order through `setItems`, which needs every item's caption.
+
+**Behaviour change for NetForms users:** none (an extra field in the view JSON).

@@ -58,7 +58,7 @@ non-default values, description pane, Events (with existing handlers to pick fro
 Dock / Anchor pickers, the Items editor, Reset; AcceptButton / CancelButton; F7 / Shift+F7; several forms at once; reloading when the file changes; a
 clear page for a broken `Designer.cs` that never overwrites it; a red box for a control that fails to draw; the
 Format menu (Align, spacing, Center in Form checked; the rest built); Lock Controls with a padlock; Tab Order; Document Outline (drag a
-control into a container); menu "Type Here" including sub-menus; the StatusStrip / ToolStrip "add item" drop-down; TabControl pages; TableLayoutPanel cells; Add → Windows Form / User
+control into a container); menu "Type Here" including sub-menus, and dragging menu items to reorder them; the StatusStrip / ToolStrip "add item" drop-down; TabControl pages; TableLayoutPanel cells; Add → Windows Form / User
 Control / Dialog and more; File → Windows Forms App (Penguin Forms); "Make This Project Work on Linux Too" for .NET
 6–10 projects (every sample builds on Linux, and on Windows with the real Windows Forms in GitHub's cloud);
 Settings → Tools → Penguin Forms; the app runs as a window on Linux, in Windows' light grey; JetBrains' plugin
@@ -78,7 +78,8 @@ checker runs against Rider 2026.1 and 2026.2 (see docs/MARKETPLACE.md).
   metrics); most default sizes match Visual Studio exactly, a few are 1–2 px off.
 - **Old .NET Framework 4.x projects** convert, but only checked by tests here, not by a Windows build — check
   at college before relying on it.
-- No magenta text-baseline snaplines; no snap-to-grid while dragging; menu items can't be reordered by dragging.
+- No magenta text-baseline snaplines; no snap-to-grid while dragging; menu items can be reordered by dragging
+  within their menu, but not dragged into a different menu.
 - NuGet and Maven downloads are version-pinned but not checksum-locked yet.
 
 ## Privacy

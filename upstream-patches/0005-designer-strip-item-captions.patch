@@ -1,0 +1,31 @@
+diff --git a/src/NetForms.Design/DesignSurface.Menus.cs b/src/NetForms.Design/DesignSurface.Menus.cs
+index c3125ed..829b13f 100644
+--- a/src/NetForms.Design/DesignSurface.Menus.cs
++++ b/src/NetForms.Design/DesignSurface.Menus.cs
+@@ -88,6 +88,12 @@ public sealed partial class DesignSurface
+             previous = rect;
+         }
+         view.OpenMenu = view.DropDowns != null ? OpenMenu : null;
++        // Each strip item's caption ("-" for a separator), as the collection editor shows it: the designer page needs it
++        // to reorder menu items by dragging (it sends the whole list back, in the new order, with these captions).
++        var byId = new Dictionary<string, object>();
++        foreach (var (component, componentId) in ids) byId.TryAdd(componentId, component);
++        foreach (var item in view.Items)
++            if (item.Kind == "item" && byId.TryGetValue(item.Id, out var component)) item.Text = ItemText(component);
+     }
+ 
+     /// <summary>
+diff --git a/src/NetForms.Design/DesignerView.cs b/src/NetForms.Design/DesignerView.cs
+index c6ba38d..84e3966 100644
+--- a/src/NetForms.Design/DesignerView.cs
++++ b/src/NetForms.Design/DesignerView.cs
+@@ -52,6 +52,9 @@ public sealed class DesignerViewItem
+     /// <summary>The containing component's id ("" for the root).</summary>
+     public string Parent { get; set; } = "";
+ 
++    /// <summary>For a tool strip item (<c>item</c>): its caption, "-" for a separator. Null for anything else.</summary>
++    public string? Text { get; set; }
++
+     /// <summary><c>control</c>, <c>nested</c> (SplitContainer.Panel1: selectable, not movable), <c>item</c> (a tool strip item) or <c>dropdown</c> (an open menu's area; its id is what owns it).</summary>
+     public string Kind { get; set; } = "control";
+ 

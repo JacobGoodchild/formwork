@@ -1,8 +1,8 @@
 diff --git a/designer/media/designer.css b/designer/media/designer.css
-index 60a192a..ce919a8 100644
+index 60a192a..e4fb8d7 100644
 --- a/designer/media/designer.css
 +++ b/designer/media/designer.css
-@@ -320,3 +320,22 @@ button, input, select { font: inherit; color: inherit; }
+@@ -320,3 +320,23 @@ button, input, select { font: inherit; color: inherit; }
  .smart-link { border: none; background: transparent; padding: 1px 0; color: var(--vscode-textLink-foreground, #0066bf); cursor: pointer; text-align: left; }
  .smart-link:hover { text-decoration: underline; }
  
@@ -25,8 +25,9 @@ index 60a192a..ce919a8 100644
 +/* VS's item drop-down at the end of a selected StatusStrip / ToolStrip. */
 +.strip-adder { position: absolute; box-sizing: border-box; border: 1px solid #7a9cd3; background: #fff; color: #333; font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: default; z-index: 26; }
 +.strip-adder:hover { background: #e5f1fb; }
++.item-insert { position: absolute; background: #0078d7; z-index: 27; pointer-events: none; }
 diff --git a/designer/media/designer.js b/designer/media/designer.js
-index 4898450..5fc740f 100644
+index 4898450..6c3e231 100644
 --- a/designer/media/designer.js
 +++ b/designer/media/designer.js
 @@ -44,6 +44,7 @@
@@ -395,7 +396,61 @@ index 4898450..5fc740f 100644
  		const hit = G.hitTest(state.view.items, p.x, p.y);
  		const additive = e.ctrlKey || e.shiftKey;
  		// A SplitContainer's splitter is dragged, as in VS: SplitterDistance follows.
-@@ -1229,6 +1506,17 @@
+@@ -865,6 +1142,7 @@
+ 		if (additive) { select(hit.id, true); return; }
+ 		if (!state.selection.includes(hit.id)) select(hit.id, false);
+ 		if (state.locked) return;
++		if (hit.kind === 'item') { startItemDrag(e, hit, p); return; }
+ 		const ids = movableSelection();
+ 		if (!ids.length || !ids.includes(hit.id)) return;
+ 		// A group moves together; they must share a container (as the canvas can only drop into one).
+@@ -876,6 +1154,45 @@
+ 		window.addEventListener('mouseup', onDragUp, { once: true });
+ 	}
+ 
++	/**
++	 * Dragging a menu or strip item along its siblings reorders them, as in VS: a bar shows where it will go, and on
++	 * release the parent's whole list is sent back in the new order (every sibling, with the captions the host gave).
++	 */
++	function startItemDrag(e, item, p) {
++		const parent = itemById(item.parent) || trayById(item.parent);
++		const siblings = state.view.items.filter((i) => i.kind === 'item' && i.parent === item.parent);
++		if (!parent || siblings.length < 2 || siblings.some((s) => typeof s.text !== 'string')) return;
++		const vertical = isInDropDown(item);
++		const sorted = siblings.slice().sort((a, b) => (vertical ? a.y - b.y : a.x - b.x));
++		const shown = sorted.filter((s) => s.visible);
++		const bar = el('div', 'item-insert');
++		let index = null;
++		const move = (ev) => {
++			const q = canvasPoint(ev);
++			if (index === null && Math.abs(q.x - p.x) + Math.abs(q.y - p.y) < 5) return;
++			index = shown.filter((s) => (vertical ? s.y + s.h / 2 < q.y : s.x + s.w / 2 < q.x)).length;
++			const ref = shown[Math.min(index, shown.length - 1)];
++			const after = index >= shown.length;
++			place(bar, vertical ? { x: ref.x, y: (after ? ref.y + ref.h : ref.y) - 1, w: ref.w, h: 2 } : { x: (after ? ref.x + ref.w : ref.x) - 1, y: ref.y, w: 2, h: ref.h });
++			if (!bar.isConnected && state.canvas) state.canvas.append(bar);
++		};
++		const up = () => {
++			window.removeEventListener('mousemove', move);
++			bar.remove();
++			if (index === null) return; // a click, not a drag
++			const order = sorted.filter((s) => s !== item);
++			const before = shown[index]; // the item it goes in front of (none: after the last shown one)
++			const at = before ? order.indexOf(before) : (shown.length ? order.indexOf(shown[shown.length - 1]) + 1 : order.length);
++			order.splice(at < 0 ? order.length : at, 0, item);
++			if (order.every((s, i) => s === sorted[i])) return;
++			const prop = shortType(parent.type) === 'ToolStripMenuItem' ? 'DropDownItems' : 'Items';
++			apply([{ op: 'setItems', id: item.parent, prop, values: order.map((s) => s.text), ids: order.map((s) => s.id) }], [item.id]);
++		};
++		e.preventDefault();
++		window.addEventListener('mousemove', move);
++		window.addEventListener('mouseup', up, { once: true });
++	}
++
+ 	/** The selection rectangle: on release, the container's controls it touches are selected (a click selects the container). */
+ 	function startLasso(e, p, containerId, additive) {
+ 		e.preventDefault();
+@@ -1229,6 +1546,17 @@
  			e.preventDefault();
  			return;
  		}
@@ -413,7 +468,7 @@ index 4898450..5fc740f 100644
  		if (e.key === 'Escape') {
  			// Up one level, as in VS: the container of the selection, then the form.
  			const it = itemById(primaryId());
-@@ -1239,11 +1527,24 @@
+@@ -1239,11 +1567,24 @@
  		const arrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
  		if (arrows[e.key] && !state.locked) {
  			const [ax, ay] = arrows[e.key];
@@ -440,7 +495,7 @@ index 4898450..5fc740f 100644
  			} else {
  				const only = movableSelection().length === 1 ? itemById(movableSelection()[0]) : null;
  				if (only && only.flowIndex !== undefined && only.flowIndex !== null) {
-@@ -2443,6 +2744,69 @@
+@@ -2443,6 +2784,69 @@
  		apply(ops, state.selection);
  	}
  
@@ -510,7 +565,7 @@ index 4898450..5fc740f 100644
  	// --- status and toasts --------------------------------------------------------------------------
  
  	function renderStatus(text) {
-@@ -2467,5 +2831,27 @@
+@@ -2467,5 +2871,27 @@
  	}
  
  	renderAll();
