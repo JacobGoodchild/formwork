@@ -20,6 +20,7 @@
   <depends>com.intellij.modules.jcef</depends>
 
   <extensions defaultExtensionNs="com.intellij">
+    <fileType name="PenguinFormsDesign" implementationClass="dev.penguinforms.editor.FormDesignFileType" fieldName="INSTANCE"/>
     <fileEditorProvider implementation="dev.penguinforms.editor.DesignerEditorProvider"/>
     <editorTabTitleProvider implementation="dev.penguinforms.editor.DesignerTabTitleProvider" order="first"/>
     <notificationGroup id="Penguin Forms" displayType="BALLOON"/>

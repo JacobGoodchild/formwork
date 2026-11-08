@@ -27,6 +27,7 @@ class PenguinFormsConfigurable : BoundConfigurable("Penguin Forms") {
                 intTextField(2..100).bindIntText({ state.gridHeight }, { state.gridHeight = it }).columns(4)
             }
             row { checkBox("Show grid (in SnapToGrid mode)").bindSelected({ state.showGrid }, { state.showGrid = it }) }
+            row { checkBox("Design and code in separate tabs, like Visual Studio (applies to forms opened afterwards)").bindSelected({ state.separateDesignTab }, { state.separateDesignTab = it }) }
             row { checkBox("Snap while dragging (hold Alt to move freely)").bindSelected({ state.snapToLines }, { state.snapToLines = it }) }
         }
         group(".NET") {

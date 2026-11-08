@@ -588,7 +588,7 @@ class DesignerSession(
     fun gotoHandler(method: String, line: Int?) {
         onEdt {
             val v = vf(form.code) ?: return@onEdt
-            CodeNavigation.expect(v)
+            CodeNavigation.expect(project, v)
             val doc = FileDocumentManager.getInstance().getDocument(v) ?: return@onEdt
             val target = HandlerLocator.bodyPosition(doc.text, method, line)
             if (target == null) {

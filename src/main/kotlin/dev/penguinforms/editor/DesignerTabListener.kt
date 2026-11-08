@@ -23,7 +23,23 @@ class DesignerTabListener(private val project: Project) : FileEditorManagerListe
     }
 
     override fun fileOpened(source: FileEditorManager, file: VirtualFile) {
+        if (file is FormDesignFile) return
         if (CodeNavigation.consume(file)) return
+        if (FormDesignFile.separateTabs) {
+            // Visual Studio: opening a form (double-click in the Solution Explorer) opens its designer, not its code.
+            // The code tab that just opened is swapped for the Design tab; F7 and handler jumps open the code itself.
+            if (!file.name.endsWith(".cs", ignoreCase = true)) return
+            val app = com.intellij.openapi.application.ApplicationManager.getApplication()
+            // Is it a form? That reads Form1.Designer.cs, which isn't allowed on the UI thread.
+            app.executeOnPooledThread {
+                val isForm = com.intellij.openapi.application.runReadAction { FormFiles.of(file) != null }
+                if (isForm) app.invokeLater({
+                    source.openFile(FormDesignFile.of(file), true)
+                    source.closeFile(file)
+                }, project.disposed)
+            }
+            return
+        }
         if (source.getEditors(file).none { it is DesignerEditor }) return
         if (source.getSelectedEditor(file) !is DesignerEditor) source.setSelectedEditor(file, DesignerEditorProvider.TYPE_ID)
     }
@@ -53,14 +69,15 @@ class DesignerTabListener(private val project: Project) : FileEditorManagerListe
 /** Penguin Forms' own jumps to code (F7, a handler) mark the file, so opening it doesn't switch to Design. */
 object CodeNavigation {
     private val files: MutableSet<String> = Collections.synchronizedSet(HashSet())
-    fun expect(file: VirtualFile) { files.add(file.path) }
+    /** Only when [file] isn't open yet: an open file raises no "opened" event that would take the mark again. */
+    fun expect(project: Project, file: VirtualFile) { if (!FileEditorManager.getInstance(project).isFileOpen(file)) files.add(file.path) }
     fun consume(file: VirtualFile): Boolean = files.remove(file.path)
 }
 
 /** F7 (View Code): the form's code file in Rider's text editor, where its cursor last was. */
 object CodeOpener {
     fun open(project: Project, file: VirtualFile) {
-        CodeNavigation.expect(file)
+        CodeNavigation.expect(project, file)
         val text = FileEditorManager.getInstance(project).getEditors(file).filterIsInstance<com.intellij.openapi.fileEditor.TextEditor>().firstOrNull()
         // With a position, the platform selects the text editor; without one it would stay on the Design tab.
         val offset = text?.editor?.caretModel?.offset ?: 0

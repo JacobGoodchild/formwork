@@ -37,6 +37,19 @@ S `runapp-linux-windows-colours-before-after.png`. **Not fixed: buttons stay Win
 the white Windows 11 face is our NetForms patch 0004, which only the designer host has; the NuGet NetForms 0.1.5 has
 no switch for it (would need NetForms upstream to add one).
 
+**(2) Design and Code as two tabs — done (verified in IDEA 2026.1).** The designer now opens for a `FormDesignFile`
+(a never-saved stand-in file named `Form1.cs [Design]`, own binary file type so no text editor is offered), so it
+is its own editor tab next to `Form1.cs` (Rider's C# editor), as Visual Studio. Opening a form's code file (double-click
+in the Solution Explorer, command line) swaps it for the Design tab (the form check runs off the UI thread: a first
+version read Designer.cs on the EDT and IDEA logged a SlowOperations error, fixed and re-run clean); F7, double-click
+on a control and handler jumps open the code tab beside it; Shift+F7 brings the Design tab back; Ctrl+Z from the
+designer still undoes through Rider. Fallback: Settings → Tools → Penguin Forms → "Design and code in separate tabs"
+(off = the old Design/Text sub-tabs), in case real Rider dislikes the stand-in file. Evidence: S
+`tabs-dark-01-design-tab-only-in-idea-2026.1.png`, `…-02-design-and-code-tabs-handler-…`, `…-03-shift-f7-and-two-ctrl-z-…`
+(button gone), `…-04-double-click-form1-opens-design-tab-…`; all unit tests pass. Not checked: real Rider; a Design
+tab isn't restored after an IDE restart (the stand-in file isn't saved), a code tab restored at startup is swapped to
+the designer; double-clicking Form1.cs while its code tab is already open just shows the code tab.
+
 ## Renamed: Formwork → Penguin Forms (5 Nov, 17:45 UK, at Jacob's request)
 
 Name: just **"Penguin Forms"** (Jacob's decision after checking the Marketplace rules: names are at most 30 characters
@@ -185,7 +198,7 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 
 ### A. Opening and switching (Must)
 - [x] Double-click Form1.cs opens designer; Designer.cs openable as text — **Verified (in IDEA)**: S `story-dark-02-designer-open.png`; Designer.cs opens as text (seen in story run 1). Rider Solution Explorer: 🔎 Jacob.
-- [x] Design and Code tabs; `Form1.cs [Design]` + `*` — **Verified (in IDEA)**, with one difference: the sub-tabs are "Design" and **"Text"** (the platform's own name for Rider's code editor; see decision 6). S `story-dark-04-button-placed.png` (shows `[Design]*`).
+- [x] Design and Code tabs; `Form1.cs [Design]` + `*` — **Verified (in IDEA)**: since 8 Nov two separate tabs, `Form1.cs [Design]*` and `Form1.cs`, as VS (S `tabs-dark-02-design-and-code-tabs-handler-in-idea-2026.1.png`). Old sub-tab layout kept as a setting.
 - [ ] F7 / Shift+F7; right-click menu; Find Action — **Partial**: F7 and Shift+F7 **Verified** (S `stage1-dark-F7-view-code.png`, `stage1-dark-shift-F7-view-designer.png`; `tools/checks.sh`); right-click menu entries and Find Action registered but not yet seen in a screenshot.
 - [x] Several forms open at once — **Verified**: S `stage1-dark-two-forms-open.png` (TwoForms sample, two Design tabs, separate canvases).
 - [x] Editing Designer.cs as text / git checkout reloads canvas — **Verified** for an outside change + Reload from Disk (S `stage1-dark-reload-after-outside-change.png`) and for undo (S `story-dark-08-after-second-ctrl-z-button-gone.png`).
@@ -352,7 +365,7 @@ The session was stopped from 21:28 to 00:06 UK (usage limit / worker restart); t
 2. ~~The running app's background is beige on Linux~~ **Fixed 8 Nov**: converted projects get a Linux-only build step
    that paints Windows 10/11 colours (#F0F0F0). Buttons in the running app are still Windows 10 grey (see 9).
 3. **No WebBrowser control** in the toolbox (Internet Explorer ActiveX, Windows-only; NetForms has none).
-4. **Sub-tab is called "Text", not "Code"** (it's Rider's own C# editor; renaming means wrapping it).
+4. ~~Sub-tab is called "Text"~~ **Fixed 8 Nov**: design and code are two separate tabs, like VS.
 5. **Renaming a control** updates `Form1.Designer.cs` and `Form1.cs` (Roslyn-accurate), but not other
    files that use it (VS's rename would). Rare for forms.
 6. **Text sizes**: the designer measures with Formwork Sans (Segoe UI's open replacement, adjusted).

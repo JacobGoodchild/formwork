@@ -103,17 +103,20 @@ college. Start with `samples/VsTemplate.Net8` (a brand-new "Windows Forms App" f
 3. In the Solution Explorer, **double-click `Form1.cs`**.
    ✅ The form opens in the designer: a tab called **`Form1.cs [Design]`**, a light grey form on a dark
    background, the **Toolbox** on the left (with *Common Controls* open, *Pointer* first) and
-   **Properties** on the right. At the bottom of the editor there are two little tabs, **Design** and
-   **Text** ("Text" is your code).
+   **Properties** on the right. Your code is not open yet - just like Visual Studio.
    🔎 **Rider check:** does `Form1.Designer.cs` appear *under* `Form1.cs` in the Solution Explorer (with a ▸
    arrow), like in Visual Studio?
+   🔎 **Rider check (new):** design and code are now **two separate tabs**, like Visual Studio. Press **F7**:
+   a second tab, `Form1.cs`, opens with your code. **Shift+F7** goes back to `Form1.cs [Design]`. If the tabs
+   act strangely in Rider, you can go back to the old layout (one tab with Design/Text at the bottom) in
+   **Settings → Tools → Penguin Forms** by unticking "Design and code in separate tabs" - and please tell me.
 4. In the Toolbox, click **Button** (it turns blue), then click somewhere on the form.
    ✅ `button1` appears where you clicked, with small square handles around it. The Toolbox goes back to
    **Pointer**, and the tab title now ends in `*` (meaning "not saved yet").
    You can also draw a rectangle on the form after clicking Button, to choose its size, or drag Button
    straight from the Toolbox onto the form.
 5. **Double-click `button1`** on the form.
-   ✅ Rider switches to your code (the **Text** tab), with a new method `button1_Click` and the cursor
+   ✅ Rider opens your code in a second tab, `Form1.cs`, with a new method `button1_Click` and the cursor
    blinking inside it — just like Visual Studio.
 6. Type this inside the method:
 

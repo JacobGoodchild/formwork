@@ -12,13 +12,13 @@ cp -r "$root/samples/$sample" "$work"
 # Already converted (as after "Make it work on Linux too"), so its notice does not cover the screen.
 [ -d "$root/build/converted-samples/$sample" ] && rm -rf "$work" && cp -r "$root/build/converted-samples/$sample" "$work"
 proj="$(dirname "$(find "$work" -name '*.csproj' | head -1)")"
-log="$(ls $root/.intellijPlatform/sandbox/penguin-forms/*/log_runIdea/idea.log 2>/dev/null | head -1)"
+log="$(ls $root/.intellijPlatform/sandbox/penguin-forms/*/log_runIdea/idea.log 2>/dev/null | head -1 || true)"
 before=$( [ -f "$log" ] && wc -l < "$log" || echo 0 )
 "$root/tools/run-idea.sh" "$proj" "$out/runidea.log" "$proj/Form1.cs" >/dev/null
 export DISPLAY=:99
 shot() { "$root/tools/shot.sh" "$out/$1.png" 75; }
 # Wait for this run's designer page (only log lines written after the start count).
-for i in $(seq 1 90); do sleep 2; tail -n +"$((before + 1))" "$log" 2>/dev/null | grep -q "Designer page ready" && break; done
+for i in $(seq 1 90); do sleep 2; [ -f "$log" ] || log="$(ls $root/.intellijPlatform/sandbox/penguin-forms/*/log_runIdea/idea.log 2>/dev/null | head -1 || true)"; tail -n +"$((before + 1))" "$log" 2>/dev/null | grep -q "Designer page ready" && break; done
 sleep 4
 # No window manager on Xvfb: make the IDE window fill the screen, as a maximised window.
 for w in $(xdotool search --onlyvisible --name "." 2>/dev/null); do
@@ -26,11 +26,11 @@ for w in $(xdotool search --onlyvisible --name "." 2>/dev/null); do
 done
 sleep 4
 shot 02-designer-open
-xdotool mousemove 132 214 click 1; sleep 1          # Button in the native Toolbox (Common Controls)
+xdotool mousemove 123 187 click 1; sleep 1          # Button in the native Toolbox (Common Controls)
 shot 03-button-tool-selected
-xdotool mousemove 500 300 click 1; sleep 3          # click on the form
+xdotool mousemove 533 267 click 1; sleep 3          # click on the form
 shot 04-button-placed
-xdotool mousemove 537 311 click --repeat 2 --delay 80 1; sleep 5   # double-click button1
+xdotool mousemove 565 278 click --repeat 2 --delay 80 1; sleep 5   # double-click button1
 shot 05-handler-in-code
 xdotool key ctrl+s; sleep 2
 cp "$proj/Form1.cs" "$out/Form1.cs.after-save"; cp "$proj/Form1.Designer.cs" "$out/Form1.Designer.cs.after-save"

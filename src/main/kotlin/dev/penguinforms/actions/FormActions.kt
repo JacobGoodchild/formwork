@@ -15,7 +15,7 @@ import dev.penguinforms.editor.FormFiles
 
 /** The form a context points at: a Form1.cs / Form1.Designer.cs file in an editor or in the Solution Explorer. */
 private fun formOf(e: AnActionEvent): Pair<VirtualFile, FormFiles>? {
-    val file = e.getData(CommonDataKeys.VIRTUAL_FILE) ?: return null
+    val file = dev.penguinforms.editor.FormDesignFile.codeOf(e.getData(CommonDataKeys.VIRTUAL_FILE) ?: return null)
     FormFiles.of(file)?.let { return file to it }
     val form = FormFiles.ofDesignerFile(file) ?: return null
     val code = LocalFileSystem.getInstance().findFileByIoFile(form.code) ?: return null
@@ -47,6 +47,7 @@ class ViewDesignerAction : DumbAwareAction() {
         val project = e.project ?: return
         val (code, _) = formOf(e) ?: return
         val manager = FileEditorManager.getInstance(project)
+        if (dev.penguinforms.editor.FormDesignFile.separateTabs) { manager.openFile(dev.penguinforms.editor.FormDesignFile.of(code), true); return }
         manager.openFile(code, true)
         manager.setSelectedEditor(code, DesignerEditorProvider.TYPE_ID)
     }

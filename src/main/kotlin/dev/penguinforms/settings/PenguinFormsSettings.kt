@@ -19,6 +19,8 @@ class PenguinFormsSettings : PersistentStateComponent<PenguinFormsSettings.State
         var gridHeight: Int = 8
         var showGrid: Boolean = true
         var snapToGrid: Boolean = true
+        /** `Form1.cs [Design]` and `Form1.cs` as two editor tabs, as Visual Studio (off: Design/Text sub-tabs of one tab). */
+        var separateDesignTab: Boolean = true
     }
 
     private var state = State()

@@ -66,12 +66,9 @@ Settings → Tools → Penguin Forms; the app runs as a window on Linux.
 - **Not tested inside Rider itself.** The sandbox Rider asks for a JetBrains account login, which the
   tests must not do; everything was tested in IntelliJ IDEA 2026.2.4 instead (same platform). Rider-only
   checks (Solution Explorer, Run button, debugging) are listed in TESTING-FOR-JACOB.md.
-- The running app's background is **beige (#ECE9D8) on Linux**, not #F0F0F0 — a deliberate NetForms
-  choice. The designer shows #F0F0F0 like VS. Likewise the running app's buttons are NetForms' grey ones,
-  while the designer draws Windows 11's white ones.
+- The running app's buttons are NetForms' grey (Windows 10-style) ones, while the designer draws Windows 11's
+  white ones. (Its background is Windows grey #F0F0F0, like the designer, for projects converted by Penguin Forms.)
 - No **WebBrowser** control (Internet Explorer, Windows-only).
-- The code sub-tab is Rider's own editor and is labelled **"Text"**, not "Code"; design and code are one
-  tab with two sub-tabs rather than two separate tabs.
 - Renaming a control updates `Form1.Designer.cs` and `Form1.cs`, but not other files that use it.
 - Text sizes are measured with **Formwork Sans** (Microsoft's open Selawik font, with Segoe UI's line
   metrics); most default sizes match Visual Studio exactly, a few are 1–2 px off.

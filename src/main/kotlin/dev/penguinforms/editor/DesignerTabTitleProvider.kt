@@ -9,6 +9,10 @@ import com.intellij.openapi.vfs.VirtualFile
 /** `Form1.cs [Design]` while the Design tab is showing, with `*` for unsaved changes - as in Visual Studio. */
 class DesignerTabTitleProvider : EditorTabTitleProvider, DumbAware {
     override fun getEditorTabTitle(project: Project, file: VirtualFile): String? {
+        if (file is FormDesignFile) {
+            val designer = FileEditorManager.getInstance(project).getEditors(file).filterIsInstance<DesignerEditor>().firstOrNull()
+            return file.name + if (designer?.isModified == true) "*" else ""
+        }
         val designer = FileEditorManager.getInstance(project).getSelectedEditor(file) as? DesignerEditor ?: return null
         return "${file.name} [Design]" + if (designer.isModified) "*" else ""
     }
