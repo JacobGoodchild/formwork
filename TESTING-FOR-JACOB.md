@@ -187,7 +187,12 @@ Install the newest plugin zip first (newest green **CI** run → **Artifacts** �
 7. **Lists of things** (ComboBox/ListBox **Items**, TabControl **TabPages**, ListView **Columns**, TreeView **Nodes**):
    click the value in Properties, then the small button at its right end: you get a box with one item per line.
    For TreeView Nodes, **indent a line with two spaces** to make it a child of the line above.
-8. **Format → Horizontal Spacing → Increase** now keeps the control you clicked last still and moves the others,
+8. **Drag menu items** up and down inside a menu to reorder them (a blue line shows where it goes).
+9. **Smart tags** (the small ◂ box at a control's top-right corner) now work: e.g. on a new MenuStrip click
+   **Insert Standard Items** to get File / Edit / Tools / Help; on a TabControl, **Add Tab**.
+10. **Data binding**: for a ComboBox or ListBox with a DataSource, **DisplayMember** and **ValueMember** now offer the
+    data's fields in a drop-down.
+11. **Format → Horizontal Spacing → Increase** now keeps the control you clicked last still and moves the others,
    like Visual Studio.
 
 ---
