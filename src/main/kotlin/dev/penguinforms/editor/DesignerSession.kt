@@ -641,7 +641,7 @@ class DesignerSession(
     // so the smart-tag action links did nothing.)
     private val knownOps = setOf("setBounds", "setForm", "setProp", "resetProp", "setItems", "setEvent", "add", "remove", "setParent",
         "setImage", "setImages", "reorder", "setCell", "setStyles", "rename", "paste", "duplicate", "bringToFront", "sendToBack",
-        "verb", "setTreeNodes", "setChildIndex")
+        "verb", "setTreeNodes", "setChildIndex", "moveItem")
 
     /** Edits from the page: known kinds only, and picture paths only from the file chooser. */
     private fun checkOps(ops: JsonArray) {

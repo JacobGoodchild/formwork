@@ -1,6 +1,8 @@
 // Penguin Forms additions to the NetForms webview (run after designer.js).
 (function () {
 	'use strict';
+	// Visual Studio has no centre snaplines: NetForms' are switched off (not just hidden, or an unseen one could win).
+	if (window.NetFormsGeometry) window.NetFormsGeometry.centerLines = false;
 	window.addEventListener('message', function (e) {
 		var m = e.data;
 		if (m && m.type === 'fwFatal') {

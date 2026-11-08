@@ -1,6 +1,6 @@
 package dev.penguinforms.host
 
-import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -34,7 +34,9 @@ data class HostResponse(val result: JsonElement?, val writes: Map<String, String
  * argument list, never a shell string.
  */
 class HostClient(private val process: Process, private val log: (String) -> Unit = {}) : AutoCloseable {
-    private val gson = Gson()
+    // Nulls kept: a file the editor no longer has (an undo took away a new Form1.resx) is sent as null, not left out,
+    // or the host would go on using its last copy.
+    private val gson = GsonBuilder().serializeNulls().create()
     private val nextId = AtomicInteger(1)
     private val pending = ConcurrentHashMap<Int, CompletableFuture<HostResponse>>()
     private val stdin = OutputStreamWriter(process.outputStream, StandardCharsets.UTF_8)

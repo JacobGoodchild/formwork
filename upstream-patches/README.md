@@ -64,3 +64,31 @@ StatusStrip items) carries its caption in a new `text` field ("-" for a separato
 `DropDownItems` list back in the new order through `setItems`, which needs every item's caption.
 
 **Behaviour change for NetForms users:** none (an extra field in the view JSON).
+
+## 0006-designer-baselines-locks-menu-moves.patch
+
+Three Visual Studio designer behaviours (on top of 0001–0005; it also changes lines 0002 added, so it must come after it):
+
+1. **Text-baseline snaplines (VS's magenta line).** Each control with a line of text gets `baseline` in the view
+   (pixels from its top), computed as VS's control designers compute theirs (dotnet/winforms, MIT, read as the spec:
+   `DesignerUtils.GetTextBaseline` plus the offsets of `ButtonBaseDesigner`, `LabelDesigner`, `TextBoxBaseDesigner`,
+   `ComboBoxDesigner`, `DateTimePickerDesigner`, `UpDownBaseDesigner`). For Segoe UI it uses Segoe UI's own Windows
+   metrics (2210 / 514 per 2048), because the font that stands in for it on Linux has a squeezed line. `geometry.js`
+   snaps a dragged control's baseline onto a neighbour's and draws the magenta guide; Ctrl+Up/Down stop there too.
+   Checked: Segoe UI 9 gives text box 17, button 17, auto-size label 14 — so a label 3 px below its text box (as VS's
+   own templates have it) lines up exactly.
+2. **The Locked property.** As VS, kept in the form's `.resx`, never in the code:
+   `<metadata name="button1.Locked" type="System.Boolean, mscorlib, …"><value>True</value></metadata>` (`$this.Locked`
+   for the form). Shown in the grid's Design category; `setProp Locked` writes it, False takes the entry out, a rename
+   carries it over, a deleted control's goes. A locked control is `locked: true` and not movable or resizable in the
+   view; the page draws a padlock on it. Format → Lock Controls sets every control and the form to the opposite of the
+   form's Locked (as VS's command does), in one undo step. Before, Lock Controls only locked the page's view and wasn't saved.
+3. **Moving a menu item into another menu.** New edit `moveItem` (`id`, `parent`, optional `index`): the item leaves its
+   collection and goes into the parent's (`Items` of a strip, `DropDownItems` of a menu item), refused for its own
+   sub-menus and for item kinds the target doesn't take. The page: drag an item before/after an item of another open
+   menu or of the menu bar (blue bar), or onto the middle of a menu's title (or an item with a sub-menu) to put it at
+   the end of that menu (outlined).
+
+Also `host/apply-patches.sh` now copes with a patch whose lines a later patch changed again.
+
+**Behaviour change for NetForms users:** Lock Controls is now saved in the .resx (as VS); otherwise new fields and a new edit.

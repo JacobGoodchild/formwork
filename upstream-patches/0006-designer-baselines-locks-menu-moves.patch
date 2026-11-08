@@ -1,0 +1,874 @@
+diff --git a/designer/media/designer.css b/designer/media/designer.css
+index e4fb8d7..470b287 100644
+--- a/designer/media/designer.css
++++ b/designer/media/designer.css
+@@ -340,3 +340,4 @@ body.tool-armed .canvas, body.tool-armed .canvas * { cursor: crosshair !importan
+ .strip-adder { position: absolute; box-sizing: border-box; border: 1px solid #7a9cd3; background: #fff; color: #333; font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: default; z-index: 26; }
+ .strip-adder:hover { background: #e5f1fb; }
+ .item-insert { position: absolute; background: #0078d7; z-index: 27; pointer-events: none; }
++.item-insert.into { background: rgba(0, 120, 215, 0.15); outline: 2px solid #0078d7; outline-offset: -2px; }
+diff --git a/designer/media/designer.js b/designer/media/designer.js
+index 9203607..38de7ac 100644
+--- a/designer/media/designer.js
++++ b/designer/media/designer.js
+@@ -39,7 +39,6 @@
+ 		busy: false,
+ 		tabOrder: false,
+ 		tabOrderNext: 0,
+-		locked: !!saved.locked, // select and inspect, but no drag, resize or arrow-key move
+ 		selectNew: null, // ids present before an add: select whatever appears
+ 		drag: null,
+ 		parseError: null,
+@@ -48,7 +47,7 @@
+ 	};
+ 
+ 	function remember() {
+-		vscode.setState({ zoom: state.zoom, tab: state.tab, locked: state.locked, collapsed: [...state.collapsed], toolboxCollapsed: [...state.toolboxCollapsed], leftTab: state.leftTab, outlineCollapsed: [...state.outlineCollapsed] });
++		vscode.setState({ zoom: state.zoom, tab: state.tab, collapsed: [...state.collapsed], toolboxCollapsed: [...state.toolboxCollapsed], leftTab: state.leftTab, outlineCollapsed: [...state.outlineCollapsed] });
+ 	}
+ 
+ 	function post(message) { vscode.postMessage(message); }
+@@ -116,7 +115,7 @@
+ 	function flushNudge() {
+ 		const n = state.pendingNudge;
+ 		state.pendingNudge = null;
+-		if (!n || (!n[0] && !n[1]) || state.busy || state.locked) return;
++		if (!n || (!n[0] && !n[1]) || state.busy) return;
+ 		const ops = [];
+ 		for (const id of movableSelection()) {
+ 			const it = itemById(id);
+@@ -223,7 +222,7 @@
+ 			button('+', T('Zoom in'), () => setZoom(state.zoom * 1.25)),
+ 			button('1:1', T('Actual size'), () => setZoom(1)),
+ 			el('span', 'sep'),
+-			button('🔒', T('Lock: select and inspect, but refuse every drag and resize'), () => toggleLock(), { on: state.locked }),
++			button('🔒', T('Lock Controls: they can be selected, not moved or resized'), () => toggleLock(), { on: formLocked() }),
+ 			button('⇥', T('Tab order: click the controls in the order the Tab key should visit them'), () => toggleTabOrder(), { on: state.tabOrder }),
+ 			button('⬒', T('Bring to front'), () => zorder('bringToFront'), { disabled: !movableSelection().length }),
+ 			button('⬓', T('Send to back'), () => zorder('sendToBack'), { disabled: !movableSelection().length }),
+@@ -290,11 +289,22 @@
+ 		return it ? it.parent : '';
+ 	}
+ 
++	/** The form is locked ($this.Locked in the .resx): Lock Controls is ticked. */
++	function formLocked() {
++		return !!(state.view && state.view.locked);
++	}
++
++	/**
++	 * Format → Lock Controls, as VS: every control and the form get the opposite of the form's Locked (kept in the
++	 * .resx, so it stays locked when the form is opened again); one undo step.
++	 */
+ 	function toggleLock() {
+-		state.locked = !state.locked;
+-		remember();
+-		renderToolbar();
+-		renderStage();
++		const v = state.view;
++		if (!v || state.busy) return;
++		const value = formLocked() ? 'False' : 'True';
++		const ops = [{ op: 'setProp', id: '', prop: 'Locked', value }];
++		for (const it of v.items) if (it.kind === 'control') ops.push({ op: 'setProp', id: it.id, prop: 'Locked', value });
++		apply(ops, state.selection);
+ 	}
+ 
+ 	function toggleTabOrder() {
+@@ -380,7 +390,7 @@
+ 			row.title = it ? `${it.id} (${shortType(it.type)})` : state.view.className;
+ 			row.addEventListener('click', (e) => select(id, e.ctrlKey || e.shiftKey));
+ 			row.addEventListener('contextmenu', (e) => { e.preventDefault(); onContextMenu(e, id); });
+-			if (it && it.kind === 'control' && !state.locked) {
++			if (it && it.kind === 'control' && it.movable) {
+ 				row.draggable = true;
+ 				row.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/netforms-outline', id); e.dataTransfer.effectAllowed = 'move'; state.outlineDrag = id; });
+ 				row.addEventListener('dragend', () => { state.outlineDrag = null; });
+@@ -727,7 +737,7 @@
+ 			for (const x of t.columns.lines) { const l = el('div', 'tl-line v'); place(l, { x, y: y1, w: 0, h: y2 - y1 }); canvas.append(l); }
+ 			for (const y of t.rows.lines) { const l = el('div', 'tl-line h'); place(l, { x: x1, y, w: x2 - x1, h: 0 }); canvas.append(l); }
+ 		}
+-		if (state.locked || state.tabOrder) return;
++		if (it.locked || state.tabOrder) return;
+ 		const grip = (columns, i) => {
+ 			const g = el('div', 'tl-grip ' + (columns ? 'v' : 'h'));
+ 			const at = (columns ? t.columns : t.rows).lines[i + 1] + Math.floor(it.table.border / 2);
+@@ -781,7 +791,7 @@
+ 	}
+ 
+ 	function startTrackResize(e, it, columns, index) {
+-		if (e.button !== 0 || state.busy || state.locked) return;
++		if (e.button !== 0 || state.busy || it.locked) return;
+ 		e.stopPropagation();
+ 		e.preventDefault();
+ 		const styles = columns ? it.table.columnStyles : it.table.rowStyles;
+@@ -935,7 +945,7 @@
+ 	function drawTypeHere(canvas) {
+ 		const v = state.view;
+ 		const owner = itemById(primaryId());
+-		if (!v || !owner || state.locked || state.selection.length !== 1) return;
++		if (!v || !owner || owner.locked || state.selection.length !== 1) return;
+ 		const t = shortType(owner.type);
+ 		let vertical, prop;
+ 		if (t === 'StatusStrip' || t === 'ToolStrip') { drawStripAdder(canvas, owner); return; }
+@@ -1050,7 +1060,7 @@
+ 		const [ml, mt, mr, mb] = it.margin || [3, 3, 3, 3];
+ 		const before = axis === 'x' ? ml : mt, after = axis === 'x' ? mr : mb;
+ 		const pad = c.padding || [0, 0, 0, 0];
+-		const lines = [];
++		const lines = [], tops = [];
+ 		const start = c[pos] + (axis === 'x' ? pad[0] : pad[1]), end = c[pos] + c[size] - (axis === 'x' ? pad[2] : pad[3]);
+ 		for (const s of state.view.items) {
+ 			if (s.id === it.id || s.parent !== it.parent || s.kind !== 'control' || !s.visible) continue;
+@@ -1060,10 +1070,12 @@
+ 			// dragging snaps, geometry.js): two buttons end up 3 + 3 = 6 px apart.
+ 			const gapBefore = (axis === 'x' ? sr : sb) + before, gapAfter = (axis === 'x' ? sl : st) + after;
+ 			lines.push(a, b, b + gapBefore, a - gapAfter);
++			// VS's baseline snapline: where the top goes for the two texts to line up.
++			if (axis === 'y' && !resizing && it.baseline != null && s.baseline != null) tops.push(s.y + s.baseline - it.baseline);
+ 		}
+ 		lines.push(start + before, end - after);
+ 		const cur = resizing ? it[pos] + it[size] : it[pos];
+-		const cands = resizing ? lines : lines.concat(lines.map((l) => l - it[size]));
++		const cands = resizing ? lines : lines.concat(lines.map((l) => l - it[size]), tops);
+ 		const ahead = cands.filter((l) => (dir > 0 ? l > cur : l < cur) && (!resizing || l > it[pos]));
+ 		if (!ahead.length) return cur + dir;
+ 		return dir > 0 ? Math.min(...ahead) : Math.max(...ahead);
+@@ -1073,7 +1085,7 @@
+ 		drawTypeHere(canvas);
+ 		const id = primaryId();
+ 		const it = itemById(id);
+-		if (state.selection.length > 1 && !state.locked) {
++		if (state.selection.length > 1) {
+ 			// A multiple selection, as VS draws it: the primary control (the reference for Format commands) has
+ 			// white handles, the others dark ones.
+ 			for (const sid of state.selection) {
+@@ -1089,7 +1101,7 @@
+ 			}
+ 			return;
+ 		}
+-		if (state.locked && it && it.visible && it.kind === 'control') {
++		if (it && it.locked && it.visible && it.kind === 'control') {
+ 			// VS: a locked control shows a padlock where its handles would be, and can't be moved or resized.
+ 			const lock = el('div', 'handle lock-glyph', '🔒');
+ 			lock.title = T('Locked (Format → Lock Controls)');
+@@ -1098,7 +1110,7 @@
+ 			canvas.append(lock);
+ 			return;
+ 		}
+-		if (!it || state.selection.length !== 1 || !it.visible || state.locked) return;
++		if (!it || state.selection.length !== 1 || !it.visible || it.locked) return;
+ 		if (it.smartTag && it.kind === 'control') drawSmartTag(canvas, it);
+ 		if (it.container && it.movable && it.kind === 'control') {
+ 			// VS's move glyph: a drag inside a selected container draws a selection rectangle, this moves it.
+@@ -1147,7 +1159,7 @@
+ 		const hit = G.hitTest(state.view.items, p.x, p.y);
+ 		const additive = e.ctrlKey || e.shiftKey;
+ 		// A SplitContainer's splitter is dragged, as in VS: SplitterDistance follows.
+-		if (hit && hit.splitter && !additive && !state.locked && G.inside(hit.splitter, p)) { startSplitterDrag(e, hit, p); return; }
++		if (hit && hit.splitter && !additive && !hit.locked && G.inside(hit.splitter, p)) { startSplitterDrag(e, hit, p); return; }
+ 		// A drag on the form, or on a container's own background, draws a selection rectangle (VS): on a panel that
+ 		// is selected already (moved by its glyph then), on a part that cannot move (a SplitContainer's panel, a page).
+ 		if (!hit || hit.container && (hit.kind === 'nested' || !hit.movable || (state.selection.length === 1 && state.selection[0] === hit.id))
+@@ -1158,7 +1170,7 @@
+ 		if (!additive && switchTab(hit, p)) { e.preventDefault(); return; }
+ 		if (additive) { select(hit.id, true); return; }
+ 		if (!state.selection.includes(hit.id)) select(hit.id, false);
+-		if (state.locked) return;
++		if (hit.locked) return;
+ 		if (hit.kind === 'item') { startItemDrag(e, hit, p); return; }
+ 		const ids = movableSelection();
+ 		if (!ids.length || !ids.includes(hit.id)) return;
+@@ -1177,33 +1189,65 @@
+ 	 */
+ 	function startItemDrag(e, item, p) {
+ 		const parent = itemById(item.parent) || trayById(item.parent);
+-		const siblings = state.view.items.filter((i) => i.kind === 'item' && i.parent === item.parent);
+-		if (!parent || siblings.length < 2 || siblings.some((s) => typeof s.text !== 'string')) return;
+-		const vertical = isInDropDown(item);
+-		const sorted = siblings.slice().sort((a, b) => (vertical ? a.y - b.y : a.x - b.x));
+-		const shown = sorted.filter((s) => s.visible);
++		if (!parent || typeof item.text !== 'string') return;
+ 		const bar = el('div', 'item-insert');
+-		let index = null;
++		const groupOf = (h) => {
++			const vertical = isInDropDown(h);
++			return state.view.items.filter((i) => i.kind === 'item' && i.parent === h.parent && typeof i.text === 'string')
++				.sort((a, b) => (vertical ? a.y - b.y : a.x - b.x));
++		};
++		// The item itself and everything in its sub-menus: it cannot go into them.
++		const ownPart = (it) => { for (let cur = it; cur; cur = itemById(cur.parent)) if (cur.id === item.id) return true; return false; };
++		const itemAt = (q) => {
++			for (let i = state.view.items.length - 1; i >= 0; i--) {
++				const it = state.view.items[i];
++				if (it.kind === 'item' && it.visible && typeof it.text === 'string' && G.inside([it.x, it.y, it.w, it.h], q)) return it;
++			}
++			return null;
++		};
++		let started = false, drop = null;
+ 		const move = (ev) => {
+ 			const q = canvasPoint(ev);
+-			if (index === null && Math.abs(q.x - p.x) + Math.abs(q.y - p.y) < 5) return;
+-			index = shown.filter((s) => (vertical ? s.y + s.h / 2 < q.y : s.x + s.w / 2 < q.x)).length;
+-			const ref = shown[Math.min(index, shown.length - 1)];
+-			const after = index >= shown.length;
+-			place(bar, vertical ? { x: ref.x, y: (after ? ref.y + ref.h : ref.y) - 1, w: ref.w, h: 2 } : { x: (after ? ref.x + ref.w : ref.x) - 1, y: ref.y, w: 2, h: ref.h });
++			if (!started && Math.abs(q.x - p.x) + Math.abs(q.y - p.y) < 5) return;
++			started = true;
++			const h = itemAt(q);
++			drop = null;
++			if (!h || ownPart(h)) { bar.remove(); return; }
++			const vertical = isInDropDown(h);
++			const along = vertical ? (q.y - h.y) / h.h : (q.x - h.x) / h.w;
++			if (shortType(h.type) === 'ToolStripMenuItem' && (h.hasDropDown || !vertical) && along > 0.3 && along < 0.7) {
++				// Over the middle of a menu (a title on the bar, or an item with a sub-menu): to the end of that menu.
++				drop = { parent: h.id, index: null };
++				bar.className = 'item-insert into';
++				place(bar, { x: h.x, y: h.y, w: h.w, h: h.h });
++			} else {
++				// Before or after an item: into its menu or strip, there.
++				const order = groupOf(h).filter((s) => s !== item);
++				const after = along >= 0.5;
++				drop = { parent: h.parent, index: order.indexOf(h) + (after ? 1 : 0), order };
++				bar.className = 'item-insert';
++				place(bar, vertical ? { x: h.x, y: (after ? h.y + h.h : h.y) - 1, w: h.w, h: 2 } : { x: (after ? h.x + h.w : h.x) - 1, y: h.y, w: 2, h: h.h });
++			}
+ 			if (!bar.isConnected && state.canvas) state.canvas.append(bar);
+ 		};
+ 		const up = () => {
+ 			window.removeEventListener('mousemove', move);
+ 			bar.remove();
+-			if (index === null) return; // a click, not a drag
+-			const order = sorted.filter((s) => s !== item);
+-			const before = shown[index]; // the item it goes in front of (none: after the last shown one)
+-			const at = before ? order.indexOf(before) : (shown.length ? order.indexOf(shown[shown.length - 1]) + 1 : order.length);
+-			order.splice(at < 0 ? order.length : at, 0, item);
+-			if (order.every((s, i) => s === sorted[i])) return;
+-			const prop = shortType(parent.type) === 'ToolStripMenuItem' ? 'DropDownItems' : 'Items';
+-			apply([{ op: 'setItems', id: item.parent, prop, values: order.map((s) => s.text), ids: order.map((s) => s.id) }], [item.id]);
++			if (!started || !drop) return; // a click, not a drag (or let go where nothing takes it)
++			if (drop.parent === item.parent && drop.index !== null) {
++				// Along its own menu: the new order of it (as before, one setItems).
++				const sorted = groupOf(item);
++				const order = drop.order.slice();
++				order.splice(drop.index, 0, item);
++				if (order.every((s, i) => s === sorted[i])) return;
++				const prop = shortType(parent.type) === 'ToolStripMenuItem' ? 'DropDownItems' : 'Items';
++				apply([{ op: 'setItems', id: item.parent, prop, values: order.map((s) => s.text), ids: order.map((s) => s.id) }], [item.id]);
++				return;
++			}
++			// Into another menu or strip (VS lets an item be dragged anywhere a menu shows): the host moves it.
++			const op = { op: 'moveItem', id: item.id, parent: drop.parent };
++			if (drop.index !== null) op.index = drop.index;
++			apply([op], [item.id]);
+ 		};
+ 		e.preventDefault();
+ 		window.addEventListener('mousemove', move);
+@@ -1269,7 +1313,7 @@
+ 
+ 	/** Moving a selected container: by the glyph at its top left, as a drag inside it draws a selection rectangle. */
+ 	function startGlyphMove(e, it) {
+-		if (e.button !== 0 || state.busy || state.locked) return;
++		if (e.button !== 0 || state.busy || it.locked) return;
+ 		e.stopPropagation();
+ 		e.preventDefault();
+ 		const p = canvasPoint(e);
+@@ -1308,6 +1352,7 @@
+ 		const items = d.ids.map(itemById);
+ 		const group = G.union(items);
+ 		group.margin = items.length === 1 ? items[0].margin : [3, 3, 3, 3];
++		if (items.length === 1 && items[0].baseline != null) group.baseline = items[0].baseline;
+ 		const strips = items.every((i) => i.strip);
+ 		const parentId = items[0].parent;
+ 		// Over a ToolStripPanel, what is not a strip cannot go in: it stays where it is.
+@@ -1347,7 +1392,7 @@
+ 		d.pointer = p;
+ 		const others = state.view.items.filter((i) => i.visible && i.kind === 'control' && i.parent === targetId && !d.ids.includes(i.id));
+ 		const snapOn = !e.altKey && state.snap;
+-		const moved = { x: group.x + dx, y: group.y + dy, w: group.w, h: group.h, margin: group.margin };
++		const moved = { x: group.x + dx, y: group.y + dy, w: group.w, h: group.h, margin: group.margin, baseline: group.baseline };
+ 		const snapped = G.snapMove(moved, others, containerRect(targetId), snapOn ? G.SNAP : 0);
+ 		d.dx = snapped.rect.x - group.x;
+ 		d.dy = snapped.rect.y - group.y;
+@@ -1480,7 +1525,7 @@
+ 	// --- resizing -----------------------------------------------------------------------------------
+ 
+ 	function startResize(e, it, edges) {
+-		if (e.button !== 0 || state.busy || state.locked) return;
++		if (e.button !== 0 || state.busy || it.locked) return;
+ 		e.stopPropagation();
+ 		e.preventDefault();
+ 		state.drag = { kind: 'resize', item: it, edges, start: canvasPoint(e), rect: { x: it.x, y: it.y, w: it.w, h: it.h, margin: it.margin } };
+@@ -1509,7 +1554,7 @@
+ 	}
+ 
+ 	function startFormResize(e, edge) {
+-		if (e.button !== 0 || state.busy || state.locked) return;
++		if (e.button !== 0 || state.busy || formLocked()) return;
+ 		e.stopPropagation();
+ 		e.preventDefault();
+ 		const v = state.view;
+@@ -1547,7 +1592,7 @@
+ 		if (ctrl && (e.key.toLowerCase() === 'y' || (e.key.toLowerCase() === 'z' && e.shiftKey))) { post({ type: 'redo' }); e.preventDefault(); return; }
+ 		if (e.key === 'F7') { post({ type: 'viewCode' }); e.preventDefault(); return; }
+ 		const nudgeKeys = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+-		if (state.busy && nudgeKeys[e.key] && !ctrl && !e.shiftKey && !e.altKey && !state.locked) {
++		if (state.busy && nudgeKeys[e.key] && !ctrl && !e.shiftKey && !e.altKey) {
+ 			// The last move is still being written: keep this one and send them together when it's done (VS moves on
+ 			// every key repeat; dropping presses made a held arrow key crawl).
+ 			const n = state.pendingNudge || (state.pendingNudge = [0, 0]);
+@@ -1599,7 +1644,7 @@
+ 			return;
+ 		}
+ 		const arrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+-		if (arrows[e.key] && !state.locked) {
++		if (arrows[e.key]) {
+ 			const [ax, ay] = arrows[e.key];
+ 			const step = 1;
+ 			const ops = [];
+@@ -1682,12 +1727,12 @@
+ 		item(T('Duplicate'), 'Ctrl+D', duplicateSelection, ids.length > 0);
+ 		item(T('Delete'), 'Del', deleteSelection, ids.length > 0);
+ 		sep();
+-		item(T('Bring to Front'), '', () => zorder('bringToFront'), movable && !state.locked);
+-		item(T('Send to Back'), '', () => zorder('sendToBack'), movable && !state.locked);
++		item(T('Bring to Front'), '', () => zorder('bringToFront'), movable);
++		item(T('Send to Back'), '', () => zorder('sendToBack'), movable);
+ 		sep();
+ 		tableMenu(item, sep, point);
+ 		stripMenu(item, sep);
+-		item(state.locked ? T('Unlock Controls') : T('Lock Controls'), '', toggleLock);
++		item(T('Lock Controls'), formLocked() ? '✓' : '', toggleLock);
+ 		if (state.selection.length === 1 && state.selection[0] !== '')
+ 			item(T('Select \'{0}\'', parent || (state.view ? state.view.className : '')), 'Esc', () => select(parent, false));
+ 		sep();
+@@ -1716,7 +1761,7 @@
+ 		const table = hit.table ? hit : hit.cell ? itemById(hit.parent) : null;
+ 		if (!table || !table.table) return;
+ 		const cell = hit.table ? G.cellAt(table.table, point.x, point.y) : { column: hit.cell[0], row: hit.cell[1] };
+-		const can = !state.locked;
++		const can = !table.locked;
+ 		const run = (op) => apply([op], state.selection);
+ 		item(T('Insert Column Left'), '', () => run(tracksOp(table, true, cell.column, true)), can);
+ 		item(T('Insert Column Right'), '', () => run(tracksOp(table, true, cell.column + 1, true)), can);
+@@ -2826,7 +2871,7 @@
+ 	function formatCommand(how, gridSize) {
+ 		const grid = gridSize || 8;
+ 		if (how === 'bringToFront' || how === 'sendToBack') { zorder(how); return; }
+-		if (how === 'lock') { state.locked = !state.locked; remember(); renderAll(); return; }
++		if (how === 'lock') { toggleLock(); return; }
+ 		if (how === 'tabOrder') { toggleTabOrder(); return; }
+ 		const ids = movableSelection();
+ 		if (!ids.length) return;
+@@ -2924,7 +2969,7 @@
+ 		selection: () => state.selection.slice(),
+ 		format: (how, grid) => formatCommand(how, grid),
+ 		// What the Format menu can do now: [selected movable controls, locked, tab order on].
+-		formatState: () => [movableSelection().length, state.locked, state.tabOrder],
++		formatState: () => [movableSelection().length, formLocked(), state.tabOrder],
+ 	};
+ 
+ 	post({ type: 'ready' });
+diff --git a/designer/media/geometry.js b/designer/media/geometry.js
+index e547511..d94bace 100644
+--- a/designer/media/geometry.js
++++ b/designer/media/geometry.js
+@@ -31,22 +31,26 @@
+ 			return [
+ 				{ edge: 'start', pos: other.x, kind: 'align' },
+ 				{ edge: 'end', pos: right(other), kind: 'align' },
+-				{ edge: 'center', pos: centerX(other), kind: 'center' },
++				...(api.centerLines ? [{ edge: 'center', pos: centerX(other), kind: 'center' }] : []),
+ 				{ edge: 'start', pos: right(other) + o[2] + m[0], kind: 'margin' },
+ 				{ edge: 'end', pos: other.x - o[0] - m[2], kind: 'margin' },
+ 			];
+ 		}
+-		return [
++		const ys = [
+ 			{ edge: 'start', pos: other.y, kind: 'align' },
+ 			{ edge: 'end', pos: bottom(other), kind: 'align' },
+-			{ edge: 'center', pos: centerY(other), kind: 'center' },
++			...(api.centerLines ? [{ edge: 'center', pos: centerY(other), kind: 'center' }] : []),
+ 			{ edge: 'start', pos: bottom(other) + o[3] + m[1], kind: 'margin' },
+ 			{ edge: 'end', pos: other.y - o[1] - m[3], kind: 'margin' },
+ 		];
++		// VS's magenta line: the two controls' text baselines in line (a label beside a text box).
++		if (moving.baseline != null && other.baseline != null) ys.push({ edge: 'baseline', pos: other.y + other.baseline, kind: 'baseline' });
++		return ys;
+ 	}
+ 
+ 	function edgeValue(axis, rect, edge) {
+ 		if (axis === 'x') return edge === 'start' ? rect.x : edge === 'end' ? right(rect) : centerX(rect);
++		if (edge === 'baseline') return rect.y + rect.baseline;
+ 		return edge === 'start' ? rect.y : edge === 'end' ? bottom(rect) : centerY(rect);
+ 	}
+ 
+@@ -62,6 +66,9 @@
+ 			: [{ edge: 'start', pos: container.y + p[1] + m[1], kind: 'margin' }, { edge: 'end', pos: bottom(container) - p[3] - m[3], kind: 'margin' }];
+ 	}
+ 
++	/** At the same distance, VS prefers a baseline (Medium priority) to an edge (Low), and an edge to the rest. */
++	const rank = (kind) => (kind === 'baseline' ? 2 : kind === 'align' ? 1 : 0);
++
+ 	/** The best (nearest) snap along one axis, or null. */
+ 	function bestSnap(axis, moving, others, container, threshold) {
+ 		let best = null;
+@@ -71,7 +78,7 @@
+ 		for (const { c, o } of all) {
+ 			const d = c.pos - edgeValue(axis, moving, c.edge);
+ 			if (Math.abs(d) > threshold) continue;
+-			if (!best || Math.abs(d) < Math.abs(best.delta) || (Math.abs(d) === Math.abs(best.delta) && c.kind === 'align' && best.kind !== 'align')) {
++			if (!best || Math.abs(d) < Math.abs(best.delta) || (Math.abs(d) === Math.abs(best.delta) && rank(c.kind) > rank(best.kind))) {
+ 				best = { delta: d, pos: c.pos, kind: c.kind, other: o };
+ 			}
+ 		}
+@@ -98,7 +105,7 @@
+ 		const t = threshold === undefined ? SNAP : threshold;
+ 		const sx = bestSnap('x', moving, others, container, t);
+ 		const sy = bestSnap('y', moving, others, container, t);
+-		const rect = { x: moving.x + (sx ? sx.delta : 0), y: moving.y + (sy ? sy.delta : 0), w: moving.w, h: moving.h, margin: moving.margin };
++		const rect = { x: moving.x + (sx ? sx.delta : 0), y: moving.y + (sy ? sy.delta : 0), w: moving.w, h: moving.h, margin: moving.margin, baseline: moving.baseline };
+ 		const guides = [];
+ 		if (sx) guides.push(guide('x', sx, rect));
+ 		if (sy) guides.push(guide('y', sy, rect));
+@@ -387,5 +394,8 @@
+ 		return { index: last.i + 1, bar: bar(last.c, false) };
+ 	}
+ 
+-	return { SNAP, snapMove, snapResize, resize, align, spaceEvenly, hitTest, dropTarget, stripsPanelAt, lassoSelect, inside, union, resizeEdges, tableTracks, cellRect, cellAt, parseStyle, formatStyle, resizeTracks, flowInsert };
++	// centerLines: whether a control's centre snaps onto a neighbour's (Visual Studio has no centre snaplines; an
++	// editor that hides them sets this false, so an invisible line cannot pull a control away from a visible one).
++	const api = { centerLines: true, SNAP, snapMove, snapResize, resize, align, spaceEvenly, hitTest, dropTarget, stripsPanelAt, lassoSelect, inside, union, resizeEdges, tableTracks, cellRect, cellAt, parseStyle, formatStyle, resizeTracks, flowInsert };
++	return api;
+ });
+diff --git a/designer/test/geometry.test.js b/designer/test/geometry.test.js
+index c3508d1..7eacf7c 100644
+--- a/designer/test/geometry.test.js
++++ b/designer/test/geometry.test.js
+@@ -222,3 +222,32 @@ test('an empty flow takes the drop first; TopDown and RightToLeft turn the axes'
+ 	assert.equal(g.flowInsert(rtl, 150, 20, 'RightToLeft').index, 1);
+ 	assert.equal(g.flowInsert(rtl, 20, 20, 'RightToLeft').index, 2);
+ });
++
++test('a label snaps its text baseline onto a text box\'s (VS\'s magenta line)', () => {
++	const box = { x: 100, y: 50, w: 100, h: 23, margin: [3, 3, 3, 3], baseline: 17 };
++	const label = { x: 40, y: 52, w: 38, h: 15, margin: [3, 0, 3, 0], baseline: 14 };
++	const { rect, guides } = g.snapMove(label, [box], null);
++	assert.equal(rect.y, 53); // 53 + 14 = 50 + 17
++	assert.equal(rect.baseline, 14);
++	const line = guides.find((l) => l.axis === 'y');
++	assert.equal(line.kind, 'baseline');
++	assert.equal(line.pos, 67);
++});
++
++test('no baseline line between controls without text baselines', () => {
++	const { guides } = g.snapMove(button(40, 52), [button(100, 50)], null);
++	assert.ok(guides.every((l) => l.kind !== 'baseline'));
++});
++
++test('with centre lines off, a baseline wins where a hidden centre line would have', () => {
++	g.centerLines = false;
++	try {
++		const box = { x: 90, y: 45, w: 180, h: 23, margin: [3, 3, 3, 3], baseline: 17 };
++		const label = { x: 16, y: 49, w: 59, h: 15, margin: [3, 0, 3, 0], baseline: 14 };
++		const { rect, guides } = g.snapMove(label, [box], null);
++		assert.equal(rect.y, 48);
++		assert.deepEqual(guides.map((l) => l.kind), ['baseline']);
++	} finally {
++		g.centerLines = true;
++	}
++});
+diff --git a/src/NetForms.Design.Serialization/ResxWriter.cs b/src/NetForms.Design.Serialization/ResxWriter.cs
+index a41e403..8acf034 100644
+--- a/src/NetForms.Design.Serialization/ResxWriter.cs
++++ b/src/NetForms.Design.Serialization/ResxWriter.cs
+@@ -79,6 +79,48 @@ public static class ResxWriter
+         return names;
+     }
+ 
++    /// <summary>The value of the <c>&lt;metadata&gt;</c> entry <paramref name="name"/> (<c>button1.Locked</c>), or null.</summary>
++    public static string? GetMetadata(string resx, string name)
++    {
++        var m = Metadata(resx, name);
++        if (m == null) return null;
++        var v = Regex.Match(m.Value, "<value>(.*?)</value>", RegexOptions.Singleline);
++        return v.Success ? System.Net.WebUtility.HtmlDecode(v.Groups[1].Value) : "";
++    }
++
++    /// <summary>
++    /// <paramref name="resx"/> (null: a new file) with the <c>&lt;metadata&gt;</c> entry <paramref name="name"/> set to
++    /// <paramref name="value"/>, as VS writes design-time properties such as Locked; a null value takes it out.
++    /// Returns null when there is no file and nothing to set.
++    /// </summary>
++    public static string? SetMetadata(string? resx, string name, string? value, string type)
++    {
++        if (resx == null && value == null) return null;
++        string nl = resx != null && !resx.Contains("\r\n", StringComparison.Ordinal) ? "\n" : "\r\n";
++        var s = resx ?? NewFile.Replace("\r\n", "\n").Replace("\n", nl) + nl + "</root>";
++        var m = Metadata(s, name);
++        if (value == null)
++        {
++            if (m == null) return s;
++            int start = LineStart(s, m.Index);
++            int end = m.Index + m.Length;
++            if (s.AsSpan(end).StartsWith(nl)) end += nl.Length;
++            return s.Remove(start, end - start);
++        }
++        var element = "<metadata name=\"" + System.Security.SecurityElement.Escape(name) + "\" type=\"" + System.Security.SecurityElement.Escape(type) + "\">" + nl
++            + "    <value>" + System.Security.SecurityElement.Escape(value) + "</value>" + nl + "  </metadata>";
++        if (m != null) return s.Remove(m.Index, m.Length).Insert(m.Index, element);
++        int close = s.LastIndexOf("</root>", StringComparison.Ordinal);
++        if (close < 0) throw new InvalidOperationException("The .resx has no </root>.");
++        return s.Insert(LineStart(s, close), "  " + element + nl);
++    }
++
++    private static Match? Metadata(string s, string name)
++    {
++        var m = Regex.Match(s, "<metadata\\s+name=\"" + Regex.Escape(System.Security.SecurityElement.Escape(name)) + "\"[^>]*?(/>|>.*?</metadata>)", RegexOptions.Singleline);
++        return m.Success ? m : null;
++    }
++
+     private static Match? Entry(string s, string name)
+     {
+         var m = Regex.Match(s, "<data\\s+name=\"" + Regex.Escape(System.Security.SecurityElement.Escape(name)) + "\"[^>]*?(/>|>.*?</data>)", RegexOptions.Singleline);
+diff --git a/src/NetForms.Design/DesignSurface.MoveItem.cs b/src/NetForms.Design/DesignSurface.MoveItem.cs
+new file mode 100644
+index 0000000..a8abea0
+--- /dev/null
++++ b/src/NetForms.Design/DesignSurface.MoveItem.cs
+@@ -0,0 +1,53 @@
++using System.Linq;
++using System.Windows.Forms;
++
++namespace NetForms.Design;
++
++/// <summary>Moving a tool strip item into another menu or strip by dragging, as VS's ToolStrip designer allows.</summary>
++public sealed partial class DesignSurface
++{
++    /// <summary>
++    /// moveItem: <paramref name="item"/> goes into <paramref name="owner"/> (a menu bar or tool strip, or a menu item:
++    /// its DropDownItems) at <paramref name="index"/> (null: at the end), out of the collection it was in.
++    /// </summary>
++    private void MoveItem(object item, object owner, int? index)
++    {
++        if (item is not ToolStripItem moving) throw new DesignerEditException("Only a menu or tool strip item can be moved into a menu.");
++        var target = owner switch
++        {
++            ToolStripDropDownItem d => d.DropDownItems,
++            ToolStrip strip when owner is not ToolStripDropDown => strip.Items,
++            _ => throw new DesignerEditException($"'{Model.FindByInstance(owner)?.Name ?? owner.GetType().Name}' does not hold menu or tool strip items."),
++        };
++        // Not into itself, nor into one of its own sub-menus.
++        for (var o = owner as ToolStripItem; o != null; o = o.OwnerItem ?? OwnerOf(o))
++            if (ReferenceEquals(o, moving)) throw new DesignerEditException("A menu item cannot go into its own sub-menu.");
++        if (!NewItemTypes(owner).Any(t => t.IsInstanceOfType(moving)))
++            throw new DesignerEditException($"A {moving.GetType().Name} cannot go into {Model.FindByInstance(owner)?.Name ?? owner.GetType().Name}.");
++
++        var source = CollectionOf(moving);
++        int at = index ?? target.Count;
++        if (source != null)
++        {
++            // Counting without the item itself, when it moves along its own collection.
++            if (ReferenceEquals(source, target) && source.IndexOf(moving) < at) at--;
++            source.Remove(moving);
++        }
++        target.Insert(System.Math.Clamp(at, 0, target.Count), moving);
++    }
++
++    /// <summary>The collection a tool strip item is in on the form (a strip's Items, a menu item's DropDownItems).</summary>
++    private ToolStripItemCollection? CollectionOf(ToolStripItem item)
++    {
++        foreach (var c in Model.Components)
++        {
++            if (c.Instance is ToolStripDropDownItem d && d.DropDownItems.Contains(item)) return d.DropDownItems;
++            if (c.Instance is ToolStrip s && s.Items.Contains(item)) return s.Items;
++        }
++        return null;
++    }
++
++    /// <summary>The menu item whose DropDownItems hold <paramref name="item"/>, or null.</summary>
++    private ToolStripItem? OwnerOf(ToolStripItem item) =>
++        Model.Components.Select(c => c.Instance).OfType<ToolStripDropDownItem>().FirstOrDefault(d => d.DropDownItems.Contains(item));
++}
+diff --git a/src/NetForms.Design/DesignSurface.Snaplines.cs b/src/NetForms.Design/DesignSurface.Snaplines.cs
+new file mode 100644
+index 0000000..78d2b36
+--- /dev/null
++++ b/src/NetForms.Design/DesignSurface.Snaplines.cs
+@@ -0,0 +1,165 @@
++using System;
++using System.Collections.Generic;
++using System.Drawing;
++using System.Windows.Forms;
++using NetForms.Design.Serialization;
++
++namespace NetForms.Design;
++
++/// <summary>
++/// Two things Visual Studio's control designers add: the text baseline a control offers as a (magenta) snapline,
++/// and the design-time Locked property, which VS keeps in the form's .resx rather than in the code.
++/// </summary>
++public sealed partial class DesignSurface
++{
++    private const ContentAlignment AnyTop = ContentAlignment.TopLeft | ContentAlignment.TopCenter | ContentAlignment.TopRight;
++    private const ContentAlignment AnyMiddle = ContentAlignment.MiddleLeft | ContentAlignment.MiddleCenter | ContentAlignment.MiddleRight;
++
++    /// <summary>
++    /// Where the control's text baseline is, in pixels from its top, as the VS designers place their baseline snapline
++    /// (dotnet/winforms DesignerUtils.GetTextBaseline plus each designer's offsets: ButtonBaseDesigner, LabelDesigner,
++    /// TextBoxBaseDesigner, ComboBoxDesigner, DateTimePickerDesigner, UpDownBaseDesigner). Null: no baseline.
++    /// </summary>
++    internal static int? TextBaseline(Control c)
++    {
++        switch (c)
++        {
++            case CheckBox box:
++                return Baseline(c, box.TextAlign, c.Height) + (box.Appearance == Appearance.Normal ? CheckBoxOffset(box.TextAlign, box.FlatStyle) : ButtonOffset(box.TextAlign, box.FlatStyle));
++            case RadioButton radio:
++                return Baseline(c, radio.TextAlign, c.Height) + (radio.Appearance == Appearance.Normal ? RadioOffset(radio.TextAlign, radio.FlatStyle) : ButtonOffset(radio.TextAlign, radio.FlatStyle));
++            case ButtonBase button:
++                return Baseline(c, button.TextAlign, c.Height) + ButtonOffset(button.TextAlign, button.FlatStyle);
++            case Label label:
++            {
++                // Windows' client area leaves out the border: 1 px a side for FixedSingle, 2 for Fixed3D.
++                int border = label.BorderStyle switch { BorderStyle.FixedSingle => 2, BorderStyle.Fixed3D => 4, _ => 0 };
++                int baseline = Baseline(c, label.TextAlign, c.Height - border);
++                if (!label.AutoSize)
++                {
++                    bool bottom = (label.TextAlign & (AnyTop | AnyMiddle)) == 0;
++                    baseline += label.BorderStyle == BorderStyle.None ? (bottom ? -1 : 0) : (bottom ? 0 : 1);
++                }
++                return baseline;
++            }
++            case TextBoxBase text:
++                return Baseline(c, ContentAlignment.TopLeft, c.Height) + text.BorderStyle switch { BorderStyle.FixedSingle => 2, BorderStyle.Fixed3D => 3, _ => 0 };
++            case ComboBox:
++                return Baseline(c, ContentAlignment.TopLeft, c.Height) + 3;
++            case DateTimePicker:
++                return Baseline(c, ContentAlignment.MiddleLeft, c.Height - 4) + 2;
++            case UpDownBase upDown:
++                return Baseline(c, ContentAlignment.TopLeft, c.Height) + (upDown.BorderStyle == BorderStyle.None ? -1 : 2);
++            default:
++                return null;
++        }
++    }
++
++    /// <summary>GetTextBaseline: the font's ascent (+1, as GDI's tmAscent + 1) placed as the alignment puts the text.</summary>
++    private static int Baseline(Control c, ContentAlignment alignment, int faceHeight)
++    {
++        var font = c.Font;
++        var family = font.FontFamily;
++        // Segoe UI's own Windows metrics (usWinAscent 2210, usWinDescent 514 per 2048): the font that stands in for it
++        // on Linux has its line squeezed to match Segoe UI's line height, not its ascent.
++        bool segoe = string.Equals(family.Name, "Segoe UI", StringComparison.OrdinalIgnoreCase);
++        float em = segoe ? 2048 : family.GetEmHeight(font.Style);
++        float scale = font.SizeInPoints * 96f / 72f / em;
++        // GDI rounds the ascent and the descent each to whole pixels; tmHeight is their sum.
++        int ascent = (int)Math.Round((segoe ? 2210 : family.GetCellAscent(font.Style)) * scale);
++        int height = ascent + (int)Math.Round((segoe ? 514 : family.GetCellDescent(font.Style)) * scale);
++        int fontAscent = ascent + 1;
++        if ((alignment & AnyTop) != 0) return fontAscent;
++        if ((alignment & AnyMiddle) != 0) return faceHeight / 2 - height / 2 + fontAscent;
++        return faceHeight - height + fontAscent;
++    }
++
++    private static bool Middle(ContentAlignment a) => (a & AnyMiddle) != 0;
++    private static bool Top(ContentAlignment a) => (a & AnyTop) != 0;
++
++    private static int ButtonOffset(ContentAlignment a, FlatStyle style)
++    {
++        if (Middle(a)) return 0;
++        int d = style switch { FlatStyle.System => 3, FlatStyle.Flat => 5, _ => 4 };
++        return Top(a) ? d : -d;
++    }
++
++    private static int CheckBoxOffset(ContentAlignment a, FlatStyle style)
++    {
++        if (Middle(a)) return style is FlatStyle.Standard or FlatStyle.System ? -1 : 0;
++        if (Top(a)) return style switch { FlatStyle.Standard => 1, FlatStyle.System => 0, _ => 2 };
++        return style switch { FlatStyle.Standard => -3, FlatStyle.System => 0, _ => -2 };
++    }
++
++    private static int RadioOffset(ContentAlignment a, FlatStyle style)
++    {
++        if (Middle(a)) return style == FlatStyle.System ? -1 : 0;
++        if (style == FlatStyle.System) return 0;
++        return Top(a) ? 2 : -2;
++    }
++
++    // --- Locked ------------------------------------------------------------------------------------
++
++    /// <summary>The type VS writes on a <c>Locked</c> metadata entry.</summary>
++    private const string BooleanResxType = "System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089";
++
++    private const string LockedDescription = "The Locked property determines if we can move or resize the control.";
++
++    /// <summary>The .resx name VS keeps a component's Locked under: <c>button1.Locked</c>, <c>$this.Locked</c> for the form.</summary>
++    private string? LockedKey(object target)
++    {
++        var component = Model.FindByInstance(target);
++        if (component == null || target is not Control) return null;
++        return (component.IsRoot ? "$this" : component.Name) + ".Locked";
++    }
++
++    /// <summary>Locked in the designer (Format → Lock Controls, or the Locked property): it can be selected, not moved or resized.</summary>
++    internal bool IsLocked(object target)
++    {
++        var key = LockedKey(target);
++        return key != null && ResxSource != null
++            && string.Equals(ResxWriter.GetMetadata(ResxSource, key)?.Trim(), "True", StringComparison.OrdinalIgnoreCase);
++    }
++
++    /// <summary>setProp Locked: written to the .resx as VS does (True), taken out when unlocked.</summary>
++    private void SetLocked(object target, string? value)
++    {
++        var key = LockedKey(target) ?? throw new DesignerEditException($"'{target.GetType().Name}' cannot be locked.");
++        bool on = string.Equals(value?.Trim(), "True", StringComparison.OrdinalIgnoreCase);
++        if (!on && !string.Equals(value?.Trim(), "False", StringComparison.OrdinalIgnoreCase))
++            throw new DesignerEditException($"'{value}' is not a valid value for Locked (True or False).");
++        ResxSource = ResxWriter.SetMetadata(ResxSource, key, on ? "True" : null, BooleanResxType);
++    }
++
++    /// <summary>A renamed control keeps its lock (VS renames the .resx entries with it).</summary>
++    private void RenameLocked(string oldName, string newName)
++    {
++        if (ResxSource == null || !string.Equals(ResxWriter.GetMetadata(ResxSource, oldName + ".Locked")?.Trim(), "True", StringComparison.OrdinalIgnoreCase)) return;
++        ResxSource = ResxWriter.SetMetadata(ResxSource, oldName + ".Locked", null, BooleanResxType);
++        ResxSource = ResxWriter.SetMetadata(ResxSource, newName + ".Locked", "True", BooleanResxType);
++    }
++
++    /// <summary>A deleted control's lock goes with it (VS drops its .resx entries).</summary>
++    private void PruneLocks()
++    {
++        if (ResxSource == null) return;
++        foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(ResxSource, "<metadata\\s+name=\"([^\"]+)\\.Locked\""))
++        {
++            var name = System.Net.WebUtility.HtmlDecode(m.Groups[1].Value);
++            if (name == "$this" || Model.Find(name) != null) continue;
++            ResxSource = ResxWriter.SetMetadata(ResxSource, name + ".Locked", null, BooleanResxType);
++        }
++    }
++
++    /// <summary>The grid's Locked row (Design category), for controls and the form, as VS lists it.</summary>
++    private void AddLockedRow(object target, List<DesignerPropertyRow> rows)
++    {
++        if (LockedKey(target) == null) return;
++        bool locked = IsLocked(target);
++        rows.Add(new DesignerPropertyRow
++        {
++            Name = "Locked", Category = "Design", Description = LockedDescription, Type = "Boolean",
++            Value = locked ? "True" : "False", Editor = "bool", Modified = locked,
++        });
++    }
++}
+diff --git a/src/NetForms.Design/DesignSurface.cs b/src/NetForms.Design/DesignSurface.cs
+index 7c2908b..97ed2c1 100644
+--- a/src/NetForms.Design/DesignSurface.cs
++++ b/src/NetForms.Design/DesignSurface.cs
+@@ -160,6 +160,7 @@ public sealed partial class DesignSurface : IDisposable
+             var gone = ResxWriter.ReferencedNames(before.Source);
+             gone.ExceptWith(ResxWriter.ReferencedNames(Source));
+             ResxSource = ResxWriter.Update(ResxSource, _writer.Resources, gone);
++            PruneLocks();
+             Reload();
+         }
+         catch
+@@ -221,7 +222,8 @@ public sealed partial class DesignSurface : IDisposable
+         var resx = ResxPath != null ? ReadIfExists(ResxPath) : null;
+         bool sourceChanged = source != null && source != _diskSource;
+         bool companionChanged = companion != null && companion != _diskCompanion;
+-        bool resxChanged = resx != null && resx != _diskResx;
++        // A .resx that is gone counts too (an undo in the editor can take away the one an edit made).
++        bool resxChanged = resx != _diskResx;
+         if (!sourceChanged && !companionChanged && !resxChanged) return false;
+ 
+         var (oldSource, oldCompanion, oldResx) = (Source, CompanionSource, ResxSource);
+@@ -374,6 +376,7 @@ public sealed partial class DesignSurface : IDisposable
+             case "rename": SetProperty(Resolve(op.Id), "Name", Required(op.Value, "value")); break;
+             case "bringToFront": AsControl(Resolve(op.Id)).BringToFront(); break;
+             case "verb": ApplyVerb(Resolve(op.Id), op.Value); break;
++            case "moveItem": MoveItem(Resolve(op.Id), Resolve(Required(op.Parent, "parent")), op.Index); break;
+             case "setChildIndex": SetChildIndex(AsControl(Resolve(op.Id)), op.Index ?? throw new DesignerEditException("The edit needs 'index'.")); break;
+             case "sendToBack": AsControl(Resolve(op.Id)).SendToBack(); break;
+             default: throw new DesignerEditException($"Unknown edit '{op.Op}'.");
+@@ -481,6 +484,7 @@ public sealed partial class DesignSurface : IDisposable
+ 
+     private void SetProperty(object target, string name, string? value)
+     {
++        if (name == "Locked" && target is Control) { SetLocked(target, value); return; }
+         var component = Model.FindByInstance(target);
+         if (name == "Name" && component != null)
+         {
+@@ -488,7 +492,7 @@ public sealed partial class DesignSurface : IDisposable
+             var oldName = component.Name;
+             try { Model.Rename(component, value ?? ""); }
+             catch (ArgumentException ex) { throw new DesignerEditException(ex.Message, ex); }
+-            if (oldName != null && oldName != component.Name) RenameInCode(component, oldName, component.Name!);
++            if (oldName != null && oldName != component.Name) { RenameInCode(component, oldName, component.Name!); RenameLocked(oldName, component.Name!); }
+             // A grid column's own Name (Columns["..."]) is its name in the code, as VS keeps the two together.
+             if (target is DataGridViewColumn gridColumn && (string.IsNullOrEmpty(gridColumn.Name) || gridColumn.Name == oldName)) gridColumn.Name = component.Name;
+             return;
+@@ -561,6 +565,7 @@ public sealed partial class DesignSurface : IDisposable
+ 
+     private void ResetProperty(object target, string name)
+     {
++        if (name == "Locked" && target is Control) { SetLocked(target, "False"); return; }
+         if (IsBindingProperty(name, out var bound))
+         {
+             SetBinding(target, bound, null);
+@@ -1177,6 +1182,7 @@ public sealed partial class DesignSurface : IDisposable
+             CanRedo = CanRedo,
+             Handler = _lastHandler,
+             Select = _pasted,
++            Locked = IsLocked(Root),
+         };
+         _lastHandler = null;
+         _pasted = null;
+@@ -1260,7 +1266,9 @@ public sealed partial class DesignSurface : IDisposable
+                 TabIndex = child.TabIndex,
+                 Margin = new[] { child.Margin.Left, child.Margin.Top, child.Margin.Right, child.Margin.Bottom },
+                 Padding = new[] { child.Padding.Left, child.Padding.Top, child.Padding.Right, child.Padding.Bottom },
++                Baseline = nested ? null : TextBaseline(child),
+             };
++            if (!nested && IsLocked(child)) { item.Locked = true; item.Movable = false; item.Resizable = false; }
+             if (child is TableLayoutPanel table) item.Table = TableView(table);
+             if (!nested) item.SmartTag = SmartTagFor(child);
+             if (child is SplitContainer split && !split.IsSplitterFixed && !split.Panel1Collapsed && !split.Panel2Collapsed)
+@@ -1336,10 +1344,11 @@ public sealed partial class DesignSurface : IDisposable
+         var rows = new List<DesignerPropertyRow>();
+         if (component is { IsRoot: false } && target is Control or ToolStripItem or DataGridViewColumn or ColumnHeader)
+             rows.Add(new DesignerPropertyRow { Name = "Name", Category = "Design", Description = "Indicates the name used in code to identify the object.", Type = "String", Value = component.Name, Editor = "text", Modified = true });
++        AddLockedRow(target, rows);
+ 
+         foreach (PropertyDescriptor pd in TypeDescriptor.GetProperties(target, new Attribute[] { BrowsableAttribute.Yes }))
+         {
+-            if (pd.Name == "Name" || HiddenExtender(pd)) continue;
++            if (pd.Name == "Name" || HiddenExtender(pd) || pd.Name == "Locked" && target is Control) continue;
+             bool extender = DesignerCodeWriter.IsExtenderProperty(pd);
+             object? value;
+             try { value = pd.GetValue(target); }
+diff --git a/src/NetForms.Design/DesignerView.cs b/src/NetForms.Design/DesignerView.cs
+index 84e3966..eb16b90 100644
+--- a/src/NetForms.Design/DesignerView.cs
++++ b/src/NetForms.Design/DesignerView.cs
+@@ -40,6 +40,9 @@ public sealed class DesignerView
+     /// <summary>The menus open on the canvas, from the outermost in (null: none), and what opened them.</summary>
+     public List<DesignerDropDown>? DropDowns { get; set; }
+     public string? OpenMenu { get; set; }
++
++    /// <summary>The form is locked (its <c>$this.Locked</c> in the .resx): it cannot be resized on the canvas.</summary>
++    public bool Locked { get; set; }
+ }
+ 
+ public sealed class DesignerViewItem
+@@ -96,6 +99,12 @@ public sealed class DesignerViewItem
+     public int[] Margin { get; set; } = new int[4];
+     public int[] Padding { get; set; } = new int[4];
+ 
++    /// <summary>For the baseline snapline: where its text's baseline is, in pixels from its top (null: no text line).</summary>
++    public int? Baseline { get; set; }
++
++    /// <summary>Locked in the designer (Lock Controls, or its Locked property): selectable, not movable or resizable.</summary>
++    public bool Locked { get; set; }
++
+     /// <summary>A TabControl's tab headers on the canvas (x, y, w, h), in page order; null for other controls.</summary>
+     public List<int[]>? Tabs { get; set; }
+ 

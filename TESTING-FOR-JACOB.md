@@ -194,6 +194,17 @@ Install the newest plugin zip first (newest green **CI** run → **Artifacts** �
     data's fields in a drop-down.
 11. **Format → Horizontal Spacing → Increase** now keeps the control you clicked last still and moves the others,
    like Visual Studio.
+12. **Pink text lines.** Drag a Label up and down next to a TextBox (for example "Password:" in the LoginForm
+    sample). When the label's words sit on the same line as the box's text, a **pink line** appears under them and
+    the label clicks into place, as in Visual Studio. Buttons, check boxes, combo boxes and the like have them too.
+13. **Lock Controls is saved now.** Format → Lock Controls puts a small padlock on the selected control, and every
+    control (and the form) stays put until you unlock it. Each control also has a **Locked** setting (Properties →
+    Design), so you can lock just one. Like Visual Studio, this is kept in `Form1.resx`, not in your code, so it's still
+    locked at college. Ctrl+Z undoes it.
+14. **Moving a menu item to another menu.** Open a menu on the form (click File). Drag one of its items:
+    - onto the **middle of another menu's title** on the menu bar (it gets a blue box): the item goes to the bottom of
+      that menu;
+    - **between two items** of an open menu or of the menu bar (a thin blue line shows where): it goes there.
 
 ---
 
