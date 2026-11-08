@@ -541,10 +541,13 @@ class PropertiesPanel(private val project: Project, parent: Disposable) : JPanel
             kind == "bool" -> listOf("True", "False")
             kind == "color" -> (listOfNotNull(row.value) + (row.data.getAsJsonArray("systemOptions")?.map { it.asString } ?: emptyList()) + (row.data.getAsJsonArray("options")?.map { it.asString } ?: emptyList())).distinct()
             kind == "enum" || kind == "component" || kind == "font" -> row.data.getAsJsonArray("options")?.map { it.asString }
-            else -> null
+            // Text the host offers choices for (DisplayMember / ValueMember / DataMember / DataPropertyName: the data
+            // source's fields, as VS lists them); typing something else stays possible.
+            else -> row.data.getAsJsonArray("options")?.map { it.asString }?.takeIf { it.isNotEmpty() }
         }
+        private val freeText = kind == "font" || events || kind !in setOf("bool", "color", "enum", "component")
         private val field = JBTextField(row.value)
-        private val combo = options?.let { ComboBox(it.toTypedArray()).apply { isEditable = kind == "font" || events; selectedItem = row.value } }
+        private val combo = options?.let { ComboBox(it.toTypedArray()).apply { isEditable = freeText; selectedItem = row.value } }
         private val panel = JPanel(BorderLayout())
 
         init {

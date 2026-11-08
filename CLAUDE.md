@@ -311,7 +311,7 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 
 ### L. Settings (Later)
 - [x] Settings page — **Verified**: Settings → Tools → Formwork with layout mode (SnapLines / SnapToGrid), grid size 8 × 8, show grid, snap while dragging, .NET path (shows the one found), host path (S `stage5-light-settings-page.png`); grid mode draws dots every grid step on the form (S `stage5-light-grid-mode-dots.png`; dots also cover controls — the form is one picture). Snap-to-grid while *dragging* is not implemented (the grid is used by Format → Align/Size to Grid).
-- [ ] Data binding pickers — **Partial**: DataSource is a drop-down of the form's data components (bindingSource1), DataBindings.* rows exist; DisplayMember/ValueMember are plain text (VS lists the source's members). Host-level check only.
+- [x] Data binding pickers — **Verified 8 Nov**: DataSource is a drop-down of the form's data components (bindingSource1); DisplayMember / ValueMember / DataMember / DataPropertyName are now editable drop-downs of the data source's fields (the host already listed them; the Properties window showed a text box): comboBox1 bound to a BindingSource of `typeof(Point)` → DisplayMember offers X, Y → `comboBox1.DisplayMember = "Y";` (S `check-dark-displaymember-lists-fields-in-idea-2026.1.png`). DataBindings.* rows exist (not re-checked).
 
 ## Fresh-eyes review, end of Stage 1 (21:02, sub-agent that saw only the references, screenshots and checklist)
 
