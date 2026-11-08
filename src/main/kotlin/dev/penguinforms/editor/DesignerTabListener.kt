@@ -29,6 +29,7 @@ class DesignerTabListener(private val project: Project) : FileEditorManagerListe
             // Visual Studio: opening a form (double-click in the Solution Explorer) opens its designer, not its code.
             // The code tab that just opened is swapped for the Design tab; F7 and handler jumps open the code itself.
             if (!file.name.endsWith(".cs", ignoreCase = true)) return
+            if (project.getUserData(DesignerStartup.OPENED) != true) return // a code tab the IDE is restoring
             val app = com.intellij.openapi.application.ApplicationManager.getApplication()
             // Is it a form? That reads Form1.Designer.cs, which isn't allowed on the UI thread.
             app.executeOnPooledThread {

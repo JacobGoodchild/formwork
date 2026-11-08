@@ -46,9 +46,12 @@ on a control and handler jumps open the code tab beside it; Shift+F7 brings the 
 designer still undoes through Rider. Fallback: Settings → Tools → Penguin Forms → "Design and code in separate tabs"
 (off = the old Design/Text sub-tabs), in case real Rider dislikes the stand-in file. Evidence: S
 `tabs-dark-01-design-tab-only-in-idea-2026.1.png`, `…-02-design-and-code-tabs-handler-…`, `…-03-shift-f7-and-two-ctrl-z-…`
-(button gone), `…-04-double-click-form1-opens-design-tab-…`; all unit tests pass. Not checked: real Rider; a Design
-tab isn't restored after an IDE restart (the stand-in file isn't saved), a code tab restored at startup is swapped to
-the designer; double-clicking Form1.cs while its code tab is already open just shows the code tab.
+(button gone), `…-04-double-click-form1-opens-design-tab-…`; all unit tests pass. Not checked: real Rider; double-clicking
+Form1.cs while its code tab is already open just shows the code tab. **Restart (fixed later the same day):** the Design
+tab file now has its own address, `penguinforms-design:///…/Form1.cs` (a small read-only `FormDesignFileSystem` that
+only maps paths), so the IDE saves and reopens Design tabs like any other; code tabs the IDE restores are no longer
+swapped (a ProjectActivity marks the project opened; only later opens are swapped). Verified: File → Exit with both tabs
+open, restart without a file → both tabs back, the Design tab loads (S `tabs-dark-05-both-tabs-restored-after-restart-…`).
 
 **(3) Marketplace preparation — done on our side; publishing stays Jacob's decision.** Own penguin icon (light + dark
 40×40 SVG, a slate-blue penguin in front of a form window; not Tux, no other company's logo; preview checked at 40 and

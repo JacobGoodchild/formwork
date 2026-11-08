@@ -33,6 +33,8 @@
     <applicationService serviceImplementation="dev.penguinforms.settings.PenguinFormsSettings"/>
     <applicationConfigurable parentId="tools" instance="dev.penguinforms.settings.PenguinFormsConfigurable" id="dev.penguinforms.settings" displayName="Penguin Forms"/>
     <postStartupActivity implementation="dev.penguinforms.project.LinuxProjectNotifier"/>
+    <postStartupActivity implementation="dev.penguinforms.editor.DesignerStartup"/>
+    <virtualFileSystem key="penguinforms-design" implementationClass="dev.penguinforms.editor.FormDesignFileSystem" physical="false"/>
   </extensions>
 
   <applicationListeners>
