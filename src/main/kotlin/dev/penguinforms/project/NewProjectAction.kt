@@ -44,6 +44,8 @@ class NewProjectAction : DumbAwareAction() {
             }
         }, "Creating $name…", false, project)
         if (error != null) { Messages.showErrorDialog(project, error.take(2000), "New Windows Forms App"); return }
+        // Rider opens the .csproj as a solution; an IDE without C# support ("No processor found") gets the folder instead.
         ProjectUtil.openOrImport(File(dir, "$name.csproj").toPath(), project, false)
+            ?: ProjectUtil.openOrImport(dir.toPath(), project, false)
     }
 }
