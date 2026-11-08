@@ -184,7 +184,10 @@ Install the newest plugin zip first (newest green **CI** run → **Artifacts** �
    that makes a sub-menu.
 6. **Status bar items**: click a StatusStrip; a small **▾** button appears after its last item. Pick
    **StatusLabel** or **ProgressBar** to add one.
-7. **Format → Horizontal Spacing → Increase** now keeps the control you clicked last still and moves the others,
+7. **Lists of things** (ComboBox/ListBox **Items**, TabControl **TabPages**, ListView **Columns**, TreeView **Nodes**):
+   click the value in Properties, then the small button at its right end: you get a box with one item per line.
+   For TreeView Nodes, **indent a line with two spaces** to make it a child of the line above.
+8. **Format → Horizontal Spacing → Increase** now keeps the control you clicked last still and moves the others,
    like Visual Studio.
 
 ---
