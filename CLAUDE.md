@@ -277,7 +277,7 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 
 ### F. Format menu (Should)
 - [x] Align — **Verified** (Lefts): S `stage4-light-format-align-lefts-find-action.png`, `stage4-light-format-align-lefts-result.png`. Others + to Grid: Done (unverified).
-- [ ] Make Same Size — **Done (unverified)** (Format menu → NetForms' align helper; Size to Grid added).
+- [x] Make Same Size — **Verified (Both) 8 Nov**: pictureBox1 + treeView1 (primary) → `pictureBox1.Size = new Size(121, 97);` (the primary's size). Width / Height / Size to Grid: same code path, unverified.
 - [ ] Horizontal / Vertical Spacing — **Partial, Increase Horizontal verified 8 Nov**: gap +8 (grid). Found and fixed: the left-most control stayed put; now the primary stays and the others move, as in VS (patch 0002): btnOK 114 → 106, btnCancel (primary) stays 195. Make Equal, Decrease, Remove, Vertical: Done (unverified; same code path).
 - [x] Center in Form — **Verified (Horizontally) 8 Nov**: OK + Cancel as a group, form 284 wide, group 164 → OK at x 60 (S `check-dark-center-horizontally-after-increase-spacing-in-idea-2026.1.png`). Vertically: same code path, unverified.
 - [ ] Order — **Done (unverified)** (Bring to Front / Send to Back).
