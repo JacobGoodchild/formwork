@@ -22,6 +22,24 @@ decide; pushing a tag like `v0.1.0` runs CI's release job, which attaches the zi
 
 ## 8 Nov session (3 hours, Jacob's go-ahead: "refer to the plan you just wrote")
 
+**Where I got to (17:30 UTC):** all four planned parts done, plus extra fixes found while checking. Done and verified
+in IntelliJ IDEA 2026.1 (details and screenshots below and in the checklist): running app in Windows colours on Linux;
+Design and Code as two tabs (restored after a restart); Marketplace preparation (own icon, change notes, signing from
+secrets, Rider-only build, **JetBrains' plugin checker passes against Rider 2026.1.5.3 and 2026.2.4.1**, guide in
+docs/MARKETPLACE.md); bugs found and fixed: Tab key did nothing, spacing kept the wrong control still, **smart-tag
+actions (Insert Standard Items, Add Tab…) did nothing**; new: Properties for several controls shows shared properties,
+menu sub-menus via Type Here, menu items reorder by dragging, StatusStrip/ToolStrip item drop-down, DisplayMember /
+ValueMember drop-downs; NuGet packages checksum-locked; checked: Ctrl/Shift-click, rubber band, Font / Dock / Anchor /
+Items / TabPages / Nodes / Columns editors, Reset, image picker into .resx, Make Same Size, Center in Form, flow-panel
+reorder, Cut/Paste, New Project command, upgrading an already-converted project.
+**Left (my estimate ~6–10 hours of work, plus Jacob's Rider tests):** fixes after Jacob tries this in Rider (the two-tab
+layout and restart are the riskiest, IDEA-only tested; 2–4 h); Marketplace: a signed build and Rider screenshots once
+Jacob has his account and key (1 h); smaller unverified items (Ctrl+A, vertical spacing and the other Align/Size
+commands, Cursor list, multi-line Text, ListView Items, SplitContainer drag, missing-.NET notice; 1–2 h); moving a menu
+item into another menu (1 h); magenta baseline snaplines (2–3 h, and needs Visual Studio's numbers to be honest).
+Not realistic for us: white buttons in the *running* app (needs NetForms itself to add a switch), renaming a control
+in *other* files (needs Rider's C# back end), a WebBrowser control.
+
 Plan, in order: (1) running app looks like the designer, (2) Design and Code as two tabs, (3) Marketplace prep
 (icon, change notes, plugin verifier), then checking unverified features.
 
