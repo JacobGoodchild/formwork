@@ -635,8 +635,13 @@ class DesignerSession(
     /** Pictures the user chose in the file chooser: the only files an image edit may read into the .resx. */
     private val pickedFiles = java.util.Collections.synchronizedSet(HashSet<String>())
 
+    // Every edit the designer host knows, except none that reads a file the page names (setImage is checked below).
+    // "verb" = a smart-tag action (Insert Standard Items, Add Tab, Dock in Parent Container…); setTreeNodes = the
+    // TreeView node editor; setChildIndex = reordering in Document Outline. (These three were missing until 8 Nov,
+    // so the smart-tag action links did nothing.)
     private val knownOps = setOf("setBounds", "setForm", "setProp", "resetProp", "setItems", "setEvent", "add", "remove", "setParent",
-        "setImage", "setImages", "reorder", "setCell", "setStyles", "rename", "paste", "duplicate", "bringToFront", "sendToBack")
+        "setImage", "setImages", "reorder", "setCell", "setStyles", "rename", "paste", "duplicate", "bringToFront", "sendToBack",
+        "verb", "setTreeNodes", "setChildIndex")
 
     /** Edits from the page: known kinds only, and picture paths only from the file chooser. */
     private fun checkOps(ops: JsonArray) {
