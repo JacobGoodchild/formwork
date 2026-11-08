@@ -60,6 +60,10 @@ checker 1.411 (pinned) against Rider 2026.1.5.3 and 2026.2.4.1 as a CI job start
 workflow_dispatch only: two ~3 GB downloads). Jacob's steps in plain English: `docs/MARKETPLACE.md` (account,
 contact email, signing key, first upload by hand, updates). Not decided by me: the contact email (his to choose).
 
+**(4) Checking built-but-unproven features (in IDEA 2026.1, LoginForm sample).** Ctrl+click multi-select, Format →
+Horizontal Spacing → Increase (fixed: primary stays put, as VS), Center in Form → Horizontally, and Escape: verified.
+**Tab / Shift+Tab didn't work at all** (no handler in the page) — added and verified. See the checklist (C, F).
+
 ## Renamed: Formwork → Penguin Forms (5 Nov, 17:45 UK, at Jacob's request)
 
 Name: just **"Penguin Forms"** (Jacob's decision after checking the Marketplace rules: names are at most 30 characters
@@ -224,12 +228,12 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 - [x] Non-visual components go to the tray — **Verified**: "timer1 : Timer" in the tray under the form (S `stage2-dark-toolbox-search-and-tray.png`).
 
 ### C. Canvas (Must)
-- [x] Click / Ctrl/Shift+click / rubber-band select — **Partial**: click verified (S `story-dark-04…`); Ctrl/Shift/rubber band are NetForms webview features, untested.
+- [x] Click / Ctrl/Shift+click / rubber-band select — **Partial**: click verified (S `story-dark-04…`); **Ctrl+click verified 8 Nov** (OK + Cancel, Cancel primary with white handles; S `check-dark-ctrl-click-multi-select-in-idea-2026.1.png`); Shift+click / rubber band untested.
 - [x] Primary selection white handles, others dark — **Verified**: one control: dotted outline + 8 white squares with dark borders (S `stage2-light-selection-handles-zoom.png`); multi-selection: primary (last selected) white, others dark (S `stage2-light-multi-select-primary-white-others-dark.png`). Format commands use the primary as reference. Form grips only while the form is selected.
 - [x] Move, resize, form resize handles — **Verified** for move (S `stage2-light-drag-move-with-snaplines.png`) and resize by handle (S `stage2-light-resize-by-handle.png`); form grips right/bottom/corner shown (S `stage2-dark-whole-form-maximised.png`), dragging them not screenshot-tested.
 - [ ] Snaplines — **Partial, verified for spacing lines**: blue dashed margin/spacing lines and the ghost outline while dragging (S `stage2-light-drag-move-with-snaplines.png`). Edge lines now blue like VS (were magenta), NetForms' centre lines hidden (VS has none). **No text-baseline (magenta) snaplines**: NetForms doesn't compute baselines (Known gap).
 - [ ] Keyboard nudge/resize as VS — **Partial, Ctrl+arrow verified**: arrows 1 px, Shift+arrows resize 1 px (NetForms); Ctrl+arrow now jumps to the next snapline (neighbour edges, margin spacing, container padding) — OK button 114 → 90, aligned with the text boxes (S `stage2-light-ctrl-left-jumps-to-snapline.png`, Designer.cs `Point(90, 85)`); Ctrl+Shift+arrow resizes to the next snapline (Done, unverified). Added to patch 0002.
-- [ ] Tab / Shift+Tab, Escape selects parent — **Partial**: Escape → parent exists; Tab order cycling untested.
+- [x] Tab / Shift+Tab, Escape selects parent — **Verified 8 Nov**: Tab had no handler at all (found by checking); added to patch 0002: Tab / Shift+Tab walk the controls by TabIndex, into containers, wrapping (LoginForm: txtUser → lblPassword → txtPassword → btnOK → btnCancel → lblUser; Shift+Tab back). Escape selected the form. S `check-dark-tab-key-walks-tab-order-in-idea-2026.1.png`.
 - [ ] Drop into containers; move glyph — **Done (unverified)**.
 - [x] Delete, Ctrl+X/C/V, Ctrl+A — **Verified** for Delete, Ctrl+Z after it, Ctrl+C/Ctrl+V (copy named `button1` as VS names it when the name is taken) (S `stage2-light-delete-undo-copy-paste.png`). **Paste into another form verified** (btnOpen copied from Form1 into Form2, keeps its name, event wiring not carried over — as VS; S `stage2-light-paste-into-another-form.png`). Cut and Ctrl+A: Done (unverified).
 - [x] Undo/redo joined with Rider's undo — **Verified**: Ctrl+Z in the designer runs Rider's undo; after 2× Ctrl+Z + save, both files are byte-identical to the template (story run 5, 20:24). S `story-dark-07-after-ctrl-z-handler-gone.png` then `story-dark-08-after-second-ctrl-z-button-gone.png` (re-taken 00:35 with the native tool windows: the button visibly disappears).
@@ -257,8 +261,8 @@ Evidence key: **T** = automated test (`./gradlew test`; build tests with `FORMWO
 ### F. Format menu (Should)
 - [x] Align — **Verified** (Lefts): S `stage4-light-format-align-lefts-find-action.png`, `stage4-light-format-align-lefts-result.png`. Others + to Grid: Done (unverified).
 - [ ] Make Same Size — **Done (unverified)** (Format menu → NetForms' align helper; Size to Grid added).
-- [ ] Horizontal / Vertical Spacing — **Done (unverified)**: Make Equal, Increase, Decrease, Remove (grid step = settings grid, 8).
-- [ ] Center in Form — **Done (unverified)**.
+- [ ] Horizontal / Vertical Spacing — **Partial, Increase Horizontal verified 8 Nov**: gap +8 (grid). Found and fixed: the left-most control stayed put; now the primary stays and the others move, as in VS (patch 0002): btnOK 114 → 106, btnCancel (primary) stays 195. Make Equal, Decrease, Remove, Vertical: Done (unverified; same code path).
+- [x] Center in Form — **Verified (Horizontally) 8 Nov**: OK + Cancel as a group, form 284 wide, group 164 → OK at x 60 (S `check-dark-center-horizontally-after-increase-spacing-in-idea-2026.1.png`). Vertically: same code path, unverified.
 - [ ] Order — **Done (unverified)** (Bring to Front / Send to Back).
 - [ ] Lock Controls — **Partial, padlock verified**: Format → Lock Controls locks the whole form (as VS does); the selected control then shows a small padlock instead of grab handles (S `stage4-light-lock-controls-padlock.png`, patch 0002). VS's per-control `Locked` property isn't written.
 

@@ -22,7 +22,7 @@ index 60a192a..6a3df96 100644
 +.handle.lock-glyph { width: 12px; height: 12px; margin: -6px 0 0 -6px; font-size: 9px; line-height: 11px; text-align: center;
 +	background: #fff; border: 1px solid #333; pointer-events: none; }
 diff --git a/designer/media/designer.js b/designer/media/designer.js
-index 4898450..43f62d9 100644
+index 4898450..d2d142f 100644
 --- a/designer/media/designer.js
 +++ b/designer/media/designer.js
 @@ -44,6 +44,7 @@
@@ -33,7 +33,27 @@ index 4898450..43f62d9 100644
  	};
  
  	function remember() {
-@@ -419,7 +420,8 @@
+@@ -152,6 +153,19 @@
+ 		return state.view.items.map((i) => i.id).concat(state.view.tray.map((t) => t.id));
+ 	}
+ 
++	/** Every control, depth first, each container's children by TabIndex: the order Tab walks in the designer. */
++	function tabWalk() {
++		if (!state.view) return [];
++		const items = state.view.items.filter((i) => i.kind === 'control');
++		const ids = new Set(items.map((i) => i.id));
++		const children = (p) => items.filter((i) => (p === null ? !ids.has(i.parent) : i.parent === p))
++			.sort((a, b) => (a.tabIndex ?? 0) - (b.tabIndex ?? 0));
++		const out = [];
++		const visit = (p) => { for (const k of children(p)) { out.push(k.id); visit(k.id); } };
++		visit(null);
++		return out;
++	}
++
+ 	function itemById(id) { return state.view && state.view.items.find((i) => i.id === id); }
+ 	function trayById(id) { return state.view && state.view.tray.find((t) => t.id === id); }
+ 	function primaryId() { return state.selection.length ? state.selection[state.selection.length - 1] : ''; }
+@@ -419,7 +433,8 @@
  		host.textContent = '';
  		for (const cat of state.toolbox) {
  			const items = cat.items.filter((i) => !state.filter || i.name.toLowerCase().includes(state.filter));
@@ -43,7 +63,7 @@ index 4898450..43f62d9 100644
  			const g = el('div', 'tb-group' + (state.toolboxCollapsed.has(cat.name) && !state.filter ? ' collapsed' : ''));
  			const head = el('div', 'tb-head' + (cat.library ? ' library' : ''), cat.library ? cat.name : T(cat.name));
  			head.addEventListener('click', () => {
-@@ -429,8 +431,16 @@
+@@ -429,8 +444,16 @@
  			});
  			const list = el('div', 'tb-items');
  			for (const error of cat.errors || []) list.append(el('div', 'tb-error', error));
@@ -61,7 +81,7 @@ index 4898450..43f62d9 100644
  				if (item.icon) {
  					const icon = el('img', 'tb-icon');
  					icon.src = 'data:image/png;base64,' + item.icon;
-@@ -445,15 +455,11 @@
+@@ -445,15 +468,11 @@
  					row.title = item.unavailable;
  					row.addEventListener('click', () => toast(item.unavailable, 'info'));
  				} else {
@@ -82,7 +102,7 @@ index 4898450..43f62d9 100644
  				}
  				list.append(row);
  			}
-@@ -467,6 +473,96 @@
+@@ -467,6 +486,96 @@
  		return null;
  	}
  
@@ -179,7 +199,7 @@ index 4898450..43f62d9 100644
  	/** A click in the toolbox adds into the selected container (or the selected control's container), near its top left. */
  	function addFromToolbox(item) {
  		if (!state.view) return;
-@@ -743,6 +839,7 @@
+@@ -743,6 +852,7 @@
  	}
  
  	function selectionChanged() {
@@ -187,7 +207,7 @@ index 4898450..43f62d9 100644
  		if (state.smartOpen && !(state.selection.length === 1 && state.selection[0] === state.smartOpen)) state.smartOpen = null;
  		state.props = null;
  		state.events = null;
-@@ -802,9 +899,104 @@
+@@ -802,9 +912,104 @@
  
  	// --- handles and badges -------------------------------------------------------------------------
  
@@ -292,7 +312,7 @@ index 4898450..43f62d9 100644
  		if (!it || state.selection.length !== 1 || !it.visible || state.locked) return;
  		if (it.smartTag && it.kind === 'control') drawSmartTag(canvas, it);
  		if (it.container && it.movable && it.kind === 'control') {
-@@ -850,6 +1042,7 @@
+@@ -850,6 +1055,7 @@
  		if (e.button !== 0 || state.busy || state.tabOrder) return;
  		if (e.target.classList.contains('handle') || e.target.classList.contains('form-grip') || e.target.classList.contains('tl-grip')) return;
  		const p = canvasPoint(e);
@@ -300,15 +320,25 @@ index 4898450..43f62d9 100644
  		const hit = G.hitTest(state.view.items, p.x, p.y);
  		const additive = e.ctrlKey || e.shiftKey;
  		// A SplitContainer's splitter is dragged, as in VS: SplitterDistance follows.
-@@ -1229,6 +1422,7 @@
+@@ -1229,6 +1435,17 @@
  			e.preventDefault();
  			return;
  		}
 +		if (e.key === 'Escape' && state.armed) { arm(null); e.preventDefault(); return; }
++		if (e.key === 'Tab' && !ctrl && !e.altKey) {
++			// Tab / Shift+Tab: the next / previous control in tab order (TabIndex, into containers), wrapping, as in VS.
++			const order = tabWalk();
++			if (!order.length) return;
++			const i = order.indexOf(primaryId());
++			const j = i < 0 ? (e.shiftKey ? order.length - 1 : 0) : (i + (e.shiftKey ? -1 : 1) + order.length) % order.length;
++			select(order[j], false);
++			e.preventDefault();
++			return;
++		}
  		if (e.key === 'Escape') {
  			// Up one level, as in VS: the container of the selection, then the form.
  			const it = itemById(primaryId());
-@@ -1239,11 +1433,24 @@
+@@ -1239,11 +1456,24 @@
  		const arrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
  		if (arrows[e.key] && !state.locked) {
  			const [ax, ay] = arrows[e.key];
@@ -335,7 +365,7 @@ index 4898450..43f62d9 100644
  			} else {
  				const only = movableSelection().length === 1 ? itemById(movableSelection()[0]) : null;
  				if (only && only.flowIndex !== undefined && only.flowIndex !== null) {
-@@ -2443,6 +2650,66 @@
+@@ -2443,6 +2673,69 @@
  		apply(ops, state.selection);
  	}
  
@@ -381,6 +411,9 @@ index 4898450..43f62d9 100644
 +				out[order[i]] = { ...r, [pos]: end + next };
 +				end = end + next + r[size];
 +			}
++			// As in Visual Studio, the primary control stays where it is; the others move around it.
++			const shift = rects[primary][pos] - out[primary][pos];
++			if (shift) for (const id of order) out[id] = { ...out[id], [pos]: out[id][pos] + shift };
 +		} else if (how === 'centerH' || how === 'centerV') {
 +			const c = containerRect(itemById(ids[0]).parent);
 +			const cw = c.w, ch = c.h;
@@ -402,7 +435,7 @@ index 4898450..43f62d9 100644
  	// --- status and toasts --------------------------------------------------------------------------
  
  	function renderStatus(text) {
-@@ -2467,5 +2734,27 @@
+@@ -2467,5 +2760,27 @@
  	}
  
  	renderAll();
