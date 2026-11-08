@@ -377,7 +377,10 @@ class PropertiesPanel(private val project: Project, parent: Disposable) : JPanel
                         row.data.getAsJsonArray("systemOptions")?.map { it.asString } ?: emptyList(),
                     ) { v -> (windowsSystemColors[v] ?: colorByName(v))?.let { h -> try { Color.decode(h) } catch (_: Exception) { null } } }.ask()
                     kind == "font" -> PopupEditors.FontDialog(project, row.value, row.data.getAsJsonArray("options")?.map { it.asString } ?: emptyList()).ask()
-                    else -> TextDialog(project, name, "$name:", row.value, multiLine = name == "Text" || name == "Lines").ask()
+                    // A multi-line Text gets Windows line breaks ("Sign\r\nIn"), as Visual Studio's string editor writes it.
+                    name == "Text" -> TextDialog(project, name, "$name:", row.value, multiLine = true).ask()
+                        ?.replace("\r\n", "\n")?.replace("\n", "\r\n")
+                    else -> TextDialog(project, name, "$name:", row.value, multiLine = name == "Lines").ask()
                 } ?: return
                 setValue(row, picked)
             }
