@@ -31,7 +31,9 @@ initializer that switches on NetForms' built-in Windows 10/11 colour table (an i
 the designer host does). Forms are #F0F0F0 instead of beige; `SystemColors.Control` still *reports* the same value
 (only painting changes), so code comparing colours is unaffected. Code files untouched; Visual Studio never runs it
 (OS condition); opt-out with `<PenguinFormsWindowsColours>false</...>`. Projects converted earlier: running the command
-again offers just this addition. Evidence: T `WindowsColoursTest` (twice = no change; old conversion gets only the
+again offers just this addition. (Verified in the IDE: a project file exactly as version 0.1.0 wrote it → Tools → Make This
+Project Work on Linux Too → preview "1 difference", only the new block → applied; result byte-identical to the new
+golden file, backup byte-identical to the old file; S `runapp-dark-upgrade-preview-adds-only-colours-in-idea-2026.1.png`.) Evidence: T `WindowsColoursTest` (twice = no change; old conversion gets only the
 block), golden files updated, `ProjectBuildTest` 8/8 build on Linux and the generated file is checked;
 S `runapp-linux-windows-colours-before-after.png`. **Not fixed: buttons stay Windows 10 grey in the running app** —
 the white Windows 11 face is our NetForms patch 0004, which only the designer host has; the NuGet NetForms 0.1.5 has

@@ -1,6 +1,6 @@
 # Testing Penguin Forms — a guide for Jacob
 
-Version 2 (end of the first night). Hi Jacob! This guide walks you through trying Penguin Forms on your Linux laptop, step by
+Version 3 (8 Nov; see "What's new" further down). Hi Jacob! This guide walks you through trying Penguin Forms on your Linux laptop, step by
 step. You don't need to know anything technical: just copy each command exactly, one at a time, and
 check you see what the guide says you should see.
 
@@ -162,6 +162,32 @@ check it before you rely on it:
 4. (This is also checked automatically on a Windows computer in the cloud every time Penguin Forms changes, with all the samples — but your own projects are worth checking once.)
 5. If anything is wrong: your original project file is saved next to it as `<name>.csproj.penguinforms.bak`.
    Delete the `.csproj`, rename the `.bak` file back to `.csproj`, and tell me what happened (part 5).
+
+## What's new (8 Nov) — things to try
+
+Install the newest plugin zip first (newest green **CI** run → **Artifacts** → **penguin-forms-plugin**, as in part 2).
+
+1. **Two tabs, like Visual Studio.** Double-click `Form1.cs`: you get one tab, `Form1.cs [Design]`. Press **F7** (or
+   double-click a button): a second tab, `Form1.cs`, opens with your code. **Shift+F7** goes back.
+   🔎 **Rider check:** close Rider with both tabs open and start it again: both tabs should come back.
+   If the tabs misbehave in Rider, untick **Settings → Tools → Penguin Forms → "Design and code in separate tabs"**
+   to get the old layout back, and tell me.
+2. **Your running app is light grey, not beige.** For a project you already converted, choose **Tools → Make This Project
+   Work on Linux Too…** again: this time it only adds the colour fix (the preview shows exactly
+   what). Press **Run**: the window's background should be light grey like the designer.
+   *(Buttons in the running app are still the slightly darker Windows 10 grey; that part needs a change in NetForms.)*
+3. **Tab key**: click a control on the form and press **Tab** / **Shift+Tab**: the selection moves through the controls
+   in tab order.
+4. **Several controls at once**: click one, **Ctrl+click** another. Properties now shows only what they have in
+   common, with blanks where they differ. Change e.g. **Font** and both change.
+5. **Sub-menus**: on a MenuStrip, open **File**, click an item, and type in the **Type Here** box to its *right*:
+   that makes a sub-menu.
+6. **Status bar items**: click a StatusStrip; a small **▾** button appears after its last item. Pick
+   **StatusLabel** or **ProgressBar** to add one.
+7. **Format → Horizontal Spacing → Increase** now keeps the control you clicked last still and moves the others,
+   like Visual Studio.
+
+---
 
 ## How to check the add-a-control fix
 
