@@ -82,8 +82,12 @@ intellijPlatform {
     // on request, not on every push). The oldest and newest supported versions.
     pluginVerification {
         ides {
-            create(org.jetbrains.intellij.platform.gradle.IntelliJPlatformType.Rider, "2026.1.5.3") { useInstaller = false }
-            create(org.jetbrains.intellij.platform.gradle.IntelliJPlatformType.Rider, providers.gradleProperty("riderVersion").get()) { useInstaller = false }
+            // -PverifyLocalIde=/path/to/an/installed/IDE: check against that IDE instead (no download; the test machine).
+            val localIde = providers.gradleProperty("verifyLocalIde").orNull
+            if (localIde != null) local(localIde) else {
+                create(org.jetbrains.intellij.platform.gradle.IntelliJPlatformType.Rider, "2026.1.5.3") { useInstaller = false }
+                create(org.jetbrains.intellij.platform.gradle.IntelliJPlatformType.Rider, providers.gradleProperty("riderVersion").get()) { useInstaller = false }
+            }
         }
     }
 }

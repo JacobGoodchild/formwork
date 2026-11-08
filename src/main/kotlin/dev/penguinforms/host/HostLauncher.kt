@@ -1,7 +1,6 @@
 package dev.penguinforms.host
 
 import com.intellij.execution.configurations.GeneralCommandLine
-import com.intellij.ide.plugins.PluginManager
 import com.intellij.openapi.diagnostic.logger
 import dev.penguinforms.settings.PenguinFormsSettings
 import java.io.File
@@ -17,9 +16,22 @@ object HostLauncher {
     /** The bundled host (`<plugin>/host/Formwork.Host.dll`), unless the settings name another. */
     fun hostDll(): File? {
         PenguinFormsSettings.getInstance().state.hostPath.takeIf { it.isNotBlank() }?.let { File(it) }?.takeIf { it.isFile }?.let { return it }
-        // Public API (the plugin checker flags PluginManagerCore.getPlugin as internal): the plugin that holds this class.
-        val plugin = PluginManager.getPluginByClass(HostLauncher::class.java) ?: return null
-        return plugin.pluginPath.resolve("host").resolve("Formwork.Host.dll").toFile().takeIf { it.isFile }
+        val plugin = pluginDir() ?: return null
+        return File(File(plugin, "host"), "Formwork.Host.dll").takeIf { it.isFile }
+    }
+
+    /**
+     * The plugin's folder: the jar this class was loaded from is `<plugin>/lib/penguin-forms-….jar`. Found with plain
+     * Java rather than the IDE's plugin manager, whose lookups (PluginManagerCore.getPlugin, PluginManager.getPluginByClass)
+     * are internal API that JetBrains' plugin checker - and so the Marketplace - rejects.
+     */
+    internal fun pluginDir(): File? = try {
+        val url = HostLauncher::class.java.getResource("HostLauncher.class")?.toString()
+        if (url == null || !url.startsWith("jar:file:")) null
+        else File(java.net.URI(url.removePrefix("jar:").substringBefore("!/"))).parentFile?.parentFile
+    } catch (e: Exception) {
+        log.warn("Penguin Forms: could not find its own plugin folder", e)
+        null
     }
 
     fun start(workingDir: File?): HostClient {
