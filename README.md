@@ -3,7 +3,7 @@
 _A Visual Studio-style Windows Forms designer for Rider on Linux. (Formerly called "Formwork".)_
 
 **The Windows Forms designer for JetBrains Rider on Linux**, laid out and behaving like the one in
-Visual Studio 2022: a `Form1.cs [Design]` tab, a docked **Toolbox**, a **Properties** window with
+Visual Studio 2022: a `Form1.cs [Design]` tab next to your `Form1.cs` code tab, a docked **Toolbox**, a **Properties** window with
 **Events**, **Document Outline**, a **Format** menu, F7 / Shift+F7, double-click a control to get
 `button1_Click`.
 
@@ -46,26 +46,30 @@ Build it yourself: `./gradlew buildPlugin` (needs JDK 21 and the .NET 10 SDK); t
 
 The full checklist, with the evidence for each item, is in [CLAUDE.md](CLAUDE.md) (progress log).
 
-**Works (tested in IntelliJ IDEA, see below):** opening a form in the designer; Visual Studio's toolbox groups
+**Works (tested in IntelliJ IDEA, see below; Jacob has also used it in Rider 2026.1):** opening a form in the
+designer, in its own `Form1.cs [Design]` tab beside the code tab (both come back after a restart); Visual Studio's toolbox groups
 and behaviour (click a tool, then click or draw on the form; drag from the Toolbox; double-click a tool; back to
-Pointer; search; your project's own controls after a build; non-visual components in the tray); white handles on
-the main selection, dark on the others; move, resize, snaplines for spacing and edges, Ctrl+arrow to the next
+Pointer; search; your project's own controls after a build; non-visual components in the tray); Ctrl/Shift+click and
+rubber-band selection, white handles on the main selection, dark on the others, Tab / Shift+Tab through the tab
+order; for several controls, Properties shows only what they share; move, resize, snaplines for spacing and edges, Ctrl+arrow to the next
 snapline; Delete, copy and paste (also between forms); Ctrl+Z through Rider's undo; double-click a control or an
 event to create its handler and land in it; Properties with the selection drop-down, categories, bold
-non-default values, description pane, Events (with existing handlers to pick from), Color / ContentAlignment
-pickers; AcceptButton / CancelButton; F7 / Shift+F7; several forms at once; reloading when the file changes; a
+non-default values, description pane, Events (with existing handlers to pick from), Color / ContentAlignment / Font /
+Dock / Anchor pickers, the Items editor, Reset; AcceptButton / CancelButton; F7 / Shift+F7; several forms at once; reloading when the file changes; a
 clear page for a broken `Designer.cs` that never overwrites it; a red box for a control that fails to draw; the
-Format menu (Align checked; the rest built); Lock Controls with a padlock; Tab Order; Document Outline (drag a
-control into a container); menu "Type Here"; TabControl pages; TableLayoutPanel cells; Add → Windows Form / User
+Format menu (Align, spacing, Center in Form checked; the rest built); Lock Controls with a padlock; Tab Order; Document Outline (drag a
+control into a container); menu "Type Here" including sub-menus; the StatusStrip / ToolStrip "add item" drop-down; TabControl pages; TableLayoutPanel cells; Add → Windows Form / User
 Control / Dialog and more; File → Windows Forms App (Penguin Forms); "Make This Project Work on Linux Too" for .NET
 6–10 projects (every sample builds on Linux, and on Windows with the real Windows Forms in GitHub's cloud);
-Settings → Tools → Penguin Forms; the app runs as a window on Linux.
+Settings → Tools → Penguin Forms; the app runs as a window on Linux, in Windows' light grey; JetBrains' plugin
+checker runs against Rider 2026.1 and 2026.2 (see docs/MARKETPLACE.md).
 
 **Known gaps (honest list):**
 
-- **Not tested inside Rider itself.** The sandbox Rider asks for a JetBrains account login, which the
-  tests must not do; everything was tested in IntelliJ IDEA 2026.2.4 instead (same platform). Rider-only
-  checks (Solution Explorer, Run button, debugging) are listed in TESTING-FOR-JACOB.md.
+- **Mostly tested in IntelliJ IDEA, not Rider.** The sandbox Rider asks for a JetBrains account login, which the
+  tests must not do, so everything here is tested in IntelliJ IDEA 2026.1 (same platform). Jacob has run the main
+  story in Rider 2026.1; other Rider-only checks (Solution Explorer, Run button, debugging, the new two-tab layout)
+  are listed in TESTING-FOR-JACOB.md.
 - The running app's buttons are NetForms' grey (Windows 10-style) ones, while the designer draws Windows 11's
   white ones. (Its background is Windows grey #F0F0F0, like the designer, for projects converted by Penguin Forms.)
 - No **WebBrowser** control (Internet Explorer, Windows-only).
@@ -74,8 +78,7 @@ Settings → Tools → Penguin Forms; the app runs as a window on Linux.
   metrics); most default sizes match Visual Studio exactly, a few are 1–2 px off.
 - **Old .NET Framework 4.x projects** convert, but only checked by tests here, not by a Windows build — check
   at college before relying on it.
-- No magenta text-baseline snaplines; no snap-to-grid while dragging; no ToolStrip item-type drop-down;
-  the Properties grid shows the main control's properties for a multi-selection (edits do go to all).
+- No magenta text-baseline snaplines; no snap-to-grid while dragging; menu items can't be reordered by dragging.
 - NuGet and Maven downloads are version-pinned but not checksum-locked yet.
 
 ## Privacy
