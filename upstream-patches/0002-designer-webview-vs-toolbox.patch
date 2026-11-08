@@ -1,8 +1,8 @@
 diff --git a/designer/media/designer.css b/designer/media/designer.css
-index 60a192a..6a3df96 100644
+index 60a192a..ce919a8 100644
 --- a/designer/media/designer.css
 +++ b/designer/media/designer.css
-@@ -320,3 +320,18 @@ button, input, select { font: inherit; color: inherit; }
+@@ -320,3 +320,22 @@ button, input, select { font: inherit; color: inherit; }
  .smart-link { border: none; background: transparent; padding: 1px 0; color: var(--vscode-textLink-foreground, #0066bf); cursor: pointer; text-align: left; }
  .smart-link:hover { text-decoration: underline; }
  
@@ -21,8 +21,12 @@ index 60a192a..6a3df96 100644
 +.type-here:focus { border-color: #0078d4; }
 +.handle.lock-glyph { width: 12px; height: 12px; margin: -6px 0 0 -6px; font-size: 9px; line-height: 11px; text-align: center;
 +	background: #fff; border: 1px solid #333; pointer-events: none; }
++
++/* VS's item drop-down at the end of a selected StatusStrip / ToolStrip. */
++.strip-adder { position: absolute; box-sizing: border-box; border: 1px solid #7a9cd3; background: #fff; color: #333; font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: default; z-index: 26; }
++.strip-adder:hover { background: #e5f1fb; }
 diff --git a/designer/media/designer.js b/designer/media/designer.js
-index 4898450..32f5e76 100644
+index 4898450..5fc740f 100644
 --- a/designer/media/designer.js
 +++ b/designer/media/designer.js
 @@ -44,6 +44,7 @@
@@ -207,7 +211,7 @@ index 4898450..32f5e76 100644
  		if (state.smartOpen && !(state.selection.length === 1 && state.selection[0] === state.smartOpen)) state.smartOpen = null;
  		state.props = null;
  		state.events = null;
-@@ -802,9 +912,135 @@
+@@ -802,9 +912,175 @@
  
  	// --- handles and badges -------------------------------------------------------------------------
  
@@ -222,6 +226,7 @@ index 4898450..32f5e76 100644
 +		if (!v || !owner || state.locked || state.selection.length !== 1) return;
 +		const t = shortType(owner.type);
 +		let vertical, prop;
++		if (t === 'StatusStrip' || t === 'ToolStrip') { drawStripAdder(canvas, owner); return; }
 +		if (t === 'MenuStrip') { vertical = false; prop = 'Items'; }
 +		else if (t === 'ContextMenuStrip' && v.openMenu === owner.id) { vertical = true; prop = 'Items'; }
 +		else if (t === 'ToolStripMenuItem' && v.openMenu === owner.id) { vertical = true; prop = 'DropDownItems'; }
@@ -255,6 +260,45 @@ index 4898450..32f5e76 100644
 +		});
 +		canvas.append(box);
 +		if (state.typeHereAgain === owner.id) { state.typeHereAgain = null; setTimeout(() => box.focus(), 0); }
++	}
++
++	/**
++	 * VS's item drop-down at the end of a selected StatusStrip or ToolStrip: a small button that lists the kinds of
++	 * item the strip takes (StatusLabel, ProgressBar, DropDownButton, SplitButton; for a ToolStrip also Button, Label,
++	 * Separator, ComboBox, TextBox) and adds the one picked, named as VS names it (toolStripStatusLabel1).
++	 */
++	function drawStripAdder(canvas, owner) {
++		const v = state.view;
++		const kids = v.items.filter((i) => i.parent === owner.id && i.kind === 'item').sort((a, b) => a.x - b.x);
++		const last = kids[kids.length - 1];
++		const r = last ? { x: last.x + last.w + 2, y: owner.y + 2, w: 30, h: Math.max(16, owner.h - 4) } : { x: owner.x + 4, y: owner.y + 2, w: 30, h: Math.max(16, owner.h - 4) };
++		const button = el('div', 'strip-adder', '▾');
++		button.title = T('Add an item');
++		Object.assign(button.style, { left: r.x * state.zoom + 'px', top: r.y * state.zoom + 'px', width: r.w * state.zoom + 'px', height: r.h * state.zoom + 'px' });
++		button.addEventListener('mousedown', (e) => {
++			e.preventDefault();
++			e.stopPropagation();
++			const row = state.props && state.props.id === owner.id ? state.props.rows.find((x) => x.name === 'Items') : null;
++			if (!row) { toast(T('One moment: the strip is still loading.'), 'info'); return; }
++			closeMenu();
++			const menu = el('div', 'ctx-menu');
++			for (const type of row.newTypes || []) {
++				const item = el('div', 'ctx-item');
++				item.append(el('span', 'ctx-label', type.replace(/^ToolStrip/, '')));
++				item.addEventListener('mousedown', (ev) => {
++					ev.preventDefault();
++					ev.stopPropagation();
++					closeMenu();
++					apply([{ op: 'setItems', id: owner.id, prop: 'Items', values: (row.items || []).concat(['']), ids: (row.itemIds || []).concat(['+' + type]) }], state.selection);
++				});
++				menu.append(item);
++			}
++			document.body.append(menu);
++			const b = button.getBoundingClientRect();
++			menu.style.left = Math.max(0, Math.min(b.left, window.innerWidth - menu.offsetWidth - 2)) + 'px';
++			menu.style.top = Math.max(0, Math.min(b.bottom, window.innerHeight - menu.offsetHeight - 2)) + 'px';
++		});
++		canvas.append(button);
 +	}
 +
 +	/** An item of an open drop-down (a menu's or a ContextMenuStrip's), not one on the menu bar itself. */
@@ -343,7 +387,7 @@ index 4898450..32f5e76 100644
  		if (!it || state.selection.length !== 1 || !it.visible || state.locked) return;
  		if (it.smartTag && it.kind === 'control') drawSmartTag(canvas, it);
  		if (it.container && it.movable && it.kind === 'control') {
-@@ -850,6 +1086,7 @@
+@@ -850,6 +1126,7 @@
  		if (e.button !== 0 || state.busy || state.tabOrder) return;
  		if (e.target.classList.contains('handle') || e.target.classList.contains('form-grip') || e.target.classList.contains('tl-grip')) return;
  		const p = canvasPoint(e);
@@ -351,7 +395,7 @@ index 4898450..32f5e76 100644
  		const hit = G.hitTest(state.view.items, p.x, p.y);
  		const additive = e.ctrlKey || e.shiftKey;
  		// A SplitContainer's splitter is dragged, as in VS: SplitterDistance follows.
-@@ -1229,6 +1466,17 @@
+@@ -1229,6 +1506,17 @@
  			e.preventDefault();
  			return;
  		}
@@ -369,7 +413,7 @@ index 4898450..32f5e76 100644
  		if (e.key === 'Escape') {
  			// Up one level, as in VS: the container of the selection, then the form.
  			const it = itemById(primaryId());
-@@ -1239,11 +1487,24 @@
+@@ -1239,11 +1527,24 @@
  		const arrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
  		if (arrows[e.key] && !state.locked) {
  			const [ax, ay] = arrows[e.key];
@@ -396,7 +440,7 @@ index 4898450..32f5e76 100644
  			} else {
  				const only = movableSelection().length === 1 ? itemById(movableSelection()[0]) : null;
  				if (only && only.flowIndex !== undefined && only.flowIndex !== null) {
-@@ -2443,6 +2704,69 @@
+@@ -2443,6 +2744,69 @@
  		apply(ops, state.selection);
  	}
  
@@ -466,7 +510,7 @@ index 4898450..32f5e76 100644
  	// --- status and toasts --------------------------------------------------------------------------
  
  	function renderStatus(text) {
-@@ -2467,5 +2791,27 @@
+@@ -2467,5 +2831,27 @@
  	}
  
  	renderAll();
