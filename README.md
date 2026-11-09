@@ -2,6 +2,7 @@
 
 Hello! This is a (Visual Studio-style) WinForms designer, built for Rider on Linux.
 
+<img width="2400" height="1304" alt="image" src="https://github.com/user-attachments/assets/b0c9b786-f75b-42be-b9db-44de602b7e7c" />
 
 
 I wanted to build this project so I could use WinForms, in my favourite IDE (Rider) on Linux.
