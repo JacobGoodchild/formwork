@@ -20,7 +20,7 @@ You’ll need **.NET 10**, and **Rider 2026.1 or 2026.2**. If you want to run th
 To get Penguin Forms up and running, follow my guide:
 
 1. Open a blank, brand-new solution or use the Rider welcome screen. Go to **File → Settings → Plugins**, and search JetBrains Marketplace to install Penguin Forms (alternatively, if you have it downloaded, go to the settings cog at the top right and go **Install Plugin From Disk…** and install the downloaded plugin. **Don’t extract the plugin if it’s a ZIP file**).
-2. To get samples, go to this GitHub page: <https://github.com/JacobGoodchild/formwork>. Click the green **Code** button, and click the bottom button which says **Download ZIP**… and again, extract the file.
+2. To get samples, go to this GitHub page: <https://github.com/JacobGoodchild/penguin-forms>. Click the green **Code** button, and click the bottom button which says **Download ZIP**… and again, extract the file.
 3. At this point, you may have to restart your IDE. Rider will probably tell you if so.
 4. Now to open Penguin Forms. Go to **File → Open → Downloads → formwork-main** (whatever your extracted file is called) **→ samples → VsTemplate.Net8 → WinFormsApp1 → WinFormsApp1.csproj** and double-click.
 5. *(for Linux)* If you’re on Linux, go to **Tools → Make This Project Work on Linux Too…**
