@@ -1,100 +1,36 @@
 # Penguin Forms
 
-_A Visual Studio-style Windows Forms designer for Rider on Linux. (Formerly called "Formwork".)_
+Hello! This is a (Visual Studio-style) WinForms designer, built for Rider on Linux.
 
-**The Windows Forms designer for JetBrains Rider on Linux**, laid out and behaving like the one in
-Visual Studio 2022: a `Form1.cs [Design]` tab next to your `Form1.cs` code tab, a docked **Toolbox**, a **Properties** window with
-**Events**, **Document Outline**, a **Format** menu, F7 / Shift+F7, double-click a control to get
-`button1_Click`.
 
-Your code stays exactly as Visual Studio writes it — the same `Program.cs`, `Form1.cs`,
-`Form1.Designer.cs` and `InitializeComponent()` — so a form designed at home on Linux opens unchanged in
-Visual Studio at college, and the other way round.
 
-| Dark theme | Light theme |
-|---|---|
-| ![Penguin Forms in the dark theme](docs/screenshots/stage2-dark-designer-native-windows.png) | ![Penguin Forms in the light theme](docs/screenshots/stage2-light-designer-native-windows.png) |
+I wanted to build this project so I could use WinForms, in my favourite IDE (Rider) on Linux.
 
-*(Screenshots are from the sandbox IntelliJ IDEA 2026.2, the same platform Rider 2026.2 is built on;
-see "Status" below.)*
+And so, this plugin is designed to supply everything Visual Studio’s WinForms has to offer for this situation. And before you ask - yes, it has `Form.cs` AND Designer.
 
 ## How it works
 
-Penguin Forms stands on **[NetForms](https://github.com/Go-Forms/.NetForms)** (MIT licence), a
-reimplementation of `System.Windows.Forms` for .NET 10 that runs on Linux.
+You’ll need **.NET 10**, and **Rider 2026.1 or 2026.2**. If you want to run this on Linux, there’s a button in **Tools → Make This Project Work on Linux Too**. Or you’ll probably see it in the bottom-right as a popup.
 
-- NetForms' **designer host** (a .NET process) reads `InitializeComponent()` with Roslyn, builds the live
-  form, paints it, and writes `Form1.Designer.cs` back in the style the file already uses.
-- Penguin Forms replaces NetForms' VS Code front end with Rider: the design surface runs in Rider's built-in
-  browser, and the Toolbox, Properties and Document Outline are real Rider tool windows that follow
-  Rider's theme.
-- **Every change goes through Rider's editor**, so Ctrl+Z undoes designer edits, unsaved changes show a
-  `*`, and nothing is written behind your back.
-- **"Make This Project Work on Linux Too"** rewrites a Visual Studio project file so it uses the real
-  Windows Forms on Windows and NetForms on Linux (a preview first, and a `.csproj.penguinforms.bak` backup).
+**Extra info:** It’s built on [NetForms](https://github.com/Go-Forms/.NetForms) (MIT licence), which makes WinForms code run on Linux.
 
 ## Install
 
-1. Install the **.NET 10 SDK** (steps for Linux Mint in [TESTING-FOR-JACOB.md](TESTING-FOR-JACOB.md)).
-   Works with **Rider 2026.1 and 2026.2** (and newer).
-2. Rider → **Settings → Plugins → ⚙ → Install Plugin from Disk…** → `penguin-forms-0.1.0.zip` → restart.
+To get Penguin Forms up and running, follow my guide:
 
-Build it yourself: `./gradlew buildPlugin` (needs JDK 21 and the .NET 10 SDK); the zip appears in
-`build/distributions/`.
-
-## Status — what works and what doesn't yet
-
-The full checklist, with the evidence for each item, is in [CLAUDE.md](CLAUDE.md) (progress log).
-
-**Works (tested in IntelliJ IDEA, see below; Jacob has also used it in Rider 2026.1):** opening a form in the
-designer, in its own `Form1.cs [Design]` tab beside the code tab (both come back after a restart); Visual Studio's toolbox groups
-and behaviour (click a tool, then click or draw on the form; drag from the Toolbox; double-click a tool; back to
-Pointer; search; your project's own controls after a build; non-visual components in the tray); Ctrl/Shift+click and
-rubber-band selection, white handles on the main selection, dark on the others, Tab / Shift+Tab through the tab
-order; for several controls, Properties shows only what they share; move, resize, snaplines for spacing and edges, Ctrl+arrow to the next
-snapline; Delete, copy and paste (also between forms); Ctrl+Z through Rider's undo; double-click a control or an
-event to create its handler and land in it; Properties with the selection drop-down, categories, bold
-non-default values, description pane, Events (with existing handlers to pick from), Color / ContentAlignment / Font /
-Dock / Anchor pickers, the Items editor, Reset; AcceptButton / CancelButton; F7 / Shift+F7; several forms at once; reloading when the file changes; a
-clear page for a broken `Designer.cs` that never overwrites it; a red box for a control that fails to draw; the
-Format menu (Align, spacing, Center in Form checked; the rest built); Lock Controls and the Locked property (saved in Form1.resx, as VS); magenta text-baseline snaplines; menu items dragged into another menu; Tab Order; Document Outline (drag a
-control into a container); menu "Type Here" including sub-menus, and dragging menu items to reorder them; the StatusStrip / ToolStrip "add item" drop-down; TabControl pages; TableLayoutPanel cells; Add → Windows Form / User
-Control / Dialog and more; File → Windows Forms App (Penguin Forms); "Make This Project Work on Linux Too" for .NET
-6–10 projects (every sample builds on Linux, and on Windows with the real Windows Forms in GitHub's cloud);
-Settings → Tools → Penguin Forms; the app runs as a window on Linux, in Windows' light grey; JetBrains' plugin
-checker runs against Rider 2026.1 and 2026.2 (see docs/MARKETPLACE.md).
-
-**Known gaps (honest list):**
-
-- **Mostly tested in IntelliJ IDEA, not Rider.** The sandbox Rider asks for a JetBrains account login, which the
-  tests must not do, so everything here is tested in IntelliJ IDEA 2026.1 (same platform). Jacob has run the main
-  story in Rider 2026.1; other Rider-only checks (Solution Explorer, Run button, debugging, the new two-tab layout)
-  are listed in TESTING-FOR-JACOB.md.
-- The running app's buttons are NetForms' grey (Windows 10-style) ones, while the designer draws Windows 11's
-  white ones. (Its background is Windows grey #F0F0F0, like the designer, for projects converted by Penguin Forms.)
-- No **WebBrowser** control (Internet Explorer, Windows-only).
-- Renaming a control updates `Form1.Designer.cs` and `Form1.cs`, but not other files that use it.
-- Text sizes are measured with **Formwork Sans** (Microsoft's open Selawik font, with Segoe UI's line
-  metrics); most default sizes match Visual Studio exactly, a few are 1–2 px off.
-- **Old .NET Framework 4.x projects** convert, but only checked by tests here, not by a Windows build — check
-  at college before relying on it.
-- No snap-to-grid while dragging (the grid is used by Format → Align/Size to Grid).
-- Maven/Gradle downloads are version-pinned but not checksum-locked (the designer host's NuGet packages are).
-
-## Privacy
-
-Penguin Forms makes **no network requests of its own**: no telemetry, no analytics, no update checks. The designer
-page can't go online. The only network use is when *you* build a converted project for the first time,
-which downloads the NetForms package from NuGet (that's .NET's own build, not Penguin Forms).
+1. Open a blank, brand-new solution or use the Rider welcome screen. Go to **File → Settings → Plugins**, and search JetBrains Marketplace to install Penguin Forms (alternatively, if you have it downloaded, go to the settings cog at the top right and go **Install Plugin From Disk…** and install the downloaded plugin. **Don’t extract the plugin if it’s a ZIP file**).
+2. To get samples, go to this GitHub page: <https://github.com/JacobGoodchild/formwork>. Click the green **Code** button, and click the bottom button which says **Download ZIP**… and again, extract the file.
+3. At this point, you may have to restart your IDE. Rider will probably tell you if so.
+4. Now to open Penguin Forms. Go to **File → Open → Downloads → formwork-main** (whatever your extracted file is called) **→ samples → VsTemplate.Net8 → WinFormsApp1 → WinFormsApp1.csproj** and double-click.
+5. *(for Linux)* If you’re on Linux, go to **Tools → Make This Project Work on Linux Too…**
+6. You should be greeted with a blank screen. Double-click `Form1.cs`. You should have a Toolbox on the left, Properties on the right, and your form in the middle.
+   - If it’s not working, check you’re not still in the blank solution and you selected the right sample.
+   - If it says you don’t have .NET 10 and you think you do, then check your .NET path. Go to **File → Settings → Tools → Penguin Forms** (from the dropdown), find the **.NET path** box (probably the second-to-last box) and paste your full .NET path. It’ll probably be something like `/home/username/.dotnet/dotnet`.
+7. Done! Start building something great.
 
 ## Credits and licence
 
-- **NetForms** © NetForms contributors, MIT licence — the Windows Forms implementation, the designer host
-  and the design-surface page. Its `LICENSE` and `THIRD-PARTY-NOTICES.md` ship inside the plugin
-  (`penguinforms/licenses/NetForms`). Penguin Forms' small changes to it are in `upstream-patches/`, each explained.
+- **NetForms** © NetForms contributors, MIT licence — the Windows Forms implementation, the designer host and the design-surface page. Its `LICENSE` and `THIRD-PARTY-NOTICES.md` ship inside the plugin (`penguinforms/licenses/NetForms`). Penguin Forms' small changes to it are in `upstream-patches/`, each explained.
 - **Selawik** © Microsoft, SIL Open Font License 1.1 — the basis of Formwork Sans (`host/fonts/`).
-- Penguin Forms itself: **MIT licence** (`LICENSE`). Toolbox icons are Penguin Forms' own drawings; nothing is copied
-  from Visual Studio.
-- "Rider" and "IntelliJ IDEA" are JetBrains trademarks; "Visual Studio" and "Windows Forms" are Microsoft's;
-  "Linux" is a trademark of Linus Torvalds. They're named only to say what Penguin Forms works with. Penguin Forms is
-  an independent project, not made or endorsed by any of them, and uses none of their logos.
+- **Penguin Forms** itself: MIT licence ([LICENSE](LICENSE)). Toolbox icons are Penguin Forms' own drawings; nothing is copied from Visual Studio.
+- "Rider" and "IntelliJ IDEA" are JetBrains trademarks; "Visual Studio" and "Windows Forms" are Microsoft's; "Linux" is a trademark of Linus Torvalds. They're named only to say what Penguin Forms works with. Penguin Forms is an independent project, not made or endorsed by any of them, and uses none of their logos.
