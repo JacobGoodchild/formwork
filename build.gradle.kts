@@ -244,3 +244,6 @@ intellijPlatformTesting {
         }
     }
 }
+
+// Checking the signature needs the signed zip first.
+tasks.named("verifyPluginSignature") { dependsOn(tasks.named("signPlugin")) }
