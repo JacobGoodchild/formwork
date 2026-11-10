@@ -1,0 +1,52 @@
+diff --git a/src/NetForms.Platform.Avalonia/AvaloniaWindow.cs b/src/NetForms.Platform.Avalonia/AvaloniaWindow.cs
+index 09a52d0..b23f2da 100644
+--- a/src/NetForms.Platform.Avalonia/AvaloniaWindow.cs
++++ b/src/NetForms.Platform.Avalonia/AvaloniaWindow.cs
+@@ -21,6 +21,9 @@ internal sealed class AvaloniaWindow : IPlatformWindow
+     private readonly FormSurface _surface;
+     private Size _clientSize = new(300, 300);
+     private Point _location;
++    /// <summary>A Location set before the window opened (Manual start position): placed again once the screen's scaling is known.</summary>
++    private Point? _locationBeforeOpen;
++    private double _scaleBeforeOpen = 1;
+     private bool _shown;
+     private bool _closed;
+     private AvaloniaWindow? _owner;
+@@ -41,6 +44,20 @@ internal sealed class AvaloniaWindow : IPlatformWindow
+         _window.Opened += (_, _) =>
+         {
+             _shown = true;
++            // On a scaled screen (X11, 150-200 %) the window is first created at the platform's default size (three
++            // quarters of the screen, in device pixels) and only then scaled: the size set before Show was lost, so a
++            // ComboBox's first drop-down (and a form) filled the screen. Put the asked-for size back now it is open.
++            if (_window.WindowState == WindowState.Normal && ToSize(_window.ClientSize) != _clientSize)
++            {
++                _window.Width = _clientSize.Width;
++                _window.Height = _clientSize.Height;
++            }
++            // The same for the position, if it was turned into pixels with another scaling before the window knew its screen.
++            if (_locationBeforeOpen is { } asked && Math.Abs(_window.DesktopScaling - _scaleBeforeOpen) > 0.01)
++            {
++                _locationBeforeOpen = null;
++                Location = asked;
++            }
+             // PositionChanged fires before Opened, when the frame offset is not known yet, so the
+             // client origin is only correct from here on: re-read it and tell the form.
+             var origin = ClientOriginOnScreen(_window.Position);
+@@ -71,6 +88,8 @@ internal sealed class AvaloniaWindow : IPlatformWindow
+         _window.Deactivated += (_, _) => _host.Deactivated();
+         _window.Resized += (_, e) =>
+         {
++            // Before the window is open, a resize is the platform's default size, not the user's: keep the size asked for.
++            if (!_shown) return;
+             var size = ToSize(e.ClientSize);
+             if (size == _clientSize) return;
+             _clientSize = size;
+@@ -131,6 +150,7 @@ internal sealed class AvaloniaWindow : IPlatformWindow
+         {
+             _location = value;
+             double scale = _window.DesktopScaling;
++            if (!_shown && _window.WindowStartupLocation == WindowStartupLocation.Manual) { _locationBeforeOpen = value; _scaleBeforeOpen = scale; }
+             // The caller means "put the client area here", so the frame goes above and left of it.
+             var offset = FrameOffset();
+             _window.Position = new PixelPoint(

@@ -92,3 +92,31 @@ Three Visual Studio designer behaviours (on top of 0001–0005; it also changes 
 Also `host/apply-patches.sh` now copes with a patch whose lines a later patch changed again.
 
 **Behaviour change for NetForms users:** Lock Controls is now saved in the .resx (as VS); otherwise new fields and a new edit.
+
+## 0007-designer-sharp-pictures-on-scaled-screens.patch
+
+On a scaled screen (150–200 %), the page used to show the form picture at 1× and the browser stretched it, so the
+text was blurry. The page now sends its screen density (`devicePixelRatio`, times the page zoom) in `ready` and in a
+new `scale` message; the host paints the form and its open drop-downs at that density (`DrawToBitmap` with a scale,
+clamped to 1–4 in quarter steps) and the view says which (`scale`). The page still shows the picture at the form's
+own size, so positions and clicks are unchanged.
+
+## 0008-designer-ide-properties-window.patch
+
+The canvas right-click menu's **Properties** also posts `showProperties`, so an IDE with its own Properties window can
+show and focus it (as VS's F4). The page's own grid still switches to Properties as before.
+
+## 0009-avalonia-first-show-size-on-scaled-screens.patch
+
+**A bug in the running app, not the designer.** On Linux with a scaled screen (checked with Cinnamon's window manager,
+muffin, at 2×), the first time a window opened it lost the size and position set before `Show`: Avalonia first creates
+it at its default size (¾ of the screen, in device pixels), reports that as a resize before `Opened`, and NetForms took
+it as the form's new size. So a ComboBox's **first** drop-down filled the screen (later ones were fine, as the popup
+window is reused), and forms opened too big or in the wrong place. Now a resize before the window has opened is
+ignored, and on `Opened` the asked-for client size (normal windows only) and, if the scaling changed, the asked-for
+position are applied again. Checked: ComboBox drop-down (first and second open), ContextMenuStrip, the main form,
+at 2× and at 1× (unchanged there).
+
+**Note:** Penguin Forms' designer doesn't open windows, so this patch only matters for apps. Apps get NetForms from
+NuGet (0.1.5), so they'll have this fix only once NetForms includes it; until then the first drop-down on a scaled
+screen can still be too big. This patch is written to be offered to NetForms as it is.
