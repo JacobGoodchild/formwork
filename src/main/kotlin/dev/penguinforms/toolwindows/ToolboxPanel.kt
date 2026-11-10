@@ -61,6 +61,8 @@ class ToolboxPanel(private val project: Project, parent: Disposable) : JPanel(Bo
     private var armed: String? = null
     private val iconCache = HashMap<String, Icon?>()
 
+    private lateinit var hintCard: HintCard
+
     init {
         search.textEditor.emptyText.text = "Search Toolbox"
         search.textEditor.accessibleContext.accessibleName = "Search Toolbox"
@@ -103,7 +105,8 @@ class ToolboxPanel(private val project: Project, parent: Disposable) : JPanel(Bo
             }
         }
         add(JPanel(BorderLayout()).apply { border = JBUI.Borders.empty(4); add(search, BorderLayout.CENTER) }, BorderLayout.NORTH)
-        add(JBScrollPane(tree).apply { border = JBUI.Borders.empty() }, BorderLayout.CENTER)
+        hintCard = HintCard(JBScrollPane(tree).apply { border = JBUI.Borders.empty() })
+        add(hintCard, BorderLayout.CENTER)
         ActiveDesigner.get(project).addListener(this, parent)
         activeChanged(ActiveDesigner.get(project).editor)
     }
@@ -120,7 +123,8 @@ class ToolboxPanel(private val project: Project, parent: Disposable) : JPanel(Bo
     override fun activeChanged(editor: DesignerEditor?) {
         categories = editor?.session?.lastToolbox ?: JsonArray()
         rebuild()
-        tree.emptyText.text = if (editor == null) "Open a form in the designer to use the Toolbox." else "Loading…"
+        tree.emptyText.text = "Loading…"
+        hintCard.showHint(if (editor == null) "Open a form in the designer to use the Toolbox." else null)
     }
 
     override fun toolboxChanged(editor: DesignerEditor, categories: JsonArray, notice: String?) {

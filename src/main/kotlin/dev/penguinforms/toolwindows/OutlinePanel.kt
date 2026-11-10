@@ -28,6 +28,8 @@ class OutlinePanel(private val project: Project, parent: Disposable) : JPanel(Bo
     private var updating = false
     private var view: JsonObject? = null
 
+    private lateinit var hintCard: HintCard
+
     init {
         tree.isRootVisible = true
         tree.cellRenderer = object : ColoredTreeCellRenderer() {
@@ -67,7 +69,8 @@ class OutlinePanel(private val project: Project, parent: Disposable) : JPanel(Bo
                 return true
             }
         }
-        add(JBScrollPane(tree), BorderLayout.CENTER)
+        hintCard = HintCard(JBScrollPane(tree))
+        add(hintCard, BorderLayout.CENTER)
         ActiveDesigner.get(project).addListener(this, parent)
         activeChanged(ActiveDesigner.get(project).editor)
     }
@@ -77,7 +80,7 @@ class OutlinePanel(private val project: Project, parent: Disposable) : JPanel(Bo
     override fun activeChanged(editor: DesignerEditor?) {
         view = editor?.session?.lastView
         rebuild()
-        tree.emptyText.text = if (editor == null) "Open a form in the designer to see its outline." else ""
+        hintCard.showHint(if (editor == null) "Open a form in the designer to see its outline." else null)
     }
 
     override fun viewChanged(editor: DesignerEditor, view: JsonObject) { this.view = view; rebuild(); selectionChanged(editor, editor.session.selection) }

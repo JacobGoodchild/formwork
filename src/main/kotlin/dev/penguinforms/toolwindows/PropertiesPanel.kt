@@ -92,6 +92,8 @@ class PropertiesPanel(private val project: Project, parent: Disposable) : JPanel
 
     private val editor: DesignerEditor? get() = ActiveDesigner.get(project).editor
 
+    private lateinit var hintCard: HintCard
+
     init {
         // The selection drop-down: name in bold, then the type (as VS writes "Form1 System.Windows.Forms.Form").
         selector.renderer = object : ColoredListCellRenderer<String>() {
@@ -155,7 +157,8 @@ class PropertiesPanel(private val project: Project, parent: Disposable) : JPanel
             secondComponent = description
         }
         add(north, BorderLayout.NORTH)
-        add(splitter, BorderLayout.CENTER)
+        hintCard = HintCard(splitter)
+        add(hintCard, BorderLayout.CENTER)
 
         ActiveDesigner.get(project).addListener(this, parent)
         activeChanged(ActiveDesigner.get(project).editor)
@@ -184,7 +187,7 @@ class PropertiesPanel(private val project: Project, parent: Disposable) : JPanel
         rows = JsonArray()
         refreshSelector()
         rebuild()
-        table.emptyText.text = if (editor == null) "Open a form in the designer to see its properties." else ""
+        hintCard.showHint(if (editor == null) "Open a form in the designer to see its properties." else null)
         if (editor != null) request()
     }
 
