@@ -1,5 +1,6 @@
 package dev.penguinforms.project
 
+import dev.penguinforms.util.UiText
 import com.intellij.diff.DiffContentFactory
 import com.intellij.diff.DiffManager
 import com.intellij.diff.requests.SimpleDiffRequest
@@ -42,7 +43,7 @@ class MakeLinuxAction : DumbAwareAction() {
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.project ?: return
         val csproj = projectFileFor(project, e.getData(CommonDataKeys.VIRTUAL_FILE)) ?: run {
-            Messages.showInfoMessage(project, "Select the project's .csproj file (or a file in the project) in the Solution Explorer, then try again.", TITLE)
+            Messages.showInfoMessage(project, UiText.dialog("Select the project's .csproj file (or a file in the project) in the Solution Explorer, then try again."), TITLE)
             return
         }
         run(project, csproj)
@@ -69,8 +70,8 @@ class MakeLinuxAction : DumbAwareAction() {
             val document = FileDocumentManager.getInstance().getDocument(csproj) ?: return
             val before = document.text
             when (val result = ProjectConverter.convert(before)) {
-                is ProjectConverter.Result.AlreadyDone -> Messages.showInfoMessage(project, result.reason, TITLE)
-                is ProjectConverter.Result.NotPossible -> Messages.showWarningDialog(project, result.reason, TITLE)
+                is ProjectConverter.Result.AlreadyDone -> Messages.showInfoMessage(project, UiText.dialog(result.reason), TITLE)
+                is ProjectConverter.Result.NotPossible -> Messages.showWarningDialog(project, UiText.dialog(result.reason), TITLE)
                 is ProjectConverter.Result.OldFormat -> {
                     val legacy = com.intellij.openapi.progress.ProgressManager.getInstance().runProcessWithProgressSynchronously<ProjectConverter.Result, RuntimeException>(
                         { LegacyProjectConverter.convert(java.io.File(csproj.path)) }, "Converting an old-style project…", false, project)
@@ -79,7 +80,7 @@ class MakeLinuxAction : DumbAwareAction() {
                             val after = StringUtil.convertLineSeparators(legacy.text)
                             if (PreviewDialog(project, csproj, before, after, legacy).showAndGet()) apply(project, csproj, document, after)
                         }
-                        is ProjectConverter.Result.NotPossible -> Messages.showWarningDialog(project, legacy.reason, TITLE)
+                        is ProjectConverter.Result.NotPossible -> Messages.showWarningDialog(project, UiText.dialog(legacy.reason), TITLE)
                         else -> {}
                     }
                 }
@@ -108,7 +109,7 @@ class MakeLinuxAction : DumbAwareAction() {
             FileDocumentManager.getInstance().saveDocument(document)
             NotificationGroupManager.getInstance().getNotificationGroup("Penguin Forms").createNotification(
                 "Done: ${csproj.name} now works on Linux too",
-                "The original is saved as $backupName. Rider reloads the project; the first build downloads NetForms from NuGet. At college it still opens in Visual Studio as before.",
+                UiText.html("The original is saved as $backupName. Rider reloads the project; the first build downloads NetForms from NuGet. At college it still opens in Visual Studio as before."),
                 NotificationType.INFORMATION,
             ).notify(project)
         }
@@ -128,7 +129,7 @@ class MakeLinuxAction : DumbAwareAction() {
         override fun createCenterPanel(): JComponent {
             val panel = JPanel(BorderLayout(0, JBUI.scale(8)))
             val notes = (result.notes + result.warnings.map { "Note: $it" } + listOf("The original file is kept next to it as ${csproj.name}.penguinforms.bak, and Ctrl+Z undoes the change."))
-            panel.add(JBLabel("<html><b>Penguin Forms will change ${csproj.name} like this (left: now, right: after):</b><ul>" + notes.joinToString("") { "<li>${StringUtil.escapeXmlEntities(it)}</li>" } + "</ul></html>"), BorderLayout.NORTH)
+            panel.add(JBLabel("<html><b>Penguin Forms will change ${StringUtil.escapeXmlEntities(csproj.name)} like this (left: now, right: after):</b><ul>" + notes.joinToString("") { "<li>${StringUtil.escapeXmlEntities(it)}</li>" } + "</ul></html>"), BorderLayout.NORTH)
             val factory = DiffContentFactory.getInstance()
             val request = SimpleDiffRequest("${csproj.name}", factory.create(project, before, FileTypes.PLAIN_TEXT), factory.create(project, after, FileTypes.PLAIN_TEXT), "Now", "After")
             val diff = DiffManager.getInstance().createRequestPanel(project, disposable, window)

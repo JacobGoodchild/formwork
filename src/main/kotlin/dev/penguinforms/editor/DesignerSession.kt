@@ -1,5 +1,6 @@
 package dev.penguinforms.editor
 
+import dev.penguinforms.util.UiText
 import com.google.gson.Gson
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
@@ -282,7 +283,7 @@ class DesignerSession(
         if (disposed) return
         NotificationGroupManager.getInstance().getNotificationGroup("Penguin Forms").createNotification(
             "Penguin Forms couldn't add the control",
-            "$why<br>Details are in Help → Show Log in Files (lines with \"Penguin Forms add:\").",
+            "${UiText.html(why)}<br>Details are in Help → Show Log in Files (lines with \"Penguin Forms add:\").",
             NotificationType.ERROR,
         ).notify(project)
     }
@@ -627,7 +628,7 @@ class DesignerSession(
     }
 
     private fun notify(text: String, type: NotificationType) {
-        NotificationGroupManager.getInstance().getNotificationGroup("Penguin Forms").createNotification(text, type).notify(project)
+        NotificationGroupManager.getInstance().getNotificationGroup("Penguin Forms").createNotification(UiText.html(text), type).notify(project)
     }
 
     // ---- code navigation ----------------------------------------------------------------------------------

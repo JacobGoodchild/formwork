@@ -1,5 +1,6 @@
 package dev.penguinforms.project
 
+import dev.penguinforms.util.UiText
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -48,8 +49,8 @@ open class AddFormAction(private val userControl: Boolean, private val template:
         val base = template?.base ?: if (userControl) "UserControl" else "Form"
         val suggested = generateSequence(1) { it + 1 }.map { "$base$it" }.first { dir.findChild("$it.cs") == null }
         val name = Messages.showInputDialog(project, "Name:", if (userControl) "Add User Control" else "Add Windows Form", null, suggested, null)?.trim()?.removeSuffix(".cs") ?: return
-        if (!Regex("^[A-Za-z_][A-Za-z0-9_]*$").matches(name)) { Messages.showErrorDialog(project, "'$name' isn't a valid C# class name.", "Add"); return }
-        if (dir.findChild("$name.cs") != null || dir.findChild("$name.Designer.cs") != null) { Messages.showErrorDialog(project, "$name.cs already exists here.", "Add"); return }
+        if (!Regex("^[A-Za-z_][A-Za-z0-9_]*$").matches(name)) { Messages.showErrorDialog(project, UiText.dialog("'$name' isn't a valid C# class name."), "Add"); return }
+        if (dir.findChild("$name.cs") != null || dir.findChild("$name.Designer.cs") != null) { Messages.showErrorDialog(project, UiText.dialog("$name.cs already exists here."), "Add"); return }
 
         val csproj = ProjectLibraries.projectFileOf(File(dir.path))!!
         val text = csproj.readText()
