@@ -11,6 +11,7 @@
 				stage.innerHTML = '';
 				var box = document.createElement('div');
 				box.className = 'fw-fatal';
+				box.style.whiteSpace = 'pre-line';
 				box.textContent = m.message;
 				stage.appendChild(box);
 			}

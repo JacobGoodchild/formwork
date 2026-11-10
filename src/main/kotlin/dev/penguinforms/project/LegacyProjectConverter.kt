@@ -67,8 +67,9 @@ object LegacyProjectConverter {
     fun convert(csproj: File): ProjectConverter.Result {
         val tool = HostLauncher.hostDll()?.parentFile?.let { File(it, "NetForms.Convert.dll") }?.takeIf { it.isFile }
             ?: return ProjectConverter.Result.NotPossible("Penguin Forms' copy of the NetForms converter is missing. Please reinstall the plugin.")
-        val dotnet = DotnetLocator.find(PenguinFormsSettings.getInstance().state.dotnetPath)
-            ?: return ProjectConverter.Result.NotPossible("Penguin Forms needs the .NET 10 SDK for this, and couldn't find 'dotnet'.")
+        val search = DotnetLocator.search(PenguinFormsSettings.getInstance().state.dotnetPath)
+        val dotnet = search.found
+            ?: return ProjectConverter.Result.NotPossible("Penguin Forms needs the .NET 10 SDK for this, and couldn't find a 'dotnet' program with .NET 10. Where it looked:\n${search.describe()}")
         val temp = Files.createTempDirectory("penguinforms-convert").toFile()
         try {
             val copy = File(temp, csproj.parentFile.name)

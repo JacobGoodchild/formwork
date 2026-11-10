@@ -34,7 +34,7 @@ class PenguinFormsConfigurable : BoundConfigurable("Penguin Forms") {
             row(".NET (dotnet) program:") {
                 textFieldWithBrowseButton(FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor().withTitle("Choose the dotnet Program"))
                     .bindText({ state.dotnetPath }, { state.dotnetPath = it.trim() })
-                    .comment("Leave empty to find it automatically. Found now: ${DotnetLocator.find()?.path ?: "none — install the .NET 10 SDK"}")
+                    .comment("Leave empty to find it automatically. Found now: ${DotnetLocator.lastFound()?.path ?: "not checked yet (open a form first) or none with .NET 10"}")
             }
             row("Designer host:") {
                 textFieldWithBrowseButton(FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor().withTitle("Choose Formwork.Host.dll"))

@@ -35,8 +35,14 @@ object HostLauncher {
     }
 
     fun start(workingDir: File?): HostClient {
-        val dotnet = DotnetLocator.find(PenguinFormsSettings.getInstance().state.dotnetPath)
-            ?: throw HostNotAvailable("Penguin Forms needs the .NET 10 SDK, and it could not find the 'dotnet' program on this computer.", needsDotnet = true)
+        val search = DotnetLocator.search(PenguinFormsSettings.getInstance().state.dotnetPath)
+        val dotnet = search.found ?: run {
+            log.warn("Penguin Forms: no dotnet with .NET 10 found. Where it looked:\n${search.describe()}")
+            throw HostNotAvailable(
+                "Penguin Forms needs .NET 10, and it could not find a 'dotnet' program that has it.\n\nWhere it looked:\n${search.describe()}",
+                needsDotnet = true,
+            )
+        }
         val dll = hostDll() ?: throw HostNotAvailable("Penguin Forms' designer host is missing from the plugin. Please reinstall the Penguin Forms plugin.")
         val cmd = GeneralCommandLine(dotnet.path, dll.path)
             .withWorkDirectory(dll.parentFile)

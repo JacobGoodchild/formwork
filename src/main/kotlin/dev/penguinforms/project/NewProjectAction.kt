@@ -30,9 +30,11 @@ class NewProjectAction : DumbAwareAction() {
         val parent = FileChooser.chooseFile(FileChooserDescriptorFactory.createSingleFolderDescriptor().withTitle("Where to Create $name"), project, null) ?: return
         val dir = File(parent.path, name)
         if (dir.exists()) { Messages.showErrorDialog(project, "${dir.path} already exists.", "New Windows Forms App"); return }
-        val dotnet = DotnetLocator.find(PenguinFormsSettings.getInstance().state.dotnetPath)
-            ?: run { Messages.showErrorDialog(project, "This needs the .NET 10 SDK, and Penguin Forms couldn't find the 'dotnet' program.", "New Windows Forms App"); return }
+        val configured = PenguinFormsSettings.getInstance().state.dotnetPath
         val error = ProgressManager.getInstance().runProcessWithProgressSynchronously<String?, RuntimeException>({
+            val search = DotnetLocator.search(configured)
+            val dotnet = search.found
+                ?: return@runProcessWithProgressSynchronously "This needs the .NET 10 SDK, and Penguin Forms couldn't find a 'dotnet' program with .NET 10.\n\nWhere it looked:\n${search.describe()}"
             val out = ExecUtil.execAndGetOutput(
                 GeneralCommandLine(dotnet.path, "new", "winforms", "-f", "net8.0", "-n", name, "-o", dir.path, "--no-restore")
                     .withEnvironment("DOTNET_CLI_TELEMETRY_OPTOUT", "1").withEnvironment("DOTNET_NOLOGO", "1"), 120_000)
