@@ -87,6 +87,10 @@ class DesignerEditor(private val project: Project, private val file: VirtualFile
             }, b.cefBrowser)
             b.loadHTML(WebviewPage.html("function(text, ok, fail){${q.inject("text", "function(r){ if (ok) ok(r); }", "function(c, m){ if (fail) fail(c, m); }")}}", ThemeCss.css(), initialWebviewState()))
             panel.add(b.component, BorderLayout.CENTER)
+            // Tab / Shift+Tab walk the controls on the form (as in VS): without this, Swing's focus traversal takes them
+            // and moves the focus out of the designer. Ctrl+Tab and the IDE's other shortcuts are keymap actions and keep working.
+            keepTabKeys(b.component)
+            keepTabKeys(b.cefBrowser.uiComponent)
             // Tools dragged from the native Toolbox are placed where they are dropped (as in VS).
             b.component.dropTarget = java.awt.dnd.DropTarget(b.component, java.awt.dnd.DnDConstants.ACTION_COPY, object : java.awt.dnd.DropTargetAdapter() {
                 override fun dragOver(e: java.awt.dnd.DropTargetDragEvent) {
@@ -191,6 +195,18 @@ class DesignerEditor(private val project: Project, private val file: VirtualFile
     }
 
     override fun getComponent(): JComponent = panel
+    /** Gives Tab and Shift+Tab to the page, for this component and everything inside it (now and added later). */
+    private fun keepTabKeys(c: java.awt.Component?) {
+        if (c == null) return
+        c.focusTraversalKeysEnabled = false
+        if (c is java.awt.Container) {
+            c.components.forEach(::keepTabKeys)
+            c.addContainerListener(object : java.awt.event.ContainerAdapter() {
+                override fun componentAdded(e: java.awt.event.ContainerEvent) = keepTabKeys(e.child)
+            })
+        }
+    }
+
     override fun getPreferredFocusedComponent(): JComponent? = browser?.component ?: panel
     override fun getName(): String = "Design"
     override fun getFile(): VirtualFile = file
