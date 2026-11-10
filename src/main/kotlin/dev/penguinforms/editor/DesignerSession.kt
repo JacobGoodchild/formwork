@@ -178,6 +178,14 @@ class DesignerSession(
                     val r = ensureHost().call("scale", JsonObject().apply { addProperty("scale", paintScale) }, files()).result
                     if (r != null && r.isJsonObject) show(r.asJsonObject, null)
                 }
+                "showProperties" -> {
+                    // Right-click → Properties: the Properties tool window opens (even if hidden or closed) and takes focus,
+                    // showing the control that was right-clicked (the page selected it first).
+                    requestRows("properties", selection.lastOrNull() ?: "")
+                    com.intellij.openapi.application.ApplicationManager.getApplication().invokeLater({
+                        if (!project.isDisposed) com.intellij.openapi.wm.ToolWindowManager.getInstance(project).getToolWindow("Properties")?.activate(null)
+                    }, project.disposed)
+                }
                 "undo" -> undoRedo(undo = true)
                 "redo" -> undoRedo(undo = false)
                 "menu" -> show(ensureHost().call("menu", JsonObject().apply { addProperty("id", m.str("id") ?: "") }, files()).result!!.asJsonObject, null)

@@ -1,0 +1,13 @@
+diff --git a/designer/media/designer.js b/designer/media/designer.js
+index b9ec956..0d3e8a4 100644
+--- a/designer/media/designer.js
++++ b/designer/media/designer.js
+@@ -1750,6 +1750,8 @@
+ 			item(T('Select \'{0}\'', parent || (state.view ? state.view.className : '')), 'Esc', () => select(parent, false));
+ 		sep();
+ 		item(T('Properties'), '', () => {
++			// An IDE with its own Properties window shows and focuses it (as VS's F4); the page's grid still follows.
++			post({ type: 'showProperties' });
+ 			state.tab = 'properties';
+ 			remember();
+ 			renderInspector();
