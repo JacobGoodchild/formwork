@@ -180,6 +180,7 @@ class PropertiesPanel(private val project: Project, parent: Disposable) : JPanel
     override fun activeChanged(editor: DesignerEditor?) {
         view = editor?.session?.lastView
         primary = editor?.session?.selection?.lastOrNull() ?: ""
+        selected = editor?.session?.selection?.ifEmpty { null } ?: listOf("")
         rows = JsonArray()
         refreshSelector()
         rebuild()

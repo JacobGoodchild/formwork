@@ -200,7 +200,9 @@ class DesignerSession(
                     }
                     val rows = ensureHost().call(type, JsonObject().apply { addProperty("id", id) }, files()).result
                     post(JsonObject().apply { addProperty("type", type); addProperty("id", id); add("rows", rows) })
-                    rows?.takeIf { it.isJsonArray }?.asJsonArray?.let { r ->
+                    val sel = selection
+                    if (sel.size > 1) requestSharedRows(type, sel) // the Properties window shows what they share
+                    else rows?.takeIf { it.isJsonArray }?.asJsonArray?.let { r ->
                         publish { l -> if (type == "properties") l.propertiesChanged(editorRef(), id, r) else l.eventsChanged(editorRef(), id, r) }
                     }
                 }
@@ -312,6 +314,13 @@ class DesignerSession(
 
     /** Asks for the property (or event) rows of a component; they arrive through the listener. */
     fun requestRows(kind: String, id: String) {
+        // Several controls selected: their shared rows, never the primary's own (which would show its values, not blanks).
+        val sel = selection
+        if (sel.size > 1 && sel.lastOrNull() == id) { requestSharedRows(kind, sel); return }
+        requestSingleRows(kind, id)
+    }
+
+    private fun requestSingleRows(kind: String, id: String) {
         worker.execute {
             // Before the form has opened there is nothing to ask (the rows follow the first view).
             val view = lastView ?: return@execute
@@ -336,13 +345,14 @@ class DesignerSession(
         worker.execute {
             val view = lastView ?: return@execute
             val live = ids.filter { it.isNotEmpty() && exists(view, it) }.distinct()
-            if (live.size < 2) { requestRows(kind, live.lastOrNull() ?: ""); return@execute }
+            if (live.size < 2) { requestSingleRows(kind, live.lastOrNull() ?: ""); return@execute }
             try {
                 val host = ensureHost()
                 val f = files()
                 val all = live.map { id -> host.call(kind, JsonObject().apply { addProperty("id", id) }, f).result?.asJsonArray ?: return@execute }
                 val rows = sharedRows(all, if (kind == "events") "handler" else "value")
                 val primary = live.last()
+                if (selection != ids) return@execute // the selection changed meanwhile: its own request follows
                 publish { l -> if (kind == "events") l.eventsChanged(editorRef(), primary, rows) else l.propertiesChanged(editorRef(), primary, rows) }
             } catch (e: Throwable) { report(e) }
         }
