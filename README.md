@@ -32,6 +32,7 @@ To get Penguin Forms up and running, follow my guide:
 ## Credits and licence
 
 - **NetForms** © NetForms contributors, MIT licence — the Windows Forms implementation, the designer host and the design-surface page. Its `LICENSE` and `THIRD-PARTY-NOTICES.md` ship inside the plugin (`penguinforms/licenses/NetForms`). Penguin Forms' small changes to it are in `upstream-patches/`, each explained.
+- **Avalonia, SkiaSharp, HarfBuzzSharp, Roslyn** and a few other open-source libraries (MIT) ship inside the plugin; they are all listed, with their licences, in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 - **Selawik** © Microsoft, SIL Open Font License 1.1 — the basis of Formwork Sans (`host/fonts/`).
 - **Penguin Forms** itself: MIT licence ([LICENSE](LICENSE)). Toolbox icons are Penguin Forms' own drawings; nothing is copied from Visual Studio.
 - "Rider" and "IntelliJ IDEA" are JetBrains trademarks; "Visual Studio" and "Windows Forms" are Microsoft's; "Linux" is a trademark of Linus Torvalds. They're named only to say what Penguin Forms works with. Penguin Forms is an independent project, not made or endorsed by any of them, and uses none of their logos.

@@ -172,9 +172,39 @@ tasks.processResources {
         from("external/NetForms/templates/$t") { include("*.cs"); into("penguinforms/templates/$t") }
 }
 
+// The licence and notice files of the NuGet packages whose binaries ship in the plugin's host folder (all MIT, with
+// Skia's and HarfBuzz's own notices inside the native packages). Taken from the restored packages, so they always
+// match the versions in host/Formwork.Host/packages.lock.json; a missing one stops the build.
+val nugetPackages = File(System.getenv("NUGET_PACKAGES") ?: (System.getProperty("user.home") + "/.nuget/packages"))
+val shippedPackageNotices: List<Pair<String, String>> = run {
+    val lock = groovy.json.JsonSlurper().parse(file("host/Formwork.Host/packages.lock.json")) as Map<*, *>
+    val resolved = (lock["dependencies"] as Map<*, *>).values.flatMap { (it as Map<*, *>).entries }
+        .associate { it.key as String to (it.value as Map<*, *>)["resolved"] as String? }
+    listOf(
+        "SkiaSharp", "SkiaSharp.NativeAssets.Linux", "HarfBuzzSharp", "HarfBuzzSharp.NativeAssets.Linux",
+        "Microsoft.CodeAnalysis.Common", "System.Configuration.ConfigurationManager",
+    ).map { it to (resolved[it] ?: error("$it is not in packages.lock.json")) }
+}
+val packageNotices by tasks.registering(Sync::class) {
+    description = "Collects the licence files of the NuGet packages bundled with the designer host."
+    dependsOn(publishHost)
+    into(layout.buildDirectory.dir("package-notices"))
+    for ((name, version) in shippedPackageNotices) {
+        val dir = nugetPackages.resolve("${name.lowercase()}/$version")
+        from(dir) { include("LICENSE*", "THIRD-PARTY-NOTICES*", "ThirdPartyNotices*"); into(name) }
+    }
+    doLast {
+        for ((name, _) in shippedPackageNotices)
+            check(destinationDir.resolve(name).listFiles()?.isNotEmpty() == true) { "No licence files found for $name in $nugetPackages" }
+    }
+}
+
 tasks.withType<org.jetbrains.intellij.platform.gradle.tasks.PrepareSandboxTask>().configureEach {
-    dependsOn(publishHost, publishConverter)
+    dependsOn(publishHost, publishConverter, packageNotices)
     from(hostOut) { into(pluginName.map { "$it/host" }) }
+    from("THIRD-PARTY-NOTICES.md") { into(pluginName.map { "$it/licenses" }) }
+    from(packageNotices) { into(pluginName.map { "$it/licenses/packages" }) }
+    from("host/fonts/Selawik-OFL.txt") { into(pluginName.map { "$it/licenses/fonts" }) }
 }
 
 // ./gradlew runIde -PopenPath=/path/to/project   (opens that folder or solution in the sandbox IDE)

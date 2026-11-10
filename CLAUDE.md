@@ -80,6 +80,14 @@ plugin was then tested in real Rider 2026.1. Fixes from that Rider test (all che
 9. Toolbox / Properties / Document Outline unavailable until a form is opened in the designer.
 10. Repository tidied for publishing: user guide `docs/USER-GUIDE.md`, developer docs in `docs/development/`.
 
+**Pre-publishing check (10 Nov):** no secrets, keys, emails or private paths in the repo; no user-visible "Formwork"
+left (settings dialog title and plugin description fixed); code safety rules re-checked (no shell, no network but the
+user-clicked help link, CSP on the page, project code only in trusted projects, deletes only in our own temp folders,
+CI read-only with no secrets in pull requests). Found and fixed: the third-party libraries bundled in the host (Avalonia,
+SkiaSharp/Skia, HarfBuzzSharp/HarfBuzz, Roslyn, System.*, MicroCom, Tmds.DBus) shipped without their notices; now
+`THIRD-PARTY-NOTICES.md` plus each package's own licence files go into the plugin's `licenses/` folder (the build
+fails if one is missing). Trademarks are only used to say what the plugin works with; the icon is our own drawing.
+
 **Not yet checked in real Rider:** all of the above (the test IDE is IntelliJ IDEA). Rider-only things worth checking
 after any big change: Solution Explorer nesting, Run / Debug, only one designer opening, the two-tab layout and its
 restore after a restart.

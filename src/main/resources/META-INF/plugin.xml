@@ -6,12 +6,13 @@
     <p><b>A Visual Studio-style Windows Forms designer for Rider on Linux.</b></p>
     <p>A drag-and-drop form designer laid out like the one in Visual Studio:
     a Design tab for each form, the toolbox, the property grid with Events, F7 / Shift+F7.
-    Your code stays exactly as Visual Studio writes it, so a form designed at home opens unchanged
-    in Visual Studio, and the other way round.</p>
+    Your code stays exactly as Visual Studio writes it, so a form designed on Linux opens unchanged
+    in Visual Studio on Windows, and the other way round.</p>
     <p>Built on <a href="https://github.com/Go-Forms/.NetForms">NetForms</a> (MIT licence),
     which runs WinForms code on Linux and paints the form. Penguin Forms makes no network requests of its own.</p>
-    <p>Credits: NetForms © NetForms contributors (MIT); Selawik © Microsoft (SIL OFL 1.1), the basis of the
-    Formwork Sans font the designer measures text with. Penguin Forms is MIT-licensed.</p>
+    <p>Credits: NetForms © NetForms contributors (MIT); Avalonia, SkiaSharp, Roslyn and other open-source libraries
+    (MIT, listed with their notices in the plugin's licenses folder); Selawik © Microsoft (SIL OFL 1.1), the basis of
+    the font the designer measures text with. Penguin Forms is MIT-licensed.</p>
     <p>Penguin Forms is an independent project, not made or endorsed by JetBrains, Microsoft or the Linux Foundation.
     Rider is a trademark of JetBrains; Visual Studio and Windows Forms are trademarks of Microsoft; Linux is a
     trademark of Linus Torvalds. They are named here only to say what Penguin Forms works with.</p>

@@ -37,7 +37,7 @@ class PenguinFormsConfigurable : BoundConfigurable("Penguin Forms") {
                     .comment("Leave empty to find it automatically. Found now: ${DotnetLocator.lastFound()?.path ?: "not checked yet (open a form first) or none with .NET 10"}")
             }
             row("Designer host:") {
-                textFieldWithBrowseButton(FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor().withTitle("Choose Formwork.Host.dll"))
+                textFieldWithBrowseButton(FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor().withTitle("Choose the Designer Host"))
                     .bindText({ state.hostPath }, { state.hostPath = it.trim() })
                     .comment("Leave empty to use the host that comes with Penguin Forms (for developers only).")
             }

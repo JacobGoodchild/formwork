@@ -92,8 +92,9 @@ website: you make a **Permanent Token** on the Marketplace (profile → My Token
 | Name (≤ 30 characters, no trademarks), ID, vendor, description, trademark notice | `plugin.xml` |
 | Icon, light and dark (40×40 SVG, our own drawing) | `META-INF/pluginIcon.svg`, `pluginIcon_dark.svg` |
 | Change notes | `docs/CHANGE-NOTES.html` (put into the plugin when it's built) |
-| MIT licence, third-party notices (NetForms, Selawik font) | `LICENSE`, plugin About text |
+| MIT licence, third-party notices (NetForms, Avalonia, SkiaSharp, Roslyn, Selawik font, …) | `LICENSE`, `THIRD-PARTY-NOTICES.md`, plugin description |
 | Signing and upload settings that read only from secrets | `build.gradle.kts` (`signing`, `publishing`) |
 | "Rider only" Marketplace build | `./gradlew buildPlugin -PriderOnly=true` |
 | JetBrains' plugin checker against Rider 2026.1.5.3 and 2026.2.4.1 | Actions → CI → **Run workflow** (job `verify-plugin`); report in the run's `plugin-verifier-report` |
-| No network use, no telemetry | README, safety reviews in CLAUDE.md |
+| No network use, no telemetry | README; safety check before publishing (see CLAUDE.md, Status) |
+| Third-party licences shipped with the plugin | `THIRD-PARTY-NOTICES.md` → the plugin's `licenses/` folder |
