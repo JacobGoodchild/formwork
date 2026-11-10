@@ -8,7 +8,7 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
-  <!-- Penguin Forms: on Windows (college), the real Windows Forms on .NET Framework, as the project was. -->
+  <!-- Penguin Forms: on Windows, the real Windows Forms on .NET Framework, as the project was. -->
   <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
     <TargetFramework>net481</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>

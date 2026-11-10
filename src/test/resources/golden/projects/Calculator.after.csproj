@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
-  <!-- Penguin Forms: on Windows (college), the real Windows Forms, exactly as Visual Studio made it. -->
+  <!-- Penguin Forms: on Windows, the real Windows Forms, exactly as Visual Studio made it. -->
   <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>

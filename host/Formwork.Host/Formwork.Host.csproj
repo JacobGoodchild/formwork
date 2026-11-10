@@ -3,7 +3,7 @@
     Penguin Forms' designer host: NetForms' DesignerProtocol (the same one its VS Code extension uses), plus
     what Rider needs: the form's files are read from Rider's editor buffers and every write is handed
     back to Rider (so Ctrl+Z and the unsaved-changes marker work), never written to disk here.
-    See docs/PROTOCOL.md.
+    See docs/development/PROTOCOL.md.
   -->
   <PropertyGroup>
     <OutputType>Exe</OutputType>

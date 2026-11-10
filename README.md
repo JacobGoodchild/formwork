@@ -7,11 +7,11 @@ Hello! This is a (Visual Studio-style) WinForms designer, built for Rider on Lin
 
 I wanted to build this project so I could use WinForms, in my favourite IDE (Rider) on Linux.
 
-And so, this plugin is designed to supply everything Visual Studio’s WinForms has to offer for this situation. And before you ask - yes, it has `Form.cs` AND Designer.
+And so, this plugin is designed to supply everything Visual Studio’s WinForms has to offer for this situation. And before you ask - yes, you get both your code (`Form1.cs`) AND the Designer, in separate tabs, just like Visual Studio.
 
 ## How it works
 
-You’ll need **.NET 10**, and **Rider 2026.1 or 2026.2**. If you want to run this on Linux, there’s a button in **Tools → Make This Project Work on Linux Too**. Or you’ll probably see it in the bottom-right as a popup.
+You’ll need **.NET 10**, and **Rider 2026.1 or newer**. If you want to run this on Linux, there’s a button in **Tools → Make This Project Work on Linux Too**. Or you’ll probably see it in the bottom-right as a popup.
 
 **Extra info:** It’s built on [NetForms](https://github.com/Go-Forms/.NetForms) (MIT licence), which makes WinForms code run on Linux.
 
@@ -19,13 +19,13 @@ You’ll need **.NET 10**, and **Rider 2026.1 or 2026.2**. If you want to run th
 
 To get Penguin Forms up and running, follow my guide:
 
-1. Open a blank, brand-new solution or use the Rider welcome screen. Go to **File → Settings → Plugins**, and search JetBrains Marketplace to install Penguin Forms (alternatively, if you have it downloaded, go to the settings cog at the top right and go **Install Plugin From Disk…** and install the downloaded plugin. **Don’t extract the plugin if it’s a ZIP file**).
-2. To get samples, go to this GitHub page: <https://github.com/JacobGoodchild/penguin-forms>. Click the green **Code** button, and click the bottom button which says **Download ZIP**… and again, extract the file.
+1. On Rider's welcome screen, click **Plugins** (or, with a project open, go to **File → Settings → Plugins**), and search JetBrains Marketplace to install Penguin Forms (alternatively, if you have it downloaded, go to the settings cog at the top right and go **Install Plugin From Disk…** and install the downloaded plugin. **Don’t extract the plugin if it’s a ZIP file**).
+2. To get samples, go to this GitHub page: <https://github.com/JacobGoodchild/penguin-forms>. Click the green **Code** button, and click the bottom button which says **Download ZIP**… then extract the file.
 3. At this point, you may have to restart your IDE. Rider will probably tell you if so.
 4. Now to open Penguin Forms. Go to **File → Open → Downloads → penguin-forms-main** (whatever your extracted file is called) **→ samples → VsTemplate.Net8 → WinFormsApp1 → WinFormsApp1.csproj** and double-click.
 5. *(for Linux)* If you’re on Linux, go to **Tools → Make This Project Work on Linux Too…**
 6. You should be greeted with a blank screen. Double-click `Form1.cs`. You should have a Toolbox on the left, Properties on the right, and your form in the middle.
-   - If it’s not working, check you’re not still in the blank solution and you selected the right sample.
+   - If it’s not working, check you opened the right sample (step 4).
    - If it says you don’t have .NET 10 and you think you do, then check your .NET path. Go to **File → Settings → Tools → Penguin Forms** (from the dropdown), find the **.NET path** box (probably the second-to-last box) and paste your full .NET path. It’ll probably be something like `/home/username/.dotnet/dotnet`.
 7. Done! Start building something great.
 

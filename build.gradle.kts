@@ -71,7 +71,7 @@ intellijPlatform {
     }
     buildSearchableOptions = false
 
-    // ---- JetBrains Marketplace (only when Jacob decides to publish; see docs/MARKETPLACE.md) ----
+    // ---- JetBrains Marketplace (only when the publisher decides to; see docs/development/MARKETPLACE.md) ----
     // Nothing secret is stored here: the key, its certificate and the upload token are read from environment
     // variables, which on GitHub come from the repository's Settings → Secrets. Without them these tasks just stop.
     signing {
@@ -187,8 +187,8 @@ tasks.named<org.jetbrains.intellij.platform.gradle.tasks.RunIdeTask>("runIde") {
 
 // The sandbox Rider needs a JetBrains account login for its licence, which Penguin Forms' tests must not do.
 // The plugin only uses the shared IntelliJ Platform for its UI, so UI screenshots run in the free
-// IntelliJ IDEA of the same platform version. See TESTING-FOR-JACOB.md for the
-// checks only Rider can do.
+// IntelliJ IDEA of the same platform version. Checks that need Rider itself are
+// done by hand in Rider (see docs/USER-GUIDE.md).
 //   ./gradlew runIdea -PopenPath=/path/to/project
 intellijPlatformTesting {
     runIde {

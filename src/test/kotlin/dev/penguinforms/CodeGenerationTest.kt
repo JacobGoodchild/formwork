@@ -78,7 +78,7 @@ class CodeGenerationTest {
     fun `renaming renames the field, its handlers and uses in Form1_cs`() = Session("VsTemplate.Net8").use { s ->
         s.apply(newControl("Button"))
         s.apply(op("setEvent", "id" to "button1", "event" to "Click", "handler" to "button1_Click"))
-        // Code Jacob wrote himself, using the button.
+        // Code the user wrote, using the button.
         val code = s.codeText.replace("private void button1_Click(object sender, EventArgs e)\n    {\n\n    }", "private void button1_Click(object sender, EventArgs e)\n    {\n        button1.Text = \"Hi\";\n    }")
         s.buffers[s.code.path] = code
         s.apply(op("rename", "id" to "button1", "value" to "btnHello"))

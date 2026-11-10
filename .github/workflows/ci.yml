@@ -1,8 +1,8 @@
 name: CI
 
 # Linux: unit tests, the build tests of every converted sample, the plugin zip.
-# Windows: the same converted samples must still build with the real Windows Forms, as Visual Studio builds them at
-# college, including Visual Studio's design-time build (what the VS designer runs when it opens a form).
+# Windows: the same converted samples must still build with the real Windows Forms, as Visual Studio builds them,
+# including Visual Studio's design-time build (what the VS designer runs when it opens a form).
 
 on:
   push:

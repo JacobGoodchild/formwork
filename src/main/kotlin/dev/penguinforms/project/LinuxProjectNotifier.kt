@@ -26,7 +26,7 @@ class LinuxProjectNotifier : ProjectActivity {
         val names = projects.joinToString(", ") { it.name }
         NotificationGroupManager.getInstance().getNotificationGroup("Penguin Forms").createNotification(
             "This is a Windows Forms project",
-            UiText.html("$names uses Windows Forms, which only builds on Windows. Penguin Forms can make it work on Linux too, and it will still open in Visual Studio at college."),
+            UiText.html("$names uses Windows Forms, which only builds on Windows. Penguin Forms can make it work on Linux too, and it will still open in Visual Studio on Windows."),
             NotificationType.INFORMATION,
         ).addAction(NotificationAction.createSimpleExpiring("Make it work on Linux too…") {
             val vf = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(projects.first()) ?: return@createSimpleExpiring

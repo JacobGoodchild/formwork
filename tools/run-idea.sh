@@ -5,7 +5,7 @@
 set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
 pgrep -x Xvfb >/dev/null || (Xvfb :99 -screen 0 1920x1080x24 -nolisten tcp >/dev/null 2>&1 &)
-pkill -f "formwork/.intellijPlatform/sandbox" || true  # only the test IDE started from this repo
+pkill -f "$root/.intellijPlatform/sandbox" || true  # only the test IDE started from this repo
 sleep 2
 export DISPLAY=:99 PATH="/opt/dotnet:$PATH"
 cd "$root"

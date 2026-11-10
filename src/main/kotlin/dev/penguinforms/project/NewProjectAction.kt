@@ -18,7 +18,7 @@ import java.io.File
 /**
  * File → New → Windows Forms App (Penguin Forms)…: Microsoft's own "Windows Forms App" template from the .NET SDK
  * (`dotnet new winforms`, the one Visual Studio uses, .NET 8), already made to work on Linux too. It opens in
- * Visual Studio at college exactly as if it had been made there. Nothing is downloaded to create it; the first
+ * Visual Studio on Windows exactly as if it had been made there. Nothing is downloaded to create it; the first
  * build on Linux fetches NetForms from NuGet.
  */
 class NewProjectAction : DumbAwareAction() {

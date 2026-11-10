@@ -9,7 +9,7 @@ namespace Formwork.Host;
 
 /// <summary>
 /// One JSON request per line on stdin, one JSON response per line on stdout - NetForms' DesignerProtocol,
-/// with two Penguin Forms additions (docs/PROTOCOL.md):
+/// with two Penguin Forms additions (docs/development/PROTOCOL.md):
 /// <list type="bullet">
 /// <item>a request may carry <c>"files": {"/abs/path": "text" | null}</c>: what Rider's editor holds for the
 /// form's files (null: the file does not exist). The designer reads those instead of the disk.</item>

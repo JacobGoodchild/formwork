@@ -249,7 +249,7 @@ class DesignerSession(
         }
     }
 
-    // ---- diagnosing adds (see "How to check the add-a-control fix" in TESTING-FOR-JACOB.md) ------------------
+    // ---- diagnosing adds (log lines start "Penguin Forms add:"; see docs/USER-GUIDE.md, "Reporting a problem") ------------------
 
     @Volatile private var lastSeq = 0L
     @Volatile private var pickedTool: String? = null

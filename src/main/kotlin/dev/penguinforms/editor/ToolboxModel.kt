@@ -12,7 +12,7 @@ import com.google.gson.JsonObject
 object ToolboxModel {
     val VS_ORDER = listOf("All Windows Forms", "Common Controls", "Containers", "Menus & Toolbars", "Components", "Printing", "Dialogs", "Data", "General")
 
-    /** Groups Visual Studio shows collapsed on first use; Common Controls is open (as in Jacob's screenshot). */
+    /** Groups Visual Studio shows collapsed on first use; Common Controls is open (as in Visual Studio 2022). */
     val COLLAPSED_AT_FIRST = VS_ORDER - "Common Controls"
 
     fun vsOrder(categories: JsonElement?): JsonArray {

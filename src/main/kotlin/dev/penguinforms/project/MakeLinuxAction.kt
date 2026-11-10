@@ -109,7 +109,7 @@ class MakeLinuxAction : DumbAwareAction() {
             FileDocumentManager.getInstance().saveDocument(document)
             NotificationGroupManager.getInstance().getNotificationGroup("Penguin Forms").createNotification(
                 "Done: ${csproj.name} now works on Linux too",
-                UiText.html("The original is saved as $backupName. Rider reloads the project; the first build downloads NetForms from NuGet. At college it still opens in Visual Studio as before."),
+                UiText.html("The original is saved as $backupName. Rider reloads the project; the first build downloads NetForms from NuGet. On Windows it still opens in Visual Studio as before."),
                 NotificationType.INFORMATION,
             ).notify(project)
         }

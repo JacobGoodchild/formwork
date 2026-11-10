@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
-/** An error answered by the host (see docs/PROTOCOL.md). */
+/** An error answered by the host (see docs/development/PROTOCOL.md). */
 class HostException(
     val kind: String,
     override val message: String,

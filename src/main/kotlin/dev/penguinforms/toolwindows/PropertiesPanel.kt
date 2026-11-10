@@ -59,7 +59,7 @@ import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.TableCellEditor
 
 /**
- * The Properties tool window, laid out like Visual Studio's (Jacob's screenshot): the selection drop-down
+ * The Properties tool window, laid out like Visual Studio 2022's: the selection drop-down
  * ("button1  System.Windows.Forms.Button"), the toolbar (Categorized, Alphabetical | Properties, Events | Property
  * Pages), a two-column grid grouped by category with non-default values in **bold**, and a description pane.
  * The Events view lists the events: double-click one to create or go to its handler, type a name and press Enter,

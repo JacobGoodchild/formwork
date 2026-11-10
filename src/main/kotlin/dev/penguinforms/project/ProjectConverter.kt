@@ -2,7 +2,7 @@ package dev.penguinforms.project
 
 /**
  * "Make this project work on Linux too" (brief section 7): rewrites a Visual Studio Windows Forms project file so
- * it picks the real Windows Forms on Windows (college, Visual Studio) and NetForms everywhere else (home, Rider on
+ * it picks the real Windows Forms on Windows (Visual Studio) and NetForms everywhere else (home, Rider on
  * Linux). The code files never change.
  *
  * The rewrite is a minimal text edit: only the `TargetFramework` and `UseWindowsForms` lines move into
@@ -86,7 +86,7 @@ object ProjectConverter {
                 addWindowsColours(text),
                 listOf(
                     "This project already works on Linux. This adds one thing: when it runs on Linux, forms are light grey like on Windows and in the designer, instead of beige.",
-                    "On Windows (Visual Studio at college) nothing changes.",
+                    "On Windows (Visual Studio) nothing changes.",
                     "Your code files are not touched.",
                 ),
                 emptyList(),
@@ -121,7 +121,7 @@ object ProjectConverter {
         val i2 = unit + unit
         val block = buildString {
             append(nl)
-            append("$i1<!-- Penguin Forms: on Windows (college), the real Windows Forms, exactly as Visual Studio made it. -->$nl")
+            append("$i1<!-- Penguin Forms: on Windows, the real Windows Forms, exactly as Visual Studio made it. -->$nl")
             append("$i1<PropertyGroup Condition=\"'\$(OS)' == 'Windows_NT'\">$nl")
             append("$i2<TargetFramework>$tfm</TargetFramework>$nl")
             append("$i2<UseWindowsForms>true</UseWindowsForms>$nl")
@@ -140,7 +140,7 @@ object ProjectConverter {
         out = addWindowsColours(out.substring(0, lineEnd) + block + out.substring(lineEnd))
 
         val notes = listOf(
-            "On Windows (Visual Studio at college) nothing changes: the project still uses the real Windows Forms with $tfm.",
+            "On Windows (Visual Studio) nothing changes: the project still uses the real Windows Forms with $tfm.",
             "On Linux the same code builds with .NET 10 and NetForms $NETFORMS_VERSION (downloaded from NuGet the first time you build).",
             "On Linux the running app also gets Windows 10/11's colours (light grey forms, not beige), like the designer.",
             "Your code files (Program.cs, Form1.cs, Form1.Designer.cs) are not touched.",

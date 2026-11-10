@@ -5,7 +5,7 @@ import com.intellij.openapi.diagnostic.logger
 import dev.penguinforms.settings.PenguinFormsSettings
 import java.io.File
 
-/** Thrown when the designer can't start: carries a plain-English explanation for Jacob. */
+/** Thrown when the designer can't start: carries a plain-English explanation for the user. */
 class HostNotAvailable(message: String, val needsDotnet: Boolean = false) : RuntimeException(message)
 
 /** Starts Formwork.Host. Always with an argument list (GeneralCommandLine), never through a shell. */

@@ -41,7 +41,7 @@ object LegacyProjectConverter {
         val groupEnd = out.indexOf("</PropertyGroup>").let { out.indexOf('\n', it) + 1 }
         val block = buildString {
             append(nl)
-            append("  <!-- Penguin Forms: on Windows (college), the real Windows Forms on .NET Framework, as the project was. -->$nl")
+            append("  <!-- Penguin Forms: on Windows, the real Windows Forms on .NET Framework, as the project was. -->$nl")
             append("  <PropertyGroup Condition=\"'\$(OS)' == 'Windows_NT'\">$nl")
             append("    <TargetFramework>$tfm</TargetFramework>$nl")
             append("    <UseWindowsForms>true</UseWindowsForms>$nl")
@@ -84,7 +84,7 @@ object LegacyProjectConverter {
             val text = dualTarget(target.readText(), oldText)
             val report = out.stdout.lines().map { it.trim() }.filter { it.startsWith("- ") || it.startsWith("warning") || it.startsWith("error") }
             val warnings = listOf(
-                "This is an old-style .NET Framework project. It becomes a new-style (SDK) project: Visual Studio 2022 opens it, but please check it at college (build, open the designer, run) before you rely on it.",
+                "This is an old-style .NET Framework project. It becomes a new-style (SDK) project: Visual Studio 2022 opens it, but please check it on Windows (build, open the designer, run) before you rely on it.",
             ) + report.filter { !it.startsWith("- ") }.map { it.replace(Regex("^(warning|error)\\s+"), "") }
             val notes = listOf("On Windows it keeps the real Windows Forms on ${tfmOf(oldText)}; on Linux it uses .NET 10 and NetForms.") +
                 report.filter { it.startsWith("- ") }.map { it.removePrefix("- ") }

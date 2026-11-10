@@ -1,6 +1,6 @@
 # Putting Penguin Forms on the JetBrains Marketplace
 
-This is your decision, Jacob. Nothing here happens by itself: nothing is uploaded until you do step 4.
+Publishing is the maintainer's decision. Nothing here happens by itself: nothing is uploaded until you do step 4.
 Everything Penguin Forms needs on its side is ready (listed at the end). What's left needs **your** accounts,
 so only you can do it.
 
@@ -13,21 +13,21 @@ updates automatically. It's free to publish.
 
 1. Go to <https://account.jetbrains.com> and sign up (free). You may already have one from Rider.
 2. Go to <https://plugins.jetbrains.com>, sign in, and accept the **Developer Agreement** when it asks.
-3. You'll publish as yourself ("Jacob Goodchild"). That matches the vendor name already in the plugin.
+3. Publish under the same name as the `<vendor>` in `plugin.xml`.
 
 ## 2. Decide two small things
 
 - **A contact email for the listing.** The Marketplace shows it to users. It doesn't have to be your main
   one: a separate address for the project is fine. Put it in `src/main/resources/META-INF/plugin.xml` on the
-  `<vendor ...>` line as `email="you@example.com"` (or ask me to).
+  `<vendor ...>` line as `email="you@example.com"`.
 - **Whether the GitHub repository is public.** The listing links to it (the vendor link). If you'd rather keep
-  the code private, tell me and I'll take the link out.
+  the code private, remove the `url` from the `<vendor>` line.
 
 ## 3. Make a signing key (10 minutes, once)
 
 JetBrains asks that plugins are "signed": a digital stamp that proves an update really came from you.
 
-1. On your Linux laptop, open a Terminal in an empty folder **outside** the project and run these three
+1. On your own computer, open a Terminal in an empty folder **outside** the project and run these three
    commands (they make a private key, protected by a password you choose, and a certificate):
 
    ```bash
@@ -52,7 +52,7 @@ JetBrains asks that plugins are "signed": a digital stamp that proves an update 
    - `PRIVATE_KEY`: the whole text of `private_encrypted.pem`
    - `PRIVATE_KEY_PASSWORD`: the password you chose
 
-   GitHub keeps secrets hidden, even from me.
+   GitHub keeps secrets hidden: they never appear in the code or the logs.
 
 ## 4. The first upload (by hand)
 
@@ -60,11 +60,11 @@ The very first version has to be uploaded on the website:
 
 1. On GitHub, open **Actions → CI**, pick the newest green run, and download **penguin-forms-plugin**
    (unzip it once; inside is `penguin-forms-0.1.0.zip`).
-   - Ask me first to make a "Marketplace build" of it (I build it with `-PriderOnly=true`, so it's offered to Rider
-     users only rather than every JetBrains IDE, and signed if the secrets from step 3 are set).
+   - Use a "Marketplace build" (built with `-PriderOnly=true`, so it's offered to Rider users only rather than
+     every JetBrains IDE, and signed if the secrets from step 3 are set).
 2. On <https://plugins.jetbrains.com>: your profile → **Upload plugin**. Choose the zip, licence **MIT**,
    category **Code tools** or **UI**, and tick that it's free.
-3. JetBrains checks it automatically (the same "plugin checker" I run, see below), then a person reviews it.
+3. JetBrains checks it automatically (the same "plugin checker" CI runs, see below), then a person reviews it.
    That usually takes **a few working days**. They email you if something needs changing.
 
 ## 5. Later updates

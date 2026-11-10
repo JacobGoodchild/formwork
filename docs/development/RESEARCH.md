@@ -26,7 +26,7 @@ NetForms' own notes (`CLAUDE.md`, `docs/PLAN.md`) are written in Russian; summar
    builds the live form under a headless platform (no windows, timers don't tick), paints it to PNG,
    and writes `*.Designer.cs` back in the style the file already uses (old `this.button1` style or
    the newer .NET style). Handler stubs go into `Form1.cs`; renames use Roslyn symbols so only real
-   references change. Images go into `Form1.resx`. Protocol: see `docs/PROTOCOL.md`.
+   references change. Images go into `Form1.resx`. Protocol: see `docs/development/PROTOCOL.md`.
 2. **VS Code front end** (`designer/src/*.ts` + webview `designer/media/designer.js`, `.css`,
    `geometry.js`). The webview is the whole editing chrome: toolbox, canvas overlays (selection,
    handles, snaplines, drag), property grid, events, outline, tab order, format commands.
@@ -56,7 +56,7 @@ in Kotlin.
 
 Rewrites a WinForms project for NetForms only (`UseWindowsForms` → `PackageReference NetForms`,
 `net8.0-windows` → `net10.0`), backup `*.csproj.winforms.bak`. Handles old .NET Framework projects
-too. It makes a Linux-only project, which would break Jacob's college build, so Penguin Forms writes the
+too. It makes a Linux-only project, which would no longer build on Windows, so Penguin Forms writes the
 dual-target project from brief section 7 instead (its own code, using the converter's findings as
 a guide).
 
