@@ -200,6 +200,9 @@ intellijPlatformTesting {
                 args(listOfNotNull(providers.gradleProperty("openPath").orNull, providers.gradleProperty("openFile").orNull))
                 jvmArgumentProviders += CommandLineArgumentProvider {
                     listOf("-Dide.show.tips.on.startup.default.value=false", "-Djb.consents.confirmation.enabled=false", "-Djb.privacy.policy.text=<!--999.999-->") +
+                    // -PuiScale=2: the IDE as on a scaled (high-DPI) screen, to check the canvas stays sharp.
+                    listOfNotNull(providers.gradleProperty("uiScale").orNull?.let { "-Dsun.java2d.uiScale=$it" },
+                        providers.gradleProperty("renderScale").orNull?.let { "-Dpenguinforms.renderScale=$it" }) +
                     // Only on the throwaway test machine (-PformworkTestMachine): trust every project, run the browser
                     // without its sandbox (that machine runs as root) and hide error pop-ups in screenshots. Never on a
                     // normal computer, where these would weaken Rider's own safety checks.

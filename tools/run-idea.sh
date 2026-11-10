@@ -11,6 +11,8 @@ export DISPLAY=:99 PATH="/opt/dotnet:$PATH"
 cd "$root"
 extra=()
 [ -n "${3:-}" ] && extra=(-PopenFile="$3")
+[ -n "${UISCALE:-}" ] && extra+=(-PuiScale="$UISCALE")  # e.g. UISCALE=2: as on a 200 % screen
+[ -n "${RENDERSCALE:-}" ] && extra+=(-PrenderScale="$RENDERSCALE")  # RENDERSCALE=1: the old 1x canvas pictures
 nohup ./gradlew runIdea -PopenPath="$1" "${extra[@]}" --console=plain > "${2:-/tmp/penguinforms-runidea.log}" 2>&1 &
 # No window manager on Xvfb: once the IDE window exists, make it fill the screen (as a maximised window would).
 ( for i in $(seq 1 120); do sleep 2

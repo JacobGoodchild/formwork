@@ -130,10 +130,11 @@ class DesignerSession(
         try {
             when (m.str("type")) {
                 "ready" -> {
-                    log.info("Designer page ready for ${form.designer}")
+                    log.info("Designer page ready for ${form.designer} (screen scale ${m.get("scale")?.toString() ?: "1"})")
                     val h = ensureHost()
                     loadLibraries(h)
-                    val view = h.call("open", JsonObject().apply { addProperty("path", form.designer.path) }, files()).result!!.asJsonObject
+                    m.get("scale")?.takeIf { it.isJsonPrimitive }?.asDouble?.let { renderScale = it }
+                    val view = h.call("open", openParams(), files()).result!!.asJsonObject
                     lastView = view
                     val toolbox = toolbox(h)
                     requestRows("properties", selection.lastOrNull() ?: "")
@@ -170,6 +171,12 @@ class DesignerSession(
                             throw e
                         }
                     }
+                }
+                "scale" -> {
+                    // The page's screen density (or zoom) changed: the host paints the pictures again, sharp for it.
+                    renderScale = m.get("scale")?.takeIf { it.isJsonPrimitive }?.asDouble ?: 1.0
+                    val r = ensureHost().call("scale", JsonObject().apply { addProperty("scale", paintScale) }, files()).result
+                    if (r != null && r.isJsonObject) show(r.asJsonObject, null)
                 }
                 "undo" -> undoRedo(undo = true)
                 "redo" -> undoRedo(undo = false)
@@ -545,9 +552,20 @@ class DesignerSession(
         }
     }
 
+    /** Device pixels per form pixel the page asked for (its devicePixelRatio times its zoom). */
+    @Volatile private var renderScale = 1.0
+
+    /** The scale the host paints at: the page's, unless -Dpenguinforms.renderScale=1 asks for the old 1x pictures. */
+    private val paintScale: Double get() = System.getProperty("penguinforms.renderScale")?.toDoubleOrNull() ?: renderScale
+
+    private fun openParams() = JsonObject().apply {
+        addProperty("path", form.designer.path)
+        addProperty("scale", paintScale)
+    }
+
     private fun reopen() {
         try {
-            val view = ensureHost().call("open", JsonObject().apply { addProperty("path", form.designer.path) }, files()).result!!.asJsonObject
+            val view = ensureHost().call("open", openParams(), files()).result!!.asJsonObject
             show(view, null)
         } catch (e: Throwable) {
             report(e)

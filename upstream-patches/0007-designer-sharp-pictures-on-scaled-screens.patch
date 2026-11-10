@@ -1,0 +1,212 @@
+diff --git a/designer/media/designer.js b/designer/media/designer.js
+index 38de7ac..b9ec956 100644
+--- a/designer/media/designer.js
++++ b/designer/media/designer.js
+@@ -233,8 +233,21 @@
+ 		);
+ 	}
+ 
++	/** Device pixels per form pixel the host should paint at: the screen's density times the zoom (1 to 4, quarter steps). */
++	function screenScale() {
++		return Math.min(4, Math.max(1, Math.round((window.devicePixelRatio || 1) * Math.max(1, state.zoom) * 4) / 4));
++	}
++
++	function sendScale() {
++		const s = screenScale();
++		if (s === state.sentScale) return;
++		state.sentScale = s;
++		post({ type: 'scale', scale: s });
++	}
++
+ 	function setZoom(z) {
+ 		state.zoom = Math.min(4, Math.max(0.25, Math.round(z * 100) / 100));
++		sendScale();
+ 		remember();
+ 		renderToolbar();
+ 		renderStage();
+@@ -2972,5 +2985,8 @@
+ 		formatState: () => [movableSelection().length, formLocked(), state.tabOrder],
+ 	};
+ 
+-	post({ type: 'ready' });
++	// The pictures are painted at the screen's pixel density (and the zoom), so a scaled screen shows them sharp.
++	state.sentScale = screenScale();
++	post({ type: 'ready', scale: state.sentScale });
++	window.addEventListener('resize', sendScale);
+ })();
+diff --git a/src/NetForms.Design/DesignSurface.Menus.cs b/src/NetForms.Design/DesignSurface.Menus.cs
+index 829b13f..fac221f 100644
+--- a/src/NetForms.Design/DesignSurface.Menus.cs
++++ b/src/NetForms.Design/DesignSurface.Menus.cs
+@@ -61,7 +61,7 @@ public sealed partial class DesignSurface
+             }
+             else break;
+ 
+-            var picture = Paint(dropDown, out var size, out var bounds);
++            var picture = Paint(dropDown, RenderScale, out var size, out var bounds);
+             var rect = new Rectangle(at, size);
+             (view.DropDowns ??= new()).Add(new DesignerDropDown { Owner = ownerId, X = rect.X, Y = rect.Y, W = rect.Width, H = rect.Height, Png = picture });
+             // The drop-down itself, under its items: a click on its margin selects what owns it.
+@@ -100,7 +100,7 @@ public sealed partial class DesignSurface
+     /// A drop-down laid out at its preferred size and painted, with where each item is on it. Its own Size is put
+     /// back afterwards: a picture for the canvas is not an edit of the form.
+     /// </summary>
+-    private static string Paint(ToolStripDropDown dropDown, out Size size, out List<(ToolStripItem Item, Rectangle Bounds)> bounds)
++    private static string Paint(ToolStripDropDown dropDown, float scale, out Size size, out List<(ToolStripItem Item, Rectangle Bounds)> bounds)
+     {
+         var old = dropDown.Size;
+         dropDown.EnsureItemLayout();
+@@ -112,11 +112,7 @@ public sealed partial class DesignSurface
+             dropDown.PerformLayout();
+             dropDown.EnsureItemLayout();
+             bounds = dropDown.Items.Cast<ToolStripItem>().Where(i => i.Available).Select(i => (i, i.Bounds)).ToList();
+-            using var bitmap = new Bitmap(size.Width, size.Height);
+-            dropDown.DrawToBitmap(bitmap, new Rectangle(Point.Empty, size));
+-            using var png = new MemoryStream();
+-            bitmap.Save(png, ImageFormat.Png);
+-            return System.Convert.ToBase64String(png.ToArray());
++            return ScaledPng(dropDown, size, scale);
+         }
+         finally
+         {
+diff --git a/src/NetForms.Design/DesignSurface.Scale.cs b/src/NetForms.Design/DesignSurface.Scale.cs
+new file mode 100644
+index 0000000..838d5c7
+--- /dev/null
++++ b/src/NetForms.Design/DesignSurface.Scale.cs
+@@ -0,0 +1,35 @@
++using System;
++using System.Drawing;
++using System.Drawing.Imaging;
++using System.IO;
++using System.Windows.Forms;
++
++namespace NetForms.Design;
++
++/// <summary>
++/// The pictures the client shows (the form, an open menu) are painted at the screen's pixel density, so on a scaled
++/// screen (150 %, 200 %) they are as sharp as the editor around them instead of a 1x picture stretched. Everything
++/// else - where items are, hit-testing, edits - stays in form pixels.
++/// </summary>
++public sealed partial class DesignSurface
++{
++    private float _renderScale = 1f;
++
++    /// <summary>Device pixels per form pixel for the pictures: 1 to 4, in quarter steps.</summary>
++    public float RenderScale
++    {
++        get => _renderScale;
++        set => _renderScale = float.IsFinite(value) ? Math.Clamp(MathF.Round(value * 4) / 4, 1f, 4f) : 1f;
++    }
++
++    /// <summary>A control painted at <paramref name="scale"/> times <paramref name="size"/>, as a base64 PNG.</summary>
++    private static string ScaledPng(Control control, Size size, float scale)
++    {
++        int w = Math.Max(1, (int)Math.Ceiling(size.Width * scale)), h = Math.Max(1, (int)Math.Ceiling(size.Height * scale));
++        using var bitmap = new Bitmap(w, h);
++        if (size.Width > 0 && size.Height > 0) control.DrawToBitmap(bitmap, new Rectangle(Point.Empty, size), scale);
++        using var png = new MemoryStream();
++        bitmap.Save(png, ImageFormat.Png);
++        return System.Convert.ToBase64String(png.ToArray());
++    }
++}
+diff --git a/src/NetForms.Design/DesignSurface.cs b/src/NetForms.Design/DesignSurface.cs
+index 97ed2c1..8e549c2 100644
+--- a/src/NetForms.Design/DesignSurface.cs
++++ b/src/NetForms.Design/DesignSurface.cs
+@@ -1187,13 +1187,8 @@ public sealed partial class DesignSurface : IDisposable
+         _lastHandler = null;
+         _pasted = null;
+ 
+-        using (var bitmap = new Bitmap(Math.Max(1, size.Width), Math.Max(1, size.Height)))
+-        {
+-            if (size.Width > 0 && size.Height > 0) Root.DrawToBitmap(bitmap, new Rectangle(Point.Empty, size));
+-            using var png = new MemoryStream();
+-            bitmap.Save(png, ImageFormat.Png);
+-            view.Png = System.Convert.ToBase64String(png.ToArray());
+-        }
++        view.Png = ScaledPng(Root, size, RenderScale);
++        view.Scale = RenderScale;
+ 
+         var ids = Ids();
+         Walk(Root, "", ids, view.Items);
+diff --git a/src/NetForms.Design/DesignerProtocol.cs b/src/NetForms.Design/DesignerProtocol.cs
+index 32a9915..5bf5acb 100644
+--- a/src/NetForms.Design/DesignerProtocol.cs
++++ b/src/NetForms.Design/DesignerProtocol.cs
+@@ -44,6 +44,7 @@ public sealed class DesignerProtocol : IDisposable
+     };
+ 
+     private DesignSurface? _surface;
++    private float _scale = 1f;
+     private DesignerLibraries _libraries = DesignerLibraries.None;
+ 
+     /// <summary>Set once "close" has been answered; the host loop stops then.</summary>
+@@ -83,8 +84,16 @@ public sealed class DesignerProtocol : IDisposable
+                 _surface = null;
+                 _surface = DesignSurface.Open(path, _libraries);
+                 _surface.AutoSave = (bool?)p["autoSave"] ?? true;
++                if (p["scale"] is JsonNode openScale) _scale = (float)openScale;
++                _surface.RenderScale = _scale;
+                 return _surface.Render();
+             }
++            case "scale":
++                // The screen's pixel density changed (another monitor, a zoom): the pictures are painted again for it.
++                _scale = (float?)p["scale"] ?? 1f;
++                if (_surface == null) return null;
++                _surface.RenderScale = _scale;
++                return _surface.Render();
+             case "render":
+                 return Current().Render();
+             case "menu":
+@@ -159,6 +168,7 @@ public sealed class DesignerProtocol : IDisposable
+             {
+                 _surface = DesignSurface.Open(oldSurface.FilePath, _libraries);
+                 _surface.AutoSave = oldSurface.AutoSave;
++                _surface.RenderScale = _scale;
+                 view = _surface.Render();
+             }
+             catch (Exception ex) { error = Error(ex); }
+diff --git a/src/NetForms.Design/DesignerView.cs b/src/NetForms.Design/DesignerView.cs
+index eb16b90..66a3d0d 100644
+--- a/src/NetForms.Design/DesignerView.cs
++++ b/src/NetForms.Design/DesignerView.cs
+@@ -18,9 +18,12 @@ public sealed class DesignerView
+     public int Width { get; set; }
+     public int Height { get; set; }
+ 
+-    /// <summary>The client area as a base64 PNG.</summary>
++    /// <summary>The client area as a base64 PNG, <see cref="Scale"/> times Width × Height pixels (shown at Width × Height).</summary>
+     public string Png { get; set; } = "";
+ 
++    /// <summary>The pixel density the pictures (the form, open menus) are painted at: the screen's, so they stay sharp.</summary>
++    public float Scale { get; set; } = 1f;
++
+     /// <summary>Everything on the canvas, parents before children, in paint order among siblings.</summary>
+     public List<DesignerViewItem> Items { get; set; } = new();
+ 
+diff --git a/src/NetForms/Control.Paint.cs b/src/NetForms/Control.Paint.cs
+index 1dd70cc..47b5afb 100644
+--- a/src/NetForms/Control.Paint.cs
++++ b/src/NetForms/Control.Paint.cs
+@@ -172,7 +172,20 @@ public partial class Control
+         // Make sure pending layout has run, as showing the control would.
+         if (_layoutDeferred && _layoutSuspendCount == 0) PerformLayout();
+ 
++        DrawToBitmap(bitmap, targetBounds, 1f);
++    }
++
++    /// <summary>
++    /// <see cref="DrawToBitmap(Bitmap, Rectangle)"/> with every coordinate multiplied by <paramref name="scale"/>: a
++    /// picture for a high-DPI screen (the designer paints the form at the screen's pixel density, so it stays sharp).
++    /// <paramref name="targetBounds"/> is in control pixels; the bitmap must be <paramref name="scale"/> times as large.
++    /// </summary>
++    internal void DrawToBitmap(Bitmap bitmap, Rectangle targetBounds, float scale)
++    {
++        if (_layoutDeferred && _layoutSuspendCount == 0) PerformLayout();
++
+         using var canvas = new SkiaSharp.SKCanvas(bitmap.Skia);
++        canvas.Scale(scale);
+         canvas.ClipRect(new SkiaSharp.SKRect(targetBounds.Left, targetBounds.Top, targetBounds.Right, targetBounds.Bottom), SkiaSharp.SKClipOperation.Intersect, false);
+         canvas.Translate(targetBounds.X, targetBounds.Y);
+         using var g = Graphics.FromCanvas(canvas);
