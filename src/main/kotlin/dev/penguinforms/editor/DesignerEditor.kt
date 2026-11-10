@@ -54,6 +54,9 @@ class DesignerEditor(private val project: Project, private val file: VirtualFile
         session.onFilesChanged = { FileEditorManagerEx.getInstanceEx(project).updateFilePresentation(file) }
         session.editorRef = { this }
         session.publish = { event -> ActiveDesigner.get(project).publish(this, event) }
+        // A form is open in the designer: the Toolbox, Properties and Document Outline belong in this project now.
+        com.intellij.openapi.application.ApplicationManager.getApplication().invokeLater(
+            { dev.penguinforms.toolwindows.DesignerToolWindows.makeAvailable(project) }, project.disposed)
         if (JBCefApp.isSupported()) {
             val b = JBCefBrowser.createBuilder().setOffScreenRendering(false).build()
             browser = b

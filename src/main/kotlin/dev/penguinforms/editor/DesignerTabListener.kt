@@ -56,6 +56,7 @@ class DesignerTabListener(private val project: Project) : FileEditorManagerListe
                 val manager = com.intellij.openapi.wm.ToolWindowManager.getInstance(project)
                 // After the IDE has restored its own layout (else the Project view takes the left side back).
                 manager.invokeLater {
+                    dev.penguinforms.toolwindows.DesignerToolWindows.makeAvailable(project)
                     for (id in listOf("Toolbox", "Properties")) manager.getToolWindow(id)?.show()
                 }
             }
