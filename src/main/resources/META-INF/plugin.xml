@@ -1,7 +1,7 @@
 <idea-plugin>
   <id>dev.penguinforms</id>
   <name>Penguin Forms</name>
-  <vendor url="https://github.com/JacobGoodchild/penguin-forms">Jacob Goodchild</vendor>
+  <vendor url="https://github.com/JacobGoodchild/penguin-forms" email="jacob.l.goodchild@gmail.com">Jacob Goodchild</vendor>
   <description><![CDATA[
     <p><b>A Visual Studio-style Windows Forms designer for Rider on Linux.</b></p>
     <p>A drag-and-drop form designer laid out like the one in Visual Studio:
