@@ -91,7 +91,8 @@ intellijPlatform {
             val localIde = providers.gradleProperty("verifyLocalIde").orNull
             if (localIde != null) local(localIde) else {
                 create(org.jetbrains.intellij.platform.gradle.IntelliJPlatformType.Rider, "2026.1.5.3") { useInstaller = false }
-                create(org.jetbrains.intellij.platform.gradle.IntelliJPlatformType.Rider, providers.gradleProperty("riderVersion").get()) { useInstaller = false }
+                // The newest Rider (override with -PverifyNewestRider=...); 2026.2 passed when 0.1.0 was published.
+                create(org.jetbrains.intellij.platform.gradle.IntelliJPlatformType.Rider, providers.gradleProperty("verifyNewestRider").orElse("2026.3").get()) { useInstaller = false }
             }
         }
     }

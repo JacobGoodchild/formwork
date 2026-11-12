@@ -47,7 +47,7 @@ jobs:
   verify-plugin:
     # The Marketplace build: Rider only, signed with the key in the repository's secrets (CERTIFICATE_CHAIN,
     # PRIVATE_KEY, PRIVATE_KEY_PASSWORD), its signature checked, then JetBrains' plugin checker (the check the
-    # Marketplace runs on upload) against Rider 2026.1 and 2026.2. Each Rider is a ~3 GB download, so this runs only
+    # Marketplace runs on upload) against Rider 2026.1 and the newest (2026.3). Each Rider is a ~3 GB download, so this runs only
     # when started by hand: Actions tab → CI → Run workflow. The signed zip is the artifact penguin-forms-marketplace.
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
