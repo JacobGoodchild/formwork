@@ -101,6 +101,7 @@ it while dragging a menu item (here you drop on its title).
 **Published:** version 0.1.0 approved on the JetBrains Marketplace on 12 Nov 2026,
 <https://plugins.jetbrains.com/plugin/35992-penguin-forms>. It was built signed by CI's hand-started `verify-plugin`
 job (artifact `penguin-forms-marketplace`), and the plugin checker found it compatible with Rider 2026.1 and 2026.2
-(warnings only: `TrustedProjects.isTrusted` and `ActionUtil.invokeAction`). Updates need a higher `pluginVersion`
+(warnings only: `TrustedProjects.isTrusted` and `ActionUtil.invokeAction`). On 12 Nov it was also found compatible
+with Rider 2026.3 (RD-263.7307.259), with one more warning: `FileEditorManager.openFile(file, focus)` is deprecated there. Updates need a higher `pluginVersion`
 and a change-notes entry; publishing them from CI needs a Marketplace token as the `PUBLISH_TOKEN` secret (see
 `docs/development/MARKETPLACE.md`, "Later updates").
